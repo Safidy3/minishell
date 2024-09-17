@@ -46,65 +46,46 @@ void	ft_lstadd_back(t_command_list **lst, t_command_list *new_element)
 	last = ft_lstlast(*lst);
 	last->next = new_element;
 }
-void parse_and_add_command(t_command_list **commande, char *line)
-{
-    int i;
-    i = 0;
-    char **token;
-    token = ft_split(line,' '); 
+// void parse_and_add_command(t_command_list **commande, char *line)
+// {
+//     int i;
+//     i = 0;
+//     char **token;
+//     token = ft_split(line,' '); 
 
-    while (token[i])
-    {
-        ft_lstadd_back(commande,ft_lstnew(token[i]));
-        i++;
-    }
+//     while (token[i])
+//     {
+//         ft_lstadd_back(commande,ft_lstnew(token[i]));
+//         i++;
+//     }
     
+// }
+void ft_print_list(t_command_list cmd)
+{
+	while (cmd.next)
+	{
+		printf("%s", cmd.value);
+	}
+	
 }
-int main(void)
+
+
+
+int main(int argc, char **argv)
 {
     char *line;
-    t_command_list *commande = NULL;
-    while (1)
-    {
+	char **commande;
+	int i = 0;
+    // t_command_list *commande = NULL;
         line = readline("$> ");
-        if (!line)
-            break;
-        add_history(line);
-        parse_and_add_command(&commande, line);
+		commande = ft_split(line);
+		while (commande[i])
+		{
+			
+        	printf("Commande : %s\n", commande[i]);
+			i++;
+		}
         free(line);
-        t_command_list *tmp = commande;
-        while (tmp)
-        {
-            printf("Argument: %s\n", tmp->value);
-            tmp = tmp->next;
-        }
-    }
     return 0;
 }
 
-
-// int main(int argc,char **argv)
-// {
-//     char *line;
-//     char    **envp;
-//     int i= 1;
-//     t_command_list *comamnde = NULL;
-//     while( i < argc)
-//     {
-//         ft_lstadd_back(&comamnde,ft_lstnew(argv[i]));
-//         i++;
-//     }
-//     t_command_list *tmp = comamnde;
-//     while (tmp)
-//     {
-//         printf("Argument: %s\n", tmp->value);
-//         tmp = tmp->next;
-//     }
-//     while (1)
-//     {
-//         line = readline("$>");
-//         add_history(line);   
-//         free(line);
-//     }
-//     return 0;
-// }

@@ -17,22 +17,31 @@
 # include <stdio.h>
 # include <stdlib.h>
 
+#define A 12
+#define B 55
+
+enum e_typage
+{
+	STRING,
+	INPUT_FILE,
+	OUTPUT_FILE,
+	PIPE_FILE,
+	 
+};
+
 typedef struct s_command_table	t_command_table;
 
-struct							s_command_table
-{
-	char						*main_cmd;
-	char						*options;
-};
 typedef struct s_command_list
 {
 	char *value;
+	int type;
 	struct s_command_list *next;
 
 }t_command_list;
 
+char **ft_split(char  *s);
 
-char	**ft_split(char const *s, char c);
+// char	**ft_split(char const *s, char c);
 
 
 #endif

@@ -11,82 +11,92 @@
 /* ************************************************************************** */
 
 #include "minishell.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
-#include "minishell.h"
-#include <unistd.h>
-
-
-
-
-
-static size_t	count(char const *s, char c)
-{
-	size_t	count;
-	size_t	a;
-
-	count = 0;
-	a = 0;
-	while (s[a])
-	{
-		if (s[a] == c)
-			count++;
-		a++;
-	}
-	if (s[a - 1] != '\n')
-		count++;
-	return (count);
+// Fonction pour vérifier si un caractère est un des séparateurs
+bool is_separator(char c) {
+    return (c == '|' || c == ' ' || c == '<' || c == '>');
 }
 
-static void	fill(char *new, char const *s, char c)
-{
-	size_t	a;
+// Fonction pour compter le nombre de mots + séparateurs
+static size_t count_words(char const *s) {
+    size_t count = 0;
+    size_t a = 0;
 
-	a = 0;
-	while (s[a] && s[a] != c)
-	{
-		new[a] = s[a];
-		a++;
-	}
-	new[a] = '\0';
+    while (s[a]) {
+        // Ignorer les espaces successifs
+        while (s[a] == ' ')
+            a++;
+        if (s[a]) {
+            // Si c'est un séparateur, il compte comme un token
+            if (is_separator(s[a]) && s[a] != ' ') {
+                count++;
+                a++;
+            }
+            // Sinon, c'est un mot
+            else {
+                count++;
+                while (s[a] && !is_separator(s[a]))
+                    a++;
+            }
+        }
+    }
+    return count;
 }
 
-static void	split(char **tab, char const *s, char c)
-{
-	size_t	count;
-	size_t	index;
-	size_t	i;
-
-	index = 0;
-	i = 0;
-	while (s[index])
-	{
-		count = 0;
-		while (s[index + count] && s[index + count] != c)
-			count++;
-		if (s[index + count] == c)
-			count++;
-		if (count > 0)
-		{
-			tab[i] = malloc(sizeof(char) * (count + 1));
-			fill(tab[i], (s + index), c);
-			i++;
-			index = index + count;
-		}
-		else
-			index++;
-	}
-	tab[i] = 0;
+// Fonction pour remplir chaque token dans le tableau
+static void fill_word(char *new, char const *s, size_t start, size_t len) {
+    size_t a = 0;
+    while (a < len) {
+        new[a] = s[start + a];
+        a++;
+    }
+    new[a] = '\0';
 }
 
-char	**ft_split(char const *s, char c)
-{
-	size_t	w;
-	char	**tab;
+// Fonction pour réaliser le découpage de la chaîne
+static void split_words(char **tab, char const *s) {
+    size_t index = 0;
+    size_t i = 0;
+    size_t word_start = 0;
 
-	w = count(s, c);
-	tab = malloc(sizeof(char *) * (w + 1));
-	if (!tab)
-		return (NULL);
-	split(tab, s, c);
-	return (tab);
+    while (s[index])
+     {
+        while (s[index] == ' ')
+            index++;
+        word_start = index;
+
+        if (is_separator(s[index]) && s[index] != ' ') {
+            tab[i] = malloc(2 * sizeof(char));  // 1 caractère + '\0'
+            tab[i][0] = s[index];
+            tab[i][1] = '\0';
+            i++;
+            index++;
+        }
+        else {
+            while (s[index] && !is_separator(s[index]))
+                index++;
+            if (index > word_start) {
+                tab[i] = malloc(sizeof(char) * (index - word_start + 1));
+                fill_word(tab[i], s, word_start, index - word_start);
+                i++;
+            }
+        }
+    }
+    tab[i] = NULL;
 }
+
+char **ft_split(char *s) {
+    size_t w;
+    char **tab;
+
+    w = count_words(s);
+    tab = malloc(sizeof(char *) * (w + 1));
+    if (!tab)
+        return NULL;
+    split_words(tab, s);
+}
+
+ 
