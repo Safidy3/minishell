@@ -9,76 +9,102 @@
 /*   Updated: 2024/07/31 17:49:16 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "minishell.h"
 
-static size_t	count(char const *s, char c)
+#include "minishell.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+bool	is_separator(char c)
+{
+	return (c == '|' || c == ' ' || c == '<' || c == '>');
+}
+
+static size_t	count_words(char const *s)
 {
 	size_t	count;
-	size_t	a;
+	size_t	i;
 
 	count = 0;
-	a = 0;
-	while (s[a])
+	i = 0;
+	while (s[i])
 	{
-		if (s[a] == c)
+		while (s[i] == ' ')
+			i++;
+		if (is_separator(s[i]) && s[i] != ' ')
+		{
 			count++;
-		a++;
+			i++;
+		}
+        else
+        {
+            count++;
+            while (s[i] && !is_separator(s[i]))
+                i++;
+        }
 	}
-	if (s[a - 1] != '\n')
-		count++;
 	return (count);
 }
 
-static void	fill(char *new, char const *s, char c)
+static void	fill_word(char *new, char const *s, size_t start, size_t len)
 {
-	size_t	a;
+	size_t	i;
 
-	a = 0;
-	while (s[a] && s[a] != c)
+	i = 0;
+	while (i < len)
 	{
-		new[a] = s[a];
-		a++;
+		new[i] = s[start + i];
+		i++;
 	}
-	new[a] = '\0';
+	new[i] = '\0';
 }
 
-static void	split(char **tab, char const *s, char c)
+static void	split_words(char **tab, char const *s)
 {
-	size_t	count;
 	size_t	index;
 	size_t	i;
+	size_t	word_start;
 
 	index = 0;
 	i = 0;
+	word_start = 0;
 	while (s[index])
 	{
-		count = 0;
-		while (s[index + count] && s[index + count] != c)
-			count++;
-		if (s[index + count] == c)
-			count++;
-		if (count > 0)
+
+		while (s[index] == ' ')
+			index++;
+		word_start = index;
+		if (is_separator(s[index]) && s[index] != ' ')
 		{
-			tab[i] = malloc(sizeof(char) * (count + 1));
-			fill(tab[i], (s + index), c);
+			tab[i] = malloc(2 * sizeof(char));
+			tab[i][0] = s[index];
+			tab[i][1] = '\0';
 			i++;
-			index = index + count;
+			index++;
 		}
 		else
-			index++;
+		{
+			while (s[index] && !is_separator(s[index]))
+				index++;
+			if (index > word_start)
+			{
+				tab[i] = malloc(sizeof(char) * (index - word_start + 1));
+				fill_word(tab[i], s, word_start, index - word_start);
+				i++;
+			}
+		}
 	}
-	tab[i] = 0;
+	tab[i] = NULL;
 }
 
-char	**ft_split_simple(char const *s, char c)
+char	**ft_split(char *s)
 {
 	size_t	w;
 	char	**tab;
 
-	w = count(s, c);
+	w = count_words(s);
 	tab = malloc(sizeof(char *) * (w + 1));
 	if (!tab)
 		return (NULL);
-	split(tab, s, c);
+	split_words(tab, s);
 	return (tab);
 }

@@ -16,6 +16,7 @@
 # include <readline/readline.h>
 # include <stdio.h>
 # include <stdlib.h>
+#include <stdbool.h>
 
 #define A 12
 #define B 55
@@ -26,10 +27,7 @@ enum e_typage
 	INPUT_FILE,
 	OUTPUT_FILE,
 	PIPE_FILE,
-	 
 };
-
-typedef struct s_command_table	t_command_table;
 
 typedef struct s_command_list
 {
@@ -40,8 +38,7 @@ typedef struct s_command_list
 }t_command_list;
 
 char **ft_split(char  *s);
-
-// char	**ft_split(char const *s, char c);
-
+char	**ft_split_simple(char const *s, char c);
+char	*ft_strjoin(char const *s1, char const *s2);
 
 #endif

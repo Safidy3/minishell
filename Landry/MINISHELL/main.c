@@ -12,6 +12,8 @@
 
 #include "minishell.h"
 #include <unistd.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 t_command_list	*ft_lstnew(char *content)
 {
@@ -46,20 +48,21 @@ void	ft_lstadd_back(t_command_list **lst, t_command_list *new_element)
 	last = ft_lstlast(*lst);
 	last->next = new_element;
 }
-// void parse_and_add_command(t_command_list **commande, char *line)
-// {
-//     int i;
-//     i = 0;
-//     char **token;
-//     token = ft_split(line,' '); 
+char **parse_and_add_command(t_command_list **commande, char *line)
+{
+    int i;
+    i = 0;
+    char **token;
+    token = ft_split(line); 
 
-//     while (token[i])
-//     {
-//         ft_lstadd_back(commande,ft_lstnew(token[i]));
-//         i++;
-//     }
+    while (token[i])
+    {
+        ft_lstadd_back(commande,ft_lstnew(token[i]));
+        i++;
+    }
+	return(token);
     
-// }
+}
 void ft_print_list(t_command_list cmd)
 {
 	while (cmd.next)
@@ -71,21 +74,33 @@ void ft_print_list(t_command_list cmd)
 
 
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char **envp)
 {
     char *line;
-	char **commande;
 	int i = 0;
+	char **commande;
     // t_command_list *commande = NULL;
-        line = readline("$> ");
-		commande = ft_split(line);
-		while (commande[i])
+
+	char *path = NULL;
+	line = readline("$> ");
+	// parse_and_add_command(&commande, line);
+	char **directory;
+	char *fu = getenv("PATH");
+	directory = (ft_split_simple(fu,':'));
+	commande = ft_split(line);
+		while (directory[i])
 		{
-			
-        	printf("Commande : %s\n", commande[i]);
+			path = ft_strjoin(directory[i],"/");
+			path = ft_strjoin(path,line);
+			if (access(path,F_OK) == 0)
+			{
+				execve(path,commande,envp);
+				// printf("%s\n",path);
+			}
+			// argv = { "ls", "-l", NULL};
 			i++;
-		}
-        free(line);
+		}			
+		free(line);
     return 0;
 }
 
