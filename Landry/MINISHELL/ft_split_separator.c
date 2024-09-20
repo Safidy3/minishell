@@ -11,8 +11,6 @@
 /* ************************************************************************** */
 
 #include "minishell.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 bool	is_separator(char c)
 {
@@ -35,12 +33,12 @@ static size_t	count_words(char const *s)
 			count++;
 			i++;
 		}
-        else
-        {
-            count++;
-            while (s[i] && !is_separator(s[i]))
-                i++;
-        }
+		else
+		{
+			count++;
+			while (s[i] && !is_separator(s[i]))
+				i++;
+		}
 	}
 	return (count);
 }
@@ -69,7 +67,6 @@ static void	split_words(char **tab, char const *s)
 	word_start = 0;
 	while (s[index])
 	{
-
 		while (s[index] == ' ')
 			index++;
 		word_start = index;
@@ -87,8 +84,8 @@ static void	split_words(char **tab, char const *s)
 				index++;
 			if (index > word_start)
 			{
-				tab[i] = malloc(sizeof(char) * (index - word_start + 1));
-				fill_word(tab[i], s, word_start, index - word_start);
+				tab[i] = malloc(sizeof(char) * ((index - word_start) + 1));
+				fill_word(tab[i], s, word_start, (index - word_start));
 				i++;
 			}
 		}
@@ -96,13 +93,13 @@ static void	split_words(char **tab, char const *s)
 	tab[i] = NULL;
 }
 
-char	**ft_split(char *s)
+char	**ft_split_separator(char *s)
 {
-	size_t	w;
+	size_t	nbr_word;
 	char	**tab;
 
-	w = count_words(s);
-	tab = malloc(sizeof(char *) * (w + 1));
+	nbr_word = count_words(s);
+	tab = malloc(sizeof(char *) * (nbr_word + 1));
 	if (!tab)
 		return (NULL);
 	split_words(tab, s);

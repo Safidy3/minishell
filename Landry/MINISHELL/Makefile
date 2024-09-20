@@ -3,7 +3,7 @@ FLAG = -Wall -Werror -Wextra
 
 OBJ =$(SRC:.c=.o)
 
-SRC = main.c ft_split.c ft_split_separator.c ft_strjoin.c
+SRC = main.c ft_split_simple.c ft_split_separator.c ft_strjoin.c
 
 all:$(NAME)
 

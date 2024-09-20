@@ -37,7 +37,8 @@ typedef struct s_command_list
 
 }t_command_list;
 
-char **ft_split(char  *s);
+char	**ft_split_separator(char *s);
+
 char	**ft_split_simple(char const *s, char c);
 char	*ft_strjoin(char const *s1, char const *s2);
 

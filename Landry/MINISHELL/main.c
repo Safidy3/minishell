@@ -11,9 +11,9 @@
 /* ************************************************************************** */
 
 #include "minishell.h"
-#include <unistd.h>
-#include <sys/types.h>
 #include <dirent.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 t_command_list	*ft_lstnew(char *content)
 {
@@ -48,59 +48,64 @@ void	ft_lstadd_back(t_command_list **lst, t_command_list *new_element)
 	last = ft_lstlast(*lst);
 	last->next = new_element;
 }
-char **parse_and_add_command(t_command_list **commande, char *line)
+char	**parse_and_add_command(t_command_list **commande, char *line)
 {
-    int i;
-    i = 0;
-    char **token;
-    token = ft_split(line); 
+	int		i;
+	char	**token;
 
-    while (token[i])
-    {
-        ft_lstadd_back(commande,ft_lstnew(token[i]));
-        i++;
-    }
-	return(token);
-    
-}
-void ft_print_list(t_command_list cmd)
-{
-	while (cmd.next)
+	i = 0;
+	token = ft_split_separator(line);
+	while (token[i])
 	{
-		printf("%s", cmd.value);
+		ft_lstadd_back(commande, ft_lstnew(token[i]));
+		i++;
 	}
-	
+	return (token);
 }
-
-
-
-int main(int argc, char **argv, char **envp)
+void	ft_execute(char *line, char **commande, char **envp)
 {
-    char *line;
-	int i = 0;
-	char **commande;
-    // t_command_list *commande = NULL;
+	char	**directory;
+	int		i;
+	char	*path;
+	char	*env;
 
-	char *path = NULL;
-	line = readline("$> ");
-	// parse_and_add_command(&commande, line);
-	char **directory;
-	char *fu = getenv("PATH");
-	directory = (ft_split_simple(fu,':'));
-	commande = ft_split(line);
-		while (directory[i])
+	path = NULL;
+	i = 0;
+	env = getenv("PATH");
+	directory = (ft_split_simple(env, ':'));
+	commande = ft_split_separator(line);
+	while (directory[i])
+	{
+		path = ft_strjoin(directory[i], "/");
+		path = ft_strjoin(path, commande[0]);
+		if (access(path, F_OK | X_OK) == 0)
 		{
-			path = ft_strjoin(directory[i],"/");
-			path = ft_strjoin(path,line);
-			if (access(path,F_OK) == 0)
-			{
-				execve(path,commande,envp);
-				// printf("%s\n",path);
-			}
-			// argv = { "ls", "-l", NULL};
-			i++;
-		}			
-		free(line);
-    return 0;
+			execve(path, commande, envp);
+		}
+		i++;
+	}
+}
+void	ft_print_list(t_command_list *command)
+{
+	while (command)
+	{
+		printf("%s\n", command->value);
+		command = command->next;
+	}
 }
 
+int	main(int argc, char **argv, char **envp)
+{
+	char			*line;
+	int				i;
+	t_command_list	*command;
+	char			**commande;
+
+	i = 0;
+
+	line = readline("$> ");
+	command = NULL;
+	parse_and_add_command(&command, line);
+	ft_execute(line,commande,envp);
+	return (0);
+}

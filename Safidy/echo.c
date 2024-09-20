@@ -26,7 +26,7 @@ void	pwd(void)
 	if (ptr == NULL)
 	{
         perror("getcwd failed");
-        return 1;
+        //return 1;
     }
 	printf("%s\n", ptr);
 }
