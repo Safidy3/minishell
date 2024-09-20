@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto <larakoto@student.42antananari    +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 11:57:46 by larakoto          #+#    #+#             */
-/*   Updated: 2024/09/06 16:53:10 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/09/20 17:22:50 by larakoto         ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "minishell.h"
 #include <dirent.h>
@@ -48,7 +48,7 @@ void	ft_lstadd_back(t_command_list **lst, t_command_list *new_element)
 	last = ft_lstlast(*lst);
 	last->next = new_element;
 }
-char	**parse_and_add_command(t_command_list **commande, char *line)
+void parse_and_add_command(t_command_list **commande, char *line)
 {
 	int		i;
 	char	**token;
@@ -60,15 +60,16 @@ char	**parse_and_add_command(t_command_list **commande, char *line)
 		ft_lstadd_back(commande, ft_lstnew(token[i]));
 		i++;
 	}
-	return (token);
+
 }
-void	ft_execute(char *line, char **commande, char **envp)
+void	ft_execute(char *line,  char **envp)
 {
 	char	**directory;
 	int		i;
 	char	*path;
 	char	*env;
 
+	char **commande;
 	path = NULL;
 	i = 0;
 	env = getenv("PATH");
@@ -81,10 +82,13 @@ void	ft_execute(char *line, char **commande, char **envp)
 		if (access(path, F_OK | X_OK) == 0)
 		{
 			execve(path, commande, envp);
+			exit(1);
 		}
 		i++;
 	}
 }
+
+
 void	ft_print_list(t_command_list *command)
 {
 	while (command)
@@ -99,13 +103,23 @@ int	main(int argc, char **argv, char **envp)
 	char			*line;
 	int				i;
 	t_command_list	*command;
-	char			**commande;
-
-	i = 0;
-
-	line = readline("$> ");
+	int pid;
 	command = NULL;
-	parse_and_add_command(&command, line);
-	ft_execute(line,commande,envp);
+	i = 0;
+	while (1)
+	{
+		line = readline("$> ");
+		ft_exit(line);
+		add_history(line);
+		parse_and_add_command(&command, line);
+		pid = fork();
+		if (pid == 0)
+		{
+			ft_execute(line,envp);
+		}
+		else
+		waitpid(pid,NULL,0);
+		
+	}
 	return (0);
 }

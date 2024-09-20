@@ -98,7 +98,7 @@ char	**ft_split_separator(char *s)
 	size_t	nbr_word;
 	char	**tab;
 
-	nbr_word = count_words(s);
+	nbr_word = count_words(s); 
 	tab = malloc(sizeof(char *) * (nbr_word + 1));
 	if (!tab)
 		return (NULL);

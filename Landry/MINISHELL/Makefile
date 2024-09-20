@@ -3,7 +3,7 @@ FLAG = -Wall -Werror -Wextra
 
 OBJ =$(SRC:.c=.o)
 
-SRC = main.c ft_split_simple.c ft_split_separator.c ft_strjoin.c
+SRC = main.c ft_split_simple.c ft_split_separator.c ft_strjoin.c builtins/ft_exit.c
 
 all:$(NAME)
 
@@ -13,7 +13,7 @@ $(NAME):$(OBJ)
 	cc -c  -g $< -o $@ 
 clean:
 	rm -f $(OBJ)
-fclean:
+fclean: clean
 	rm -f $(NAME)
 re: fclean all
 .PHONY: all clean fclean re

@@ -1,0 +1,16 @@
+total 1324
+-rw-r--r-- 1 larakoto 2024_antananarivo 1258134 Sep 13 11:49 Chapter5-WritingYourOwnShell.pdf
+-rw-r--r-- 1 larakoto 2024_antananarivo    4824 Sep 18 14:00 ft_split.o
+-rw-r--r-- 1 larakoto 2024_antananarivo    2336 Sep 20 11:19 ft_split_separator.c
+-rw-r--r-- 1 larakoto 2024_antananarivo    5736 Sep 20 14:57 ft_split_separator.o
+-rw-r--r-- 1 larakoto 2024_antananarivo    1896 Sep 20 10:59 ft_split_simple.c
+-rw-r--r-- 1 larakoto 2024_antananarivo    4848 Sep 20 10:59 ft_split_simple.o
+-rwxr-xr-x 1 larakoto 2024_antananarivo    1435 Sep 18 14:17 ft_strjoin.c
+-rw-r--r-- 1 larakoto 2024_antananarivo    3552 Sep 18 14:17 ft_strjoin.o
+-rwxr-xr-x 1 larakoto 2024_antananarivo    1676 Sep 18 14:12 ft_substr.c
+-rw-r--r-- 1 larakoto 2024_antananarivo    2704 Sep 20 15:14 main.c
+-rw-r--r-- 1 larakoto 2024_antananarivo    6776 Sep 20 15:15 main.o
+-rw-r--r-- 1 larakoto 2024_antananarivo     311 Sep 20 10:59 Makefile
+-rwxr-xr-x 1 larakoto 2024_antananarivo   22256 Sep 20 15:19 minishell
+-rw-r--r-- 1 larakoto 2024_antananarivo    1401 Sep 18 17:04 minishell.h
+-rw-r--r-- 1 larakoto 2024_antananarivo       0 Sep 20 15:19 text.txt
