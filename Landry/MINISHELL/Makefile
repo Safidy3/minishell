@@ -3,8 +3,8 @@ FLAG = -Wall -Werror -Wextra
 
 OBJ =$(SRC:.c=.o)
 
-SRC = main.c ft_split_simple.c ft_split_separator.c ft_strjoin.c builtins/ft_exit.c
-
+SRC = main.c ft_split_simple.c ft_split_separator.c ft_strjoin.c builtins/ft_exit.c\
+ft_list.c ft_signals.c
 all:$(NAME)
 
 $(NAME):$(OBJ)

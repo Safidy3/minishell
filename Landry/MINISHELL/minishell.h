@@ -6,7 +6,7 @@
 /*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/05 10:47:14 by larakoto          #+#    #+#             */
-/*   Updated: 2024/09/20 17:11:28 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/09/21 10:35:15 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -18,6 +18,7 @@
 # include <stdlib.h>
 #include <stdbool.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -46,6 +47,11 @@ char	**ft_split_separator(char *s);
 
 char	**ft_split_simple(char const *s, char c);
 char	*ft_strjoin(char const *s1, char const *s2);
+t_command_list	*ft_lstnew(char *content);
+t_command_list	*ft_lstlast(t_command_list *lst);
+void	ft_lstadd_back(t_command_list **lst, t_command_list *new_element);
+void handle_signals(int sig);
+void put_signal_handlig();
 
 void ft_exit(char *line);
 
