@@ -1,15 +1,12 @@
-SRC = $(GNL_PATH)/get_next_line_bonus.c $(GNL_PATH)/get_next_line_utils_bonus.c \
-	echo.c
+SRC = minishel.c
 
-FLAGS = -Wall -Werror -Wextra
-
-GNL_PATH = ./getNextLine
-
-LIBFT_PATH = ./libft
-LIBFT_ARCHIVE = $(LIBFT_PATH)/libft.a
+FLAGS = -Wall -Werror -Wextra -lreadline
 
 OBJS = $(SRC:.c=.o)
 NAME = minishell
+
+LIBFT_PATH = ./libft
+LIBFT_ARCHIVE = $(LIBFT_PATH)/libft.a
 
 %.o: %.c
 	@$(CC) -g $(FLAGS) -c $< -o $@
@@ -32,5 +29,11 @@ fclean: clean
 	@make fclean -C $(LIBFT_PATH)
 
 re: fclean all
+
+run: re
+	@./minishell
+
+debug: re
+	@valgrind --leak-check=full --track-origins=yes ./minishell
 
 .PHONY: all clean fclean re
