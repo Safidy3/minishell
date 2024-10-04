@@ -22,4 +22,17 @@
 # include <readline/history.h>
 # include "libft/libft.h"
 
+enum e_typage
+{
+	STRING,
+	R_OUT,
+	R_IN,
+	R_PIPE,
+	RR_IN,
+	RR_OUT,
+	PIPE_FILE,
+	INPUT_FILE,
+	OUTPUT_FILE,
+};
+
 #endif

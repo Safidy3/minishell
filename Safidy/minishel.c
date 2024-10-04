@@ -5,11 +5,6 @@
 color in C
 
     printf("\033[1;31mThis is red text\033[0m\n");
-    printf("\033[1;32mThis is green text\033[0m\n");
-    printf("\033[1;33mThis is yellow text\033[0m\n");
-    printf("\033[1;34mThis is blue text\033[0m\n");
-    printf("\033[1;35mThis is magenta text\033[0m\n");
-    printf("\033[1;36mThis is cyan text\033[0m\n");
 
 	30 – Black
 	31 – Red
@@ -24,7 +19,7 @@ color in C
 
 /******************* split iteration ******************/
 
-void	free_split(void *s)
+void	free_split_1(void *s)
 {
 	free((char *) s);
 }
@@ -43,6 +38,12 @@ void	split_iterate(void **array, void (*f)(void *))
 		f(array[i]);
 }
 
+void	free_split(char **array)
+{
+	split_iterate((void **) array, free_split_1);
+	free(array);
+}
+
 /******************* list iteration ******************/
 
 void	print_list(void *s)
@@ -55,13 +56,13 @@ void	free_list_content(void *s)
 {
 	if (!s)
 		return ;
-	split_iterate(s, free_split);
+	split_iterate(s, free_split_1);
 	free(s);
 }
 
 void	free_list(t_list *s)
 {
-	t_list *temp;
+	t_list	*temp;
 
 	ft_lstiter(s, free_list_content);
 	while (s)
@@ -77,7 +78,7 @@ void	free_list(t_list *s)
 
 void	list_init_error(t_list *commands_list, char **arr_commands)
 {
-	split_iterate((void **) arr_commands, free_split);
+	split_iterate((void **) arr_commands, free_split_1);
 	free(arr_commands);
 	free_list(commands_list);
 	printf("\033[1;31mAllocation error :\033[0m\n faild to allocate the ");
@@ -104,25 +105,26 @@ void	initiate_list(t_list **commands_list, char **arr_commands)
 
 /******************* main ******************/
 
-int main()
+int	main(void)
 {
 	char	*example_com;
 	char	**commands;
 	t_list	*commands_list;
 
 	commands_list = NULL;
-	example_com = "ls -la | grep mini | awk '{print $9}' | head -n 1";
+	example_com = "ls -la | grep '4 0' | awk '{print $9}' | head -n 5 | grep 'minishel.c";
 	commands = ft_split(example_com, '|');
 
 	printf("%s\n\n", example_com);
 
-
 	initiate_list(&commands_list, commands);
+	free_split(commands);
 	ft_lstiter(commands_list, print_list);
 
+	
 
+	
+	
 	free_list(commands_list);
-	split_iterate((void **) commands, free_split);
-	free(commands);
 
 }
