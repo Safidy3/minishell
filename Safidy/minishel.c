@@ -3,9 +3,7 @@
 // ls -la | grep mini | awk '{print $9}' | head -n 1
 /*
 color in C
-
     printf("\033[1;31mThis is red text\033[0m\n");
-
 	30 – Black
 	31 – Red
 	32 – Green
@@ -14,7 +12,6 @@ color in C
 	35 – Magenta
 	36 – Cyan
 	37 – White
-
 */
 
 /******************* split iteration ******************/
@@ -125,14 +122,13 @@ void	init_list(t_list **commands_list, char **arr_commands)
 		free(arr_commands[i]);
 	}
 	free(arr_commands);
-	// free_split(arr_commands);
 }
 
 /******************* Exec ******************/
 
 char	*get_bin_path(t_list *commands_list)
 {
-    char	**bin_paths;
+	char	**bin_paths;
 	char	*bin_path;
 	char	*result;
 	char	*temp;
@@ -145,7 +141,8 @@ char	*get_bin_path(t_list *commands_list)
 	{
 		temp = ft_strjoin(bin_paths[i], "/");
 		ft_free(bin_paths[i]);
-		bin_path = ft_strjoin(temp, (char *)((char **)commands_list->content)[0]);
+		bin_path = ft_strjoin(temp,
+				(char *)((char **)commands_list->content)[0]);
 		free(temp);
 		if (access(bin_path, F_OK && X_OK) == 0)
 			result = bin_path;
@@ -178,21 +175,18 @@ void	exec_commands(t_list *commands_list, char **env)
 
 int	main(int argc, char **argv, char **env)
 {
-	(void)argc;
-	(void)argv;
 	char	*example_com;
 	char	**commands;
 	t_list	*commands_list;
 
+	(void)argc;
+	(void)argv;
 	commands_list = NULL;
 	example_com = "ls -la | grep '4 0' | awk '{print $9}' | head -n 5 | grep 'minishel.c";
 	commands = ft_split(example_com, '|');
 	printf("%s\n\n", example_com);
-
 	init_list(&commands_list, commands);
 	ft_lstiter(commands_list, print_list);
-
 	exec_commands(commands_list, env);
-
 	free_list(commands_list);
 }
