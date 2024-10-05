@@ -100,13 +100,46 @@ void	initiate_list(t_list **commands_list, char **arr_commands)
 			*commands_list = new_list;
 		else
 			ft_lstadd_back(commands_list, new_list);
+		free(arr_commands[i]);
 	}
+	free(arr_commands);
+	// free_split(arr_commands);
+}
+
+/******************* Exec ******************/
+
+// void	exec_commands(t_list *commands_list, char **env)
+void	exec_commands(t_list *commands_list)
+{
+    char	**bin_paths;
+	char	**arr_command;
+	char	*exec_commands;
+	char	*temp;
+	int		i;
+
+	i = -1;
+	arr_command = commands_list->content;
+	bin_paths = ft_split(getenv("PATH"), ':');
+	while (bin_paths[++i])
+	{
+		temp = ft_strjoin(bin_paths[i], "/");
+		exec_commands = ft_strjoin(temp, arr_command[0]);
+		ft_putstr_fd(exec_commands, 1);
+		ft_putstr_fd("\n", 1);
+		free(exec_commands);
+		free(temp);
+		free(bin_paths[i]);
+	}
+	free(bin_paths);
 }
 
 /******************* main ******************/
 
-int	main(void)
+// int	main(int argc, char **argv, char **env)
+int	main(int argc, char **argv)
 {
+	(void)argc;
+	(void)argv;
 	char	*example_com;
 	char	**commands;
 	t_list	*commands_list;
@@ -114,17 +147,13 @@ int	main(void)
 	commands_list = NULL;
 	example_com = "ls -la | grep '4 0' | awk '{print $9}' | head -n 5 | grep 'minishel.c";
 	commands = ft_split(example_com, '|');
-
 	printf("%s\n\n", example_com);
 
 	initiate_list(&commands_list, commands);
-	free_split(commands);
 	ft_lstiter(commands_list, print_list);
 
-	
+	// exec_commands(commands_list, env);
+	exec_commands(commands_list);
 
-	
-	
 	free_list(commands_list);
-
 }
