@@ -19,9 +19,19 @@ color in C
 
 /******************* split iteration ******************/
 
+void	ft_free(char *s)
+{
+	if (s)
+	{
+		free(s);
+		s = NULL;
+	}
+}
+
 void	free_split_1(void *s)
 {
-	free((char *) s);
+	if ((char *) s)
+		free((char *) s);
 }
 
 void	print_split(void *s)
@@ -42,6 +52,18 @@ void	free_split(char **array)
 {
 	split_iterate((void **) array, free_split_1);
 	free(array);
+}
+
+int	array_len(char **array)
+{
+	int	i;
+
+	if (!array || !array[0])
+		return (-1);
+	i = 0;
+	while (array[i])
+		i++;
+	return (i);
 }
 
 /******************* list iteration ******************/
@@ -85,10 +107,10 @@ void	list_init_error(t_list *commands_list, char **arr_commands)
 	exit(EXIT_FAILURE);
 }
 
-void	initiate_list(t_list **commands_list, char **arr_commands)
+void	init_list(t_list **commands_list, char **arr_commands)
 {
-	int		i;
 	t_list	*new_list;
+	int		i;
 
 	i = -1;
 	while (arr_commands[++i])
@@ -108,35 +130,53 @@ void	initiate_list(t_list **commands_list, char **arr_commands)
 
 /******************* Exec ******************/
 
-// void	exec_commands(t_list *commands_list, char **env)
-void	exec_commands(t_list *commands_list)
+char	*get_bin_path(t_list *commands_list)
 {
     char	**bin_paths;
-	char	**arr_command;
-	char	*exec_commands;
+	char	*bin_path;
+	char	*result;
 	char	*temp;
 	int		i;
 
-	i = -1;
-	arr_command = commands_list->content;
+	result = NULL;
 	bin_paths = ft_split(getenv("PATH"), ':');
-	while (bin_paths[++i])
+	i = array_len(bin_paths);
+	while (--i >= 0)
 	{
 		temp = ft_strjoin(bin_paths[i], "/");
-		exec_commands = ft_strjoin(temp, arr_command[0]);
-		ft_putstr_fd(exec_commands, 1);
-		ft_putstr_fd("\n", 1);
-		free(exec_commands);
+		ft_free(bin_paths[i]);
+		bin_path = ft_strjoin(temp, (char *)((char **)commands_list->content)[0]);
 		free(temp);
-		free(bin_paths[i]);
+		if (access(bin_path, F_OK && X_OK) == 0)
+			result = bin_path;
+		else
+			ft_free(bin_path);
 	}
+	free(bin_paths);
+	return (result);
+}
+
+void	exec_commands(t_list *commands_list, char **env)
+{
+	char	*bin_paths;
+	int		pid;
+	int		status;
+
+	bin_paths = get_bin_path(commands_list);
+	pid = fork();
+	if (pid == 0)
+	{
+		execve(bin_paths, (char **) commands_list->content, env);
+		exit(1);
+	}
+	else
+		waitpid(pid, &status, 0);
 	free(bin_paths);
 }
 
 /******************* main ******************/
 
-// int	main(int argc, char **argv, char **env)
-int	main(int argc, char **argv)
+int	main(int argc, char **argv, char **env)
 {
 	(void)argc;
 	(void)argv;
@@ -149,11 +189,10 @@ int	main(int argc, char **argv)
 	commands = ft_split(example_com, '|');
 	printf("%s\n\n", example_com);
 
-	initiate_list(&commands_list, commands);
+	init_list(&commands_list, commands);
 	ft_lstiter(commands_list, print_list);
 
-	// exec_commands(commands_list, env);
-	exec_commands(commands_list);
+	exec_commands(commands_list, env);
 
 	free_list(commands_list);
 }
