@@ -54,15 +54,10 @@ static size_t	ft_count_words_len(const char *s, char c)
 		quote = *s++;
 		while (s[word_len] && s[word_len] != quote)
 			word_len++;
-		if (s[word_len])
-			word_len++;
-		word_len++;
 	}
 	else
-	{
 		while (s[word_len] && s[word_len] != c)
 			word_len++;
-	}
 	return (word_len);
 }
 
@@ -78,6 +73,21 @@ static void	*ft_free_exit(char **tab)
 		free(tab);
 	}
 	return (NULL);
+}
+
+char	*cpy_to_arr(char const *s, char **tab, int word_len, int i)
+{
+	if (*s == '\'' || *s == '\"')
+	{
+		s++;
+		ft_strlcpy(tab[i], s, word_len + 1);
+	}
+	else
+		ft_strlcpy(tab[i], s, word_len + 1);
+	s += word_len;
+	if (*s)
+		s++;
+	return ((char *)s);
 }
 
 char	**ft_split_esc(char const *s, char c)
@@ -99,10 +109,7 @@ char	**ft_split_esc(char const *s, char c)
 		tab[i] = (char *)malloc(sizeof(char) * (word_len + 1));
 		if (!tab[i])
 			return (ft_free_exit(tab));
-		ft_strlcpy(tab[i], s, word_len + 1);
-		s += word_len;
-		if (*s)
-			s++;
+		s = cpy_to_arr(s, tab, word_len, i);
 	}
 	return (tab);
 }
