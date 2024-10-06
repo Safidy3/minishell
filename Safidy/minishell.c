@@ -1,9 +1,9 @@
-#include "minishel.h"
+#include "minishell.h"
 
 // ls -la | grep mini | awk '{print $9}' | head -n 1
 /*
 color in C
-    printf("\033[1;31mThis is red text\033[0m\n");
+	printf("This is red text\033[0m\n");
 	30 – Black
 	31 – Red
 	32 – Green
@@ -100,7 +100,7 @@ void	list_init_error(t_list *commands_list, char **arr_commands)
 	split_iterate((void **) arr_commands, free_split_1);
 	free(arr_commands);
 	free_list(commands_list);
-	printf("\033[1;31mAllocation error \033[0m: faild to allocate memory\n");
+	printf("Allocation error \033[0m: faild to allocate memory\n");
 	exit(EXIT_FAILURE);
 }
 
@@ -130,8 +130,8 @@ void	exec_error(char *bin_path, t_list *commands_list, char *msg)
 {
 	ft_free(bin_path);
 	free_list(commands_list);
-	printf("\033[1;31mExecution error \033[0m\n: faild to execute command\n");
-	printf(msg);
+	ft_putstr_fd("Exec err: faild to ", 1);
+	ft_putstr_fd(msg, 1);
 	exit(EXIT_FAILURE);
 }
 
@@ -184,14 +184,14 @@ void	exec_commands(t_list *commands_list, char **env)
 
 	bin_paths = get_bin_path(commands_list);
 	if (!bin_paths)
-		exec_error(bin_paths, commands_list, "\033[1;31mExecution error \033[0m\n: faild to execute command\n");
+		exec_error(bin_paths, commands_list, "execute command\n");
 	pid = fork();
 	if (pid == -1)
-		exec_error(bin_paths, commands_list, "\033[1;31mExecution error \033[0m\n: faild to fork new process\n");
-	else if (pid == 0)
+		exec_error(bin_paths, commands_list, "fork new process\n");
+	if (pid == 0)
 	{
 		execve(bin_paths, (char **) commands_list->content, env);
-		exec_error(bin_paths, commands_list, "\033[1;31mExecution error \033[0m\n: faild to execute command\n");
+		exec_error(bin_paths, commands_list, "execute command\n");
 	}
 	else
 		waitpid(pid, &status, 0);
@@ -213,7 +213,40 @@ int	main(int argc, char **argv, char **env)
 	commands = ft_split(example_com, '|');
 	printf("%s\n\n", example_com);
 	init_list(&commands_list, commands);
-	ft_lstiter(commands_list, print_list);
 	exec_commands(commands_list, env);
 	free_list(commands_list);
 }
+
+
+// int main()
+// {
+// 	int fd[2];
+// 	int status;
+// 	if (pipe(fd) == -1)
+// 		return 1;
+	
+// 	char *resource = (char *)malloc(sizeof(char) * 12);
+// 	if (!resource)
+// 		return 1;
+
+// 	int pid = fork();
+// 	if (pid == 0)
+// 	{
+// 		close(fd[0]);
+// 		char *str = "hello world\n";
+// 		write(fd[1], str, 12);
+// 		close(fd[1]);
+// 		free(resource);
+// 		exit(0);
+// 	}
+// 	else if (pid > 0)
+// 	{
+// 		close(fd[1]);
+// 		waitpid(pid, &status, 0);
+// 		read(fd[0], resource, 12);
+// 		printf("Parent received: %s", resource);
+// 		close(fd[0]);
+// 	}
+// 	free(resource);
+// 	return 0;
+// }

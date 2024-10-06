@@ -1,9 +1,9 @@
-SRC = minishel.c
+SRC = minishell.c
 
 FLAGS = -Wall -Werror -Wextra -lreadline
 
 OBJS = $(SRC:.c=.o)
-NAME = minishel
+NAME = minishell
 
 LIBFT_PATH = ./libft
 LIBFT_ARCHIVE = $(LIBFT_PATH)/libft.a
@@ -31,9 +31,9 @@ fclean: clean
 re: fclean all
 
 run: re
-	@./minishell
+	@./$(NAME)
 
 debug: re
-	@valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./minishel
+	@valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(NAME)
 
 .PHONY: all clean fclean re
