@@ -130,8 +130,8 @@ void	exec_error(char *bin_path, t_list *commands_list, char *msg)
 {
 	ft_free(bin_path);
 	free_list(commands_list);
-	ft_putstr_fd("Exec err: faild to ", 1);
-	ft_putstr_fd(msg, 1);
+	ft_putstr_fd("Exec err: faild to ", 2);
+	ft_putstr_fd(msg, 2);
 	exit(EXIT_FAILURE);
 }
 
@@ -176,26 +176,57 @@ char	*get_bin_path(t_list *commands_list)
 	return (result);
 }
 
-void	exec_commands(t_list *commands_list, char **env)
+void exec_commands(t_list *commands_list, char **env)
 {
-	char	*bin_paths;
-	int		pid;
-	int		status;
+    char *bin_path;
+    char *bin_path_2;
+    int status;
+    int fd[2];
 
-	bin_paths = get_bin_path(commands_list);
-	if (!bin_paths)
-		exec_error(bin_paths, commands_list, "execute command\n");
-	pid = fork();
-	if (pid == -1)
-		exec_error(bin_paths, commands_list, "fork new process\n");
-	if (pid == 0)
-	{
-		execve(bin_paths, (char **) commands_list->content, env);
-		exec_error(bin_paths, commands_list, "execute command\n");
-	}
-	else
-		waitpid(pid, &status, 0);
-	free(bin_paths);
+    if (pipe(fd) == -1)
+        exec_error(NULL, commands_list, "pipe creation failed\n");
+
+    bin_path = get_bin_path(commands_list);
+    if (!bin_path)
+        exec_error(bin_path, commands_list, "execute command\n");
+    
+    int pid = fork();
+    if (pid == -1)
+        exec_error(bin_path, commands_list, "fork new process\n");
+    else if (pid == 0)
+    {
+        // First child (writer)
+        close(fd[0]);
+        if (dup2(fd[1], STDOUT_FILENO) == -1)
+            exec_error(bin_path, commands_list, "dup2 failed\n");
+        close(fd[1]);
+        execve(bin_path, (char **) commands_list->content, env);
+        exec_error(bin_path, commands_list, "execute command\n");
+    }
+
+    bin_path_2 = get_bin_path(commands_list->next);
+    if (!bin_path_2)
+        exec_error(bin_path, commands_list, "execute command\n");
+
+    int pid2 = fork();
+    if (pid2 == -1)
+        exec_error(bin_path, commands_list, "fork new process\n");
+    else if (pid2 == 0)
+    {
+        close(fd[1]);
+        if (dup2(fd[0], STDIN_FILENO) == -1)
+            exec_error(bin_path_2, commands_list, "dup2 failed\n");
+        close(fd[0]);
+        execve(bin_path_2, (char **) commands_list->next->content, env);
+        exec_error(bin_path_2, commands_list, "execute command\n");
+    }
+
+    close(fd[0]);
+    close(fd[1]);
+    waitpid(pid, &status, 0);
+    waitpid(pid2, &status, 0);
+    free(bin_path);
+    free(bin_path_2);
 }
 
 /******************* main ******************/
@@ -208,45 +239,13 @@ int	main(int argc, char **argv, char **env)
 
 	(void)argc;
 	(void)argv;
+	(void)env;
 	commands_list = NULL;
-	example_com = "ls -la | grep '4 0' | awk '{print $9}' | head -n 5 | grep 'minishel.c";
+	example_com = "ls -la | grep \"Okt\" | awk '{print $9}' | head -n 5 | grep 'minishel.c";
 	commands = ft_split(example_com, '|');
 	printf("%s\n\n", example_com);
 	init_list(&commands_list, commands);
+	ft_lstiter(commands_list, print_list);
 	exec_commands(commands_list, env);
 	free_list(commands_list);
 }
-
-
-// int main()
-// {
-// 	int fd[2];
-// 	int status;
-// 	if (pipe(fd) == -1)
-// 		return 1;
-	
-// 	char *resource = (char *)malloc(sizeof(char) * 12);
-// 	if (!resource)
-// 		return 1;
-
-// 	int pid = fork();
-// 	if (pid == 0)
-// 	{
-// 		close(fd[0]);
-// 		char *str = "hello world\n";
-// 		write(fd[1], str, 12);
-// 		close(fd[1]);
-// 		free(resource);
-// 		exit(0);
-// 	}
-// 	else if (pid > 0)
-// 	{
-// 		close(fd[1]);
-// 		waitpid(pid, &status, 0);
-// 		read(fd[0], resource, 12);
-// 		printf("Parent received: %s", resource);
-// 		close(fd[0]);
-// 	}
-// 	free(resource);
-// 	return 0;
-// }
