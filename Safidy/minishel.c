@@ -100,7 +100,7 @@ void	list_init_error(t_list *commands_list, char **arr_commands)
 	split_iterate((void **) arr_commands, free_split_1);
 	free(arr_commands);
 	free_list(commands_list);
-	printf("\033[1;31mAllocation error :\033[0m\n faild to allocate the ");
+	printf("\033[1;31mAllocation error :\033[0m\n faild to allocate memory ");
 	exit(EXIT_FAILURE);
 }
 
@@ -113,7 +113,7 @@ void	init_list(t_list **commands_list, char **arr_commands)
 	while (arr_commands[++i])
 	{
 		new_list = ft_lstnew((void *) ft_split_esc(arr_commands[i], ' '));
-		if (new_list == NULL)
+		if (!new_list)
 			list_init_error(*commands_list, arr_commands);
 		if (i == 0)
 			*commands_list = new_list;
@@ -126,25 +126,46 @@ void	init_list(t_list **commands_list, char **arr_commands)
 
 /******************* Exec ******************/
 
+void	exec_error(t_list *commands_list)
+{
+	printf("\033[1;31mExecution error:\033[0m\n faild to execute command\n");
+	free_list(commands_list);
+	exit(EXIT_FAILURE);
+}
+
+char	*join_bin_path(t_list *commands_list, char *bin_path)
+{
+	char	*temp;
+	char	*res;
+
+	temp = ft_strjoin(bin_path, "/");
+	ft_free(bin_path);
+	if (!temp)
+		return (NULL);
+	res = ft_strjoin(temp,
+			(char *)((char **)commands_list->content)[0]);
+	free(temp);
+	if (!res)
+		return (NULL);
+	return (res);
+}
+
 char	*get_bin_path(t_list *commands_list)
 {
 	char	**bin_paths;
 	char	*bin_path;
 	char	*result;
-	char	*temp;
 	int		i;
 
 	result = NULL;
 	bin_paths = ft_split(getenv("PATH"), ':');
+	if (!bin_paths)
+		return (NULL);
 	i = array_len(bin_paths);
 	while (--i >= 0)
 	{
-		temp = ft_strjoin(bin_paths[i], "/");
-		ft_free(bin_paths[i]);
-		bin_path = ft_strjoin(temp,
-				(char *)((char **)commands_list->content)[0]);
-		free(temp);
-		if (access(bin_path, F_OK && X_OK) == 0)
+		bin_path = join_bin_path(commands_list, bin_paths[i]);
+		if (bin_path && access(bin_path, F_OK | X_OK) == 0)
 			result = bin_path;
 		else
 			ft_free(bin_path);
@@ -160,10 +181,18 @@ void	exec_commands(t_list *commands_list, char **env)
 	int		status;
 
 	bin_paths = get_bin_path(commands_list);
+	if (!bin_paths)
+		exec_error(commands_list);
 	pid = fork();
+	if (!bin_paths)
+	{
+		free(bin_paths);
+		exec_error(commands_list);
+	}
 	if (pid == 0)
 	{
 		execve(bin_paths, (char **) commands_list->content, env);
+		perror("execve failed");
 		exit(1);
 	}
 	else
