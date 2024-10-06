@@ -100,7 +100,7 @@ void	list_init_error(t_list *commands_list, char **arr_commands)
 	split_iterate((void **) arr_commands, free_split_1);
 	free(arr_commands);
 	free_list(commands_list);
-	printf("\033[1;31mAllocation error :\033[0m\n faild to allocate memory ");
+	printf("\033[1;31mAllocation error \033[0m: faild to allocate memory\n");
 	exit(EXIT_FAILURE);
 }
 
@@ -126,10 +126,12 @@ void	init_list(t_list **commands_list, char **arr_commands)
 
 /******************* Exec ******************/
 
-void	exec_error(t_list *commands_list)
+void	exec_error(char *bin_path, t_list *commands_list, char *msg)
 {
-	printf("\033[1;31mExecution error:\033[0m\n faild to execute command\n");
+	ft_free(bin_path);
 	free_list(commands_list);
+	printf("\033[1;31mExecution error \033[0m\n: faild to execute command\n");
+	printf(msg);
 	exit(EXIT_FAILURE);
 }
 
@@ -182,18 +184,14 @@ void	exec_commands(t_list *commands_list, char **env)
 
 	bin_paths = get_bin_path(commands_list);
 	if (!bin_paths)
-		exec_error(commands_list);
+		exec_error(bin_paths, commands_list, "\033[1;31mExecution error \033[0m\n: faild to execute command\n");
 	pid = fork();
-	if (!bin_paths)
-	{
-		free(bin_paths);
-		exec_error(commands_list);
-	}
-	if (pid == 0)
+	if (pid == -1)
+		exec_error(bin_paths, commands_list, "\033[1;31mExecution error \033[0m\n: faild to fork new process\n");
+	else if (pid == 0)
 	{
 		execve(bin_paths, (char **) commands_list->content, env);
-		perror("execve failed");
-		exit(1);
+		exec_error(bin_paths, commands_list, "\033[1;31mExecution error \033[0m\n: faild to execute command\n");
 	}
 	else
 		waitpid(pid, &status, 0);
