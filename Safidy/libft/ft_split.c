@@ -69,10 +69,10 @@ char	**ft_split(char const *s, char c)
 	size_t	word_len;
 	size_t	i;
 
-	words = ft_count_words(s, c);
 	i = -1;
+	words = ft_count_words(s, c);
 	tab = (char **)malloc(sizeof(char *) * (words + 1));
-	if (!tab)
+	if (!tab || words == 0)
 		return (NULL);
 	while (++i < words)
 	{

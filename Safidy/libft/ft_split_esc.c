@@ -90,7 +90,7 @@ char	**ft_split_esc(char const *s, char c)
 	i = -1;
 	words = ft_count_words(s, c);
 	tab = (char **)calloc(sizeof(char *), (words + 1));
-	if (!tab)
+	if (!tab || words == 0)
 		return (NULL);
 	while (++i < words)
 	{
