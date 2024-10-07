@@ -124,7 +124,7 @@ void	init_list(t_list **commands_list, char **arr_commands)
 	free(arr_commands);
 }
 
-/******************* Exec ******************/
+/******************* Exec && Pipe ******************/
 
 void	exec_error(char *bin_path, t_list *commands_list, char *msg)
 {
@@ -191,89 +191,76 @@ void	dup_out(int fd1[2], t_list *commands_list, char *bin_path)
 	close(fd1[1]);
 }
 
-void exec_commands(t_list *commands_list, char **env)
+void	exec_commands(t_list *commands_list, char **env)
 {
-    char *bin_path;
-    int status;
-    int fd1[2];
-    int fd2[2];
+	char	*bin_path;
+	char	*bin_path_2;
+	char	*bin_path_3;
+	int		status;
+	int		fd1[2];
+	int		fd2[2];
+	int		pid;
+	int		pid2;
+	int		pid3;
 
-    if (pipe(fd1) == -1 || pipe(fd2) == -1)
-        exec_error(NULL, commands_list, "pipe creation failed\n");
-
-    /* 1ST COMMAND */
-    bin_path = get_bin_path(commands_list);
-    if (!bin_path)
-        exec_error(bin_path, commands_list, "execute command\n");
-    
-    int pid = fork();
-    if (pid == -1)
-        exec_error(bin_path, commands_list, "fork new process\n");
-    else if (pid == 0)
-    {
-        ft_putendl_fd("1 : ", 1);
-        close(fd1[0]);
-        close(fd2[0]);
-        close(fd2[1]);
+	bin_path = get_bin_path(commands_list);
+	bin_path_2 = get_bin_path(commands_list->next);
+	bin_path_3 = get_bin_path(commands_list->next->next);
+	if (!bin_path || !bin_path_2 || !bin_path_3 || pipe(fd1) == -1 || pipe(fd2) == -1)
+		exec_error(bin_path, commands_list, "execute command\n");
+	/* 1ST COMMAND */
+	pid = fork();
+	if (pid == -1)
+		exec_error(bin_path, commands_list, "fork new process\n");
+	else if (pid == 0)
+	{
+		ft_putendl_fd("1 : ", 1);
+		close(fd1[0]);
+		close(fd2[0]);
+		close(fd2[1]);
 		dup_out(fd1, commands_list, bin_path);
-        execve(bin_path, (char **) commands_list->content, env);
-        exec_error(bin_path, commands_list, "execute command\n");
-    }
-
-    /* 2ND COMMAND */
-    char *bin_path_2 = get_bin_path(commands_list->next);
-    if (!bin_path_2)
-        exec_error(bin_path, commands_list, "execute command\n");
-
-    int pid2 = fork();
-    if (pid2 == -1)
-        exec_error(bin_path, commands_list, "fork new process\n");
-    else if (pid2 == 0)
-    {
-        ft_putendl_fd("2 : ", 1);
-        close(fd1[1]);
-        close(fd2[0]);
+		execve(bin_path, (char **) commands_list->content, env);
+		exec_error(bin_path, commands_list, "execute command\n");
+	}
+	/* 2ND COMMAND */
+	pid2 = fork();
+	if (pid2 == -1)
+		exec_error(bin_path, commands_list, "fork new process\n");
+	else if (pid2 == 0)
+	{
+		ft_putendl_fd("2 : ", 1);
+		close(fd1[1]);
+		close(fd2[0]);
 		dup_in(fd1, commands_list, bin_path);
 		dup_out(fd2, commands_list, bin_path);
-        execve(bin_path_2, (char **) commands_list->next->content, env);
-        exec_error(bin_path_2, commands_list, "execute command\n");
-    }
-
-    /* 3RD COMMAND */
-    char *bin_path_3 = get_bin_path(commands_list->next->next);
-    if (!bin_path_3)
-        exec_error(bin_path, commands_list, "execute command\n");
-
-    int pid3 = fork();
-    if (pid3 == -1)
-        exec_error(bin_path, commands_list, "fork new process\n");
-    else if (pid3 == 0)
-    {
-        ft_putendl_fd("3 : ", 1);
-        close(fd1[0]);
-        close(fd1[1]);
-        close(fd2[1]);
+		execve(bin_path_2, (char **) commands_list->next->content, env);
+		exec_error(bin_path_2, commands_list, "execute command\n");
+	}
+	/* 3RD COMMAND */
+	pid3 = fork();
+	if (pid3 == -1)
+		exec_error(bin_path, commands_list, "fork new process\n");
+	else if (pid3 == 0)
+	{
+		ft_putendl_fd("3 : ", 1);
+		close(fd1[0]);
+		close(fd1[1]);
+		close(fd2[1]);
 		dup_in(fd2, commands_list, bin_path);
-        execve(bin_path_3, (char **) commands_list->next->next->content, env);
-        exec_error(bin_path_3, commands_list, "execute command\n");
-    }
-
-    // Parent closes all pipe ends
-    close(fd1[0]);
-    close(fd1[1]);
-    close(fd2[0]);
-    close(fd2[1]);
-
-    // Wait for all children
-    waitpid(pid, &status, 0);
-    waitpid(pid2, &status, 0);
-    waitpid(pid3, &status, 0);
-
-    free(bin_path);
-    free(bin_path_2);
-    free(bin_path_3);
+		execve(bin_path_3, (char **) commands_list->next->next->content, env);
+		exec_error(bin_path_3, commands_list, "execute command\n");
+	}
+	close(fd1[0]);
+	close(fd1[1]);
+	close(fd2[0]);
+	close(fd2[1]);
+	waitpid(pid, &status, 0);
+	waitpid(pid2, &status, 0);
+	waitpid(pid3, &status, 0);
+	free(bin_path);
+	free(bin_path_2);
+	free(bin_path_3);
 }
-
 
 /******************* main ******************/
 
