@@ -31,7 +31,7 @@ void	free_split_1(void *s)
 		free((char *) s);
 }
 
-void	print_split(void *s)
+void	print_s(void *s)
 {
 	printf("%s \n", (char *) s);
 }
@@ -63,11 +63,16 @@ int	array_len(char **array)
 	return (i);
 }
 
+void	print_split(char **array)
+{
+	split_iterate((void **) array, print_s);
+}
+
 /******************* list iteration ******************/
 
 void	print_list(void *s)
 {
-	split_iterate((void *) s, print_split);
+	split_iterate((void *) s, print_s);
 	printf("\n");
 }
 
@@ -274,11 +279,24 @@ int	main(int argc, char **argv, char **env)
 	(void)argv;
 	(void)env;
 	commands_list = NULL;
-	example_com = "ls -la | grep \"Okt\" | awk '{print $9}' | head -n 5 | grep minishel.c";
-	commands = ft_split(example_com, '|');
+	example_com = "ls -la | grep \"Okt\" | awk '{print | $g}' | head -n 5 | grep minishel.c";
 	printf("%s\n\n", example_com);
+
+	// e"c"h"o" "hello world"
+	// ls -la '|' grep Okt
+	// cat<minishell.c>a
+	// grep "Okt" | awk '{print | $g}'
+	// echo "$USER"
+
+	commands = ft_split_esc_2(example_com, '|');
+	print_split(commands);
+
 	init_list(&commands_list, commands);
 	ft_lstiter(commands_list, print_list);
-	exec_commands(commands_list, env);
-	free_list(commands_list);
+	
+	// free_split(commands);
+	// free_list(commands);
+
+	// exec_commands(commands_list, env);
+	// free_list(commands_list);
 }

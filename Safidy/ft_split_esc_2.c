@@ -1,4 +1,4 @@
-#include "libft.h"
+#include "minishell.h"
 
 static char	*ft_escap_spliter(const char *s, char c)
 {
@@ -48,15 +48,20 @@ static size_t	ft_count_words_len(const char *s, char c)
 	char	quote;
 
 	word_len = 0;
-	if (*s == '\'' || *s == '\"')
+	while (s[word_len] && s[word_len] != c)
 	{
-		quote = *s++;
-		while (s[word_len] && s[word_len] != quote)
+		if (s[word_len] == '\'' || s[word_len] == '"')
+		{
+			quote = s[word_len];
+			word_len++;
+			while (s[word_len] && s[word_len] != quote)
+				word_len++;
+			if (s[word_len])
+				word_len++;
+		}
+		if (s[word_len] && s[word_len] != c)
 			word_len++;
 	}
-	else
-		while (s[word_len] && s[word_len] != c)
-			word_len++;
 	return (word_len);
 }
 
@@ -74,22 +79,16 @@ static void	*ft_free_exit(char **tab)
 	return (NULL);
 }
 
-char	*cpy_to_arr(char const *s, char **tab, int word_len, int i)
+static char	*cpy_to_arr(char const *s, char **tab, int word_len, int i)
 {
-	if (*s == '\'' || *s == '\"')
-	{
-		s++;
-		ft_strlcpy(tab[i], s, word_len + 1);
-	}
-	else
-		ft_strlcpy(tab[i], s, word_len + 1);
+	ft_strlcpy(tab[i], s, word_len + 1);
 	s += word_len;
 	if (*s)
 		s++;
 	return ((char *)s);
 }
 
-char	**ft_split_esc(char const *s, char c)
+char	**ft_split_esc_2(char const *s, char c)
 {
 	char	**tab;
 	size_t	words;
