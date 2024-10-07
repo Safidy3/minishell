@@ -173,19 +173,35 @@ char	*get_bin_path(t_list *commands_list)
 			ft_free(bin_path);
 	}
 	free(bin_paths);
+	printf("%s\n", result);
 	return (result);
+}
+
+void	dup_in(int fd1[2], t_list *commands_list, char *bin_path)
+{
+	if (dup2(fd1[0], STDIN_FILENO) == -1)
+		exec_error(bin_path, commands_list, "dup2 pipe\n");
+	close(fd1[0]);
+}
+
+void	dup_out(int fd1[2], t_list *commands_list, char *bin_path)
+{
+	if (dup2(fd1[1], STDOUT_FILENO) == -1)
+		exec_error(bin_path, commands_list, "dup2 pipe\n");
+	close(fd1[1]);
 }
 
 void exec_commands(t_list *commands_list, char **env)
 {
     char *bin_path;
-    char *bin_path_2;
     int status;
-    int fd[2];
+    int fd1[2];
+    int fd2[2];
 
-    if (pipe(fd) == -1)
+    if (pipe(fd1) == -1 || pipe(fd2) == -1)
         exec_error(NULL, commands_list, "pipe creation failed\n");
 
+    /* 1ST COMMAND */
     bin_path = get_bin_path(commands_list);
     if (!bin_path)
         exec_error(bin_path, commands_list, "execute command\n");
@@ -195,16 +211,17 @@ void exec_commands(t_list *commands_list, char **env)
         exec_error(bin_path, commands_list, "fork new process\n");
     else if (pid == 0)
     {
-        // First child (writer)
-        close(fd[0]);
-        if (dup2(fd[1], STDOUT_FILENO) == -1)
-            exec_error(bin_path, commands_list, "dup2 failed\n");
-        close(fd[1]);
+        ft_putendl_fd("1 : ", 1);
+        close(fd1[0]);
+        close(fd2[0]);
+        close(fd2[1]);
+		dup_out(fd1, commands_list, bin_path);
         execve(bin_path, (char **) commands_list->content, env);
         exec_error(bin_path, commands_list, "execute command\n");
     }
 
-    bin_path_2 = get_bin_path(commands_list->next);
+    /* 2ND COMMAND */
+    char *bin_path_2 = get_bin_path(commands_list->next);
     if (!bin_path_2)
         exec_error(bin_path, commands_list, "execute command\n");
 
@@ -213,21 +230,50 @@ void exec_commands(t_list *commands_list, char **env)
         exec_error(bin_path, commands_list, "fork new process\n");
     else if (pid2 == 0)
     {
-        close(fd[1]);
-        if (dup2(fd[0], STDIN_FILENO) == -1)
-            exec_error(bin_path_2, commands_list, "dup2 failed\n");
-        close(fd[0]);
+        ft_putendl_fd("2 : ", 1);
+        close(fd1[1]);
+        close(fd2[0]);
+		dup_in(fd1, commands_list, bin_path);
+		dup_out(fd2, commands_list, bin_path);
         execve(bin_path_2, (char **) commands_list->next->content, env);
         exec_error(bin_path_2, commands_list, "execute command\n");
     }
 
-    close(fd[0]);
-    close(fd[1]);
+    /* 3RD COMMAND */
+    char *bin_path_3 = get_bin_path(commands_list->next->next);
+    if (!bin_path_3)
+        exec_error(bin_path, commands_list, "execute command\n");
+
+    int pid3 = fork();
+    if (pid3 == -1)
+        exec_error(bin_path, commands_list, "fork new process\n");
+    else if (pid3 == 0)
+    {
+        ft_putendl_fd("3 : ", 1);
+        close(fd1[0]);
+        close(fd1[1]);
+        close(fd2[1]);
+		dup_in(fd2, commands_list, bin_path);
+        execve(bin_path_3, (char **) commands_list->next->next->content, env);
+        exec_error(bin_path_3, commands_list, "execute command\n");
+    }
+
+    // Parent closes all pipe ends
+    close(fd1[0]);
+    close(fd1[1]);
+    close(fd2[0]);
+    close(fd2[1]);
+
+    // Wait for all children
     waitpid(pid, &status, 0);
     waitpid(pid2, &status, 0);
+    waitpid(pid3, &status, 0);
+
     free(bin_path);
     free(bin_path_2);
+    free(bin_path_3);
 }
+
 
 /******************* main ******************/
 
@@ -241,7 +287,7 @@ int	main(int argc, char **argv, char **env)
 	(void)argv;
 	(void)env;
 	commands_list = NULL;
-	example_com = "ls -la | grep \"Okt\" | awk '{print $9}' | head -n 5 | grep 'minishel.c";
+	example_com = "ls -la | grep \"Okt\" | awk '{print $9}' | head -n 5 | grep minishel.c";
 	commands = ft_split(example_com, '|');
 	printf("%s\n\n", example_com);
 	init_list(&commands_list, commands);
