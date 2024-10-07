@@ -279,21 +279,24 @@ int	main(int argc, char **argv, char **env)
 	(void)argv;
 	(void)env;
 	commands_list = NULL;
-	example_com = "ls -la | grep \"Okt\" | awk '{print | $g}' | head -n 5 | grep minishel.c";
+	example_com = "ls -la '|' grep \"Okt\" | awk '{print | $g}' | head -n 5 | grep 'm'i'n'i's'h'e'l.c";
 	printf("%s\n\n", example_com);
 
 	// e"c"h"o" "hello world"
-	// ls -la '|' grep Okt
 	// cat<minishell.c>a
-	// grep "Okt" | awk '{print | $g}'
 	// echo "$USER"
+
+	// ls -la '|' grep Okt
+	// grep "Okt" | awk '{print | $g}'
 
 	commands = ft_split_esc_2(example_com, '|');
 	print_split(commands);
 
+	printf("\n\n");
+
 	init_list(&commands_list, commands);
 	ft_lstiter(commands_list, print_list);
-	
+
 	// free_split(commands);
 	// free_list(commands);
 
