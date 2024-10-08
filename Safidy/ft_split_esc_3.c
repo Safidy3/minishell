@@ -55,62 +55,55 @@ static size_t	ft_count_words(const char *s, char c)
 	}
 	return (count);
 }
-
 static size_t	ft_count_words_len(const char *s, char c)
 {
-	char	quote;
-	int		word_len;
-	int		i;
+    size_t	word_len;
+    int		i;
 
-	word_len = 0;
-	while (s[i] && s[i] != c)
-	{
-		if (s[i] == '\'' || s[i] == '"')
-		{
-			quote = s[i++];
-			while (s[i] && s[i] != quote)
-				i++;
-			if (s[i])
-				i++;
-			word_len -= 2;
-		}
-		if (s[i] && s[i] != c)
-			i++;
-	}
-	word_len += i;
-	printf("%d\n", word_len);
-	return (word_len);
+    word_len = 0;
+    i = 0;
+    while (s[i] && s[i] != c)
+    {
+        if (s[i] == '\'' || s[i] == '"')
+        {
+            if (s[i + 1])
+                word_len++;
+            i += 2;
+        }
+        else
+        {
+            word_len++;
+            i++;
+        }
+    }
+    return (word_len);
 }
-
-//awk '{print | $g}' | grep 'mi'ni's'h'e'l.c
 
 static char	*cpy_to_arr(char const *s, char *tab, int word_len)
 {
-	char	quote;
-	int		i;
-	int		j;
+    int		i;
+    int		j;
 
-	i = 0;
-	j = 0;
-	while (j < word_len)
-	{
-		if (s[i] == '\'' || s[i] == '"')
-		{
-			quote = s[i++];
-			while (s[i] && s[i] != quote)
-				tab[j++] = s[i++];
-			if (s[i])
-				i++;
-		}
-		else
-			tab[j++] = s[i++];
-	}
-	if (*s)
-		s++;
-	return ((char *)s + i);
+    i = 0;
+    j = 0;
+    while (s[i] && j < word_len)
+    {
+        if (s[i] == '\'' || s[i] == '"')
+        {
+            if (s[i + 1])
+                tab[j++] = s[i + 1];
+            i += 2;
+        }
+        else
+            tab[j++] = s[i++];
+    }
+    tab[j] = '\0';
+    return ((char *)s + i);
 }
 
-char	**ft_split_esc_2(char const *s, char c)
+
+
+char	**ft_split_esc_3(char const *s, char c)
 {
 	char	**tab;
 	size_t	words;
@@ -126,11 +119,10 @@ char	**ft_split_esc_2(char const *s, char c)
 	{
 		s = ft_escap_spliter(s, c);
 		word_len = ft_count_words_len(s, c);
-		tab[i] = (char *)calloc(sizeof(char), (word_len + 1));
+		tab[i] = (char *)malloc(sizeof(char) * (word_len + 1));
 		if (!tab[i])
 			return (ft_free_exit(tab));
 		s = cpy_to_arr(s, tab[i], word_len);
-		// break;
 	}
 	return (tab);
 }

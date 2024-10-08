@@ -1,4 +1,4 @@
-SRC = minishell.c ft_split_esc_2.c
+SRC = minishell.c ft_split_esc_2.c ft_split_esc_3.c
 
 # FLAGS = -Wall -Werror -Wextra -lreadline
 FLAGS =
@@ -31,10 +31,10 @@ fclean: clean
 
 re: fclean all
 
-run: re
+run: all
 	@./$(NAME)
 
-debug: re
+debug: all
 	@valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(NAME)
 
 .PHONY: all clean fclean re
