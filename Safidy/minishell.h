@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/10/08 11:44:31 by safandri         ###   ########.fr       */
+/*   Updated: 2024/10/08 14:46:39 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,5 @@ enum e_typage
 };
 
 char	**ft_split_esc_2(char const *s, char c);
-char	**ft_split_esc_3(char const *s, char c);
 
 #endif

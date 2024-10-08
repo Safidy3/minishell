@@ -63,6 +63,7 @@ static size_t	ft_count_words_len(const char *s, char c)
 	int		i;
 
 	word_len = 0;
+	i = 0;
 	while (s[i] && s[i] != c)
 	{
 		if (s[i] == '\'' || s[i] == '"')
@@ -74,15 +75,12 @@ static size_t	ft_count_words_len(const char *s, char c)
 				i++;
 			word_len -= 2;
 		}
-		if (s[i] && s[i] != c)
+		else if (s[i] && s[i] != c)
 			i++;
 	}
 	word_len += i;
-	printf("%d\n", word_len);
 	return (word_len);
 }
-
-//awk '{print | $g}' | grep 'mi'ni's'h'e'l.c
 
 static char	*cpy_to_arr(char const *s, char *tab, int word_len)
 {
@@ -105,9 +103,10 @@ static char	*cpy_to_arr(char const *s, char *tab, int word_len)
 		else
 			tab[j++] = s[i++];
 	}
+	s += i;
 	if (*s)
 		s++;
-	return ((char *)s + i);
+	return ((char *)s);
 }
 
 char	**ft_split_esc_2(char const *s, char c)
@@ -130,7 +129,6 @@ char	**ft_split_esc_2(char const *s, char c)
 		if (!tab[i])
 			return (ft_free_exit(tab));
 		s = cpy_to_arr(s, tab[i], word_len);
-		// break;
 	}
 	return (tab);
 }
