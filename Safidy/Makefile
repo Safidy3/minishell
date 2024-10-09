@@ -1,8 +1,8 @@
 SRC = minishell.c ft_split_esc_2.c
 
 # FLAGS = -Wall -Werror -Wextra -lreadline
-FLAGS = -Wall -Werror -Wextra
-# FLAGS =
+# FLAGS = -Wall -Werror -Wextra
+FLAGS =
 
 OBJS = $(SRC:.c=.o)
 NAME = minishell

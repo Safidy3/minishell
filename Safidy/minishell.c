@@ -178,94 +178,95 @@ char	*get_bin_path(t_list *commands_list)
 			ft_free(bin_path);
 	}
 	free(bin_paths);
-	printf("%s\n", result);
 	return (result);
 }
 
-void	dup_in(int fd1[2], t_list *commands_list, char *bin_path)
+void	dup_in(int fd[2], t_list *commands_list, char *bin_path)
 {
-	if (dup2(fd1[0], STDIN_FILENO) == -1)
+	close(fd[1]);
+	if (dup2(fd[0], STDIN_FILENO) == -1)
 		exec_error(bin_path, commands_list, "dup2 pipe\n");
-	close(fd1[0]);
+	close(fd[0]);
 }
 
-void	dup_out(int fd1[2], t_list *commands_list, char *bin_path)
+void	dup_out(int fd[2], t_list *commands_list, char *bin_path)
 {
-	if (dup2(fd1[1], STDOUT_FILENO) == -1)
+	close(fd[0]);
+	if (dup2(fd[1], STDOUT_FILENO) == -1)
 		exec_error(bin_path, commands_list, "dup2 pipe\n");
-	close(fd1[1]);
+	close(fd[1]);
 }
 
-void	exec_commands(t_list *commands_list, char **env)
+void	ft_close(int fd[2])
 {
-	char	*bin_path;
-	char	*bin_path_2;
-	char	*bin_path_3;
-	int		status;
-	int		fd1[2];
-	int		fd2[2];
-	int		pid;
-	int		pid2;
-	int		pid3;
-
-	bin_path = get_bin_path(commands_list);
-	bin_path_2 = get_bin_path(commands_list->next);
-	bin_path_3 = get_bin_path(commands_list->next->next);
-	if (!bin_path || !bin_path_2 || !bin_path_3 || pipe(fd1) == -1 || pipe(fd2) == -1)
-		exec_error(bin_path, commands_list, "execute command\n");
-	/* 1ST COMMAND */
-	pid = fork();
-	if (pid == -1)
-		exec_error(bin_path, commands_list, "fork new process\n");
-	else if (pid == 0)
-	{
-		ft_putendl_fd("1 : ", 1);
-		close(fd1[0]);
-		close(fd2[0]);
-		close(fd2[1]);
-		dup_out(fd1, commands_list, bin_path);
-		execve(bin_path, (char **) commands_list->content, env);
-		exec_error(bin_path, commands_list, "execute command\n");
-	}
-	/* 2ND COMMAND */
-	pid2 = fork();
-	if (pid2 == -1)
-		exec_error(bin_path, commands_list, "fork new process\n");
-	else if (pid2 == 0)
-	{
-		ft_putendl_fd("2 : ", 1);
-		close(fd1[1]);
-		close(fd2[0]);
-		dup_in(fd1, commands_list, bin_path);
-		dup_out(fd2, commands_list, bin_path);
-		execve(bin_path_2, (char **) commands_list->next->content, env);
-		exec_error(bin_path_2, commands_list, "execute command\n");
-	}
-	/* 3RD COMMAND */
-	pid3 = fork();
-	if (pid3 == -1)
-		exec_error(bin_path, commands_list, "fork new process\n");
-	else if (pid3 == 0)
-	{
-		ft_putendl_fd("3 : ", 1);
-		close(fd1[0]);
-		close(fd1[1]);
-		close(fd2[1]);
-		dup_in(fd2, commands_list, bin_path);
-		execve(bin_path_3, (char **) commands_list->next->next->content, env);
-		exec_error(bin_path_3, commands_list, "execute command\n");
-	}
-	close(fd1[0]);
-	close(fd1[1]);
-	close(fd2[0]);
-	close(fd2[1]);
-	waitpid(pid, &status, 0);
-	waitpid(pid2, &status, 0);
-	waitpid(pid3, &status, 0);
-	free(bin_path);
-	free(bin_path_2);
-	free(bin_path_3);
+	close(fd[0]);
+	close(fd[1]);
 }
+
+void exec_commands(t_list *commands_list, char **env)
+{
+    pid_t   pid;
+    char    *bin_path;
+    int     prev_fd[2] = {-1, -1};
+    int     current_fd[2];
+    t_list  *current_command;
+    t_list  *next_command;
+
+    current_command = commands_list;
+    while (current_command)
+    {
+        next_command = current_command->next;
+        // Only create a new pipe if there's a next command
+        if (next_command && pipe(current_fd) == -1)
+            exec_error(NULL, commands_list, "pipe creation failed\n");
+
+        pid = fork();
+        if (pid == 0)
+        {
+            char *bin_path = get_bin_path(current_command);
+            if (!bin_path)
+                exec_error(NULL, commands_list, "get_bin_path failed\n");
+            // Handle input redirection if not first command
+            if (prev_fd[0] != -1)
+            {
+                if (dup2(prev_fd[0], STDIN_FILENO) == -1)
+                    exec_error(bin_path, commands_list, "dup2 failed (stdin)\n");
+                close(prev_fd[0]);
+            }
+            // Handle output redirection if not last command
+            if (next_command)
+            {
+                if (dup2(current_fd[1], STDOUT_FILENO) == -1)
+                    exec_error(bin_path, commands_list, "dup2 failed (stdout)\n");
+                close(current_fd[1]);
+                close(current_fd[0]);
+            }
+            execve(bin_path, (char **)current_command->content, env);
+            exec_error(bin_path, commands_list, "execve failed\n");
+            free(bin_path);
+        }
+        // Parent process
+        else
+        {
+            if (prev_fd[0] != -1)
+                close(prev_fd[0]);
+            if (next_command)
+            {
+                close(current_fd[1]);
+                prev_fd[0] = current_fd[0];
+            }
+            current_command = next_command;
+        }
+    }
+    
+    // Close any remaining file descriptors
+    if (prev_fd[0] != -1)
+        close(prev_fd[0]);
+
+    // Wait for all child processes
+    while (wait(NULL) > 0);
+}
+
 
 /******************* main ******************/
 
@@ -279,7 +280,8 @@ int	main(int argc, char **argv, char **env)
 	(void)argv;
 	(void)env;
 	commands_list = NULL;
-	example_com = "ls -la | grep 'm'i'n'i's'h'e'l.c | awk '{print | $g}' | head -n 5 | grep \"Okt\"";
+	// example_com = "ls -la | grep \"Okt\" | awk '{print $9}' | head -n 5 | grep 'm'i'n'i's'h'e'l.c";
+	example_com = "ls -la | grep \"Okt\" | awk '{print $9}'";
 	printf("%s\n\n", example_com);
 
 	// cat<minishell.c>a
