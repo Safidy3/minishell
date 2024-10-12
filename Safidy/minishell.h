@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/10/08 14:46:39 by safandri         ###   ########.fr       */
+/*   Updated: 2024/10/12 14:57:59 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,12 @@ enum e_typage
 	INPUT_FILE,
 	OUTPUT_FILE,
 };
+
+typedef struct s_all
+{
+	char	**env;
+	t_list	*command_list;
+}			t_all;
 
 char	**ft_split_esc_2(char const *s, char c);
 

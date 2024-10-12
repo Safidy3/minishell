@@ -181,116 +181,114 @@ char	*get_bin_path(t_list *commands_list)
 	return (result);
 }
 
-void	dup_in(int fd[2], t_list *commands_list, char *bin_path)
+void	dup_in(int fd[2], t_list *commands_list, char *bin_path, int closeall)
 {
-	close(fd[1]);
 	if (dup2(fd[0], STDIN_FILENO) == -1)
 		exec_error(bin_path, commands_list, "dup2 pipe\n");
 	close(fd[0]);
+	if (closeall != 0)
+		close(fd[1]);
 }
 
-void	dup_out(int fd[2], t_list *commands_list, char *bin_path)
+void	dup_out(int fd[2], t_list *commands_list, char *bin_path, int closeall)
 {
-	close(fd[0]);
 	if (dup2(fd[1], STDOUT_FILENO) == -1)
 		exec_error(bin_path, commands_list, "dup2 pipe\n");
 	close(fd[1]);
+	if (closeall != 0)
+		close(fd[0]);
 }
 
-void	ft_close(int fd[2])
+/*
+	fd[2][2]
+	fd[0] : prev
+	fd[1] : current
+*/
+
+void	exec_child(t_list *command, int prev_fd[2], int current_fd[2], char **env)
 {
-	close(fd[0]);
-	close(fd[1]);
+	char *bin_path;
+
+	bin_path = get_bin_path(command);
+	if (!bin_path)
+		exec_error(NULL, command, "get_bin_path failed\n");
+	if (prev_fd[0] != -1)
+		dup_in(prev_fd, command, bin_path, 0);
+	if (command->next)
+		dup_out(current_fd, command, bin_path, 1);
+	execve(bin_path, (char **)command->content, env);
+	exec_error(bin_path, command, "execve failed\n");
+	free(bin_path);
 }
 
-void exec_commands(t_list *commands_list, char **env)
+
+t_list	*exec_parent(t_list *command, int prev_fd[2], int current_fd[2])
 {
-    pid_t   pid;
-    char    *bin_path;
-    int     prev_fd[2] = {-1, -1};
-    int     current_fd[2];
-    t_list  *current_command;
-    t_list  *next_command;
-
-    current_command = commands_list;
-    while (current_command)
-    {
-        next_command = current_command->next;
-        // Only create a new pipe if there's a next command
-        if (next_command && pipe(current_fd) == -1)
-            exec_error(NULL, commands_list, "pipe creation failed\n");
-
-        pid = fork();
-        if (pid == 0)
-        {
-            char *bin_path = get_bin_path(current_command);
-            if (!bin_path)
-                exec_error(NULL, commands_list, "get_bin_path failed\n");
-            // Handle input redirection if not first command
-            if (prev_fd[0] != -1)
-            {
-                if (dup2(prev_fd[0], STDIN_FILENO) == -1)
-                    exec_error(bin_path, commands_list, "dup2 failed (stdin)\n");
-                close(prev_fd[0]);
-            }
-            // Handle output redirection if not last command
-            if (next_command)
-            {
-                if (dup2(current_fd[1], STDOUT_FILENO) == -1)
-                    exec_error(bin_path, commands_list, "dup2 failed (stdout)\n");
-                close(current_fd[1]);
-                close(current_fd[0]);
-            }
-            execve(bin_path, (char **)current_command->content, env);
-            exec_error(bin_path, commands_list, "execve failed\n");
-            free(bin_path);
-        }
-        // Parent process
-        else
-        {
-            if (prev_fd[0] != -1)
-                close(prev_fd[0]);
-            if (next_command)
-            {
-                close(current_fd[1]);
-                prev_fd[0] = current_fd[0];
-            }
-            current_command = next_command;
-        }
-    }
-    
-    // Close any remaining file descriptors
-    if (prev_fd[0] != -1)
-        close(prev_fd[0]);
-
-    // Wait for all child processes
-    while (wait(NULL) > 0);
+	if (prev_fd[0] != -1)
+		close(prev_fd[0]);
+	if (command->next)
+	{
+		close(current_fd[1]);
+		prev_fd[0] = current_fd[0];
+	}
+	command = command->next;
+	return (command);
 }
 
+void exec_commands(t_all *all)
+{
+	t_list	*command;
+	pid_t	pid;
+	int		prev_fd[2];
+	int		current_fd[2];
+
+	prev_fd[0] = -1;
+	prev_fd[1] = -1;
+	command = all->command_list;
+	while (command)
+	{
+		if (command->next && pipe(current_fd) == -1)
+			exec_error(NULL, command, "pipe creation failed\n");
+		pid = fork();
+		if (pid == 0)
+			exec_child(command, prev_fd, current_fd, all->env);
+		else
+			command = exec_parent(command, prev_fd, current_fd);
+	}
+	if (prev_fd[0] != -1)
+		close(prev_fd[0]);
+	while (wait(NULL) > 0);
+}
 
 /******************* main ******************/
 
-int	main(int argc, char **argv, char **env)
-{
-	char	*example_com;
-	char	**commands;
-	t_list	*commands_list;
-
-	(void)argc;
-	(void)argv;
-	(void)env;
-	commands_list = NULL;
-	// example_com = "ls -la | grep \"Okt\" | awk '{print $9}' | head -n 5 | grep 'm'i'n'i's'h'e'l.c";
-	example_com = "ls -la | grep \"Okt\" | awk '{print $9}'";
-	printf("%s\n\n", example_com);
-
-	// cat<minishell.c>a
-	// echo "$USER"
+	// cat<minishell.c<otherfile.txt : otherfile iany ni cateny
+	// echo hello >minishell.c>otherfile.txt :  creer daoly fa le farany iiany no nisy hello
+	// echo "$USER{alphaNum + _}$HOME" $?
+	// cat << (herdoc)
 
 	// e"c"h"o" "hello world"
 	// ls -la '|' grep Okt
 	// grep "Okt" | awk '{print | $g}'
 
+int	main(int argc, char **argv, char **env)
+{
+	char	**commands;
+	char	*example_com;
+	t_all	*all;
+	t_list	*commands_list;
+
+	(void)argc;
+	(void)argv;
+
+	all = (t_all *)malloc(sizeof(t_all));
+	if (!all)
+		return (0);
+	all->env = env;
+	all->command_list = NULL;
+	commands_list = NULL;
+	example_com = "ls -la | grep \"Oct\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
+	printf("%s\n\n", example_com);
 
 	commands = ft_split_esc(example_com, '|');
 	print_split(commands);
@@ -298,10 +296,12 @@ int	main(int argc, char **argv, char **env)
 
 	init_list(&commands_list, commands);
 	ft_lstiter(commands_list, print_list);
+	all->command_list = commands_list;
 
-	// free_split(commands);
-	// free_list(commands);
+	printf("output :\n");
+	exec_commands(all);
 
-	exec_commands(commands_list, env);
-	// free_list(commands_list);
+	free_list(commands_list);
+	free(all);
+	return (0);
 }
