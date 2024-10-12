@@ -221,7 +221,6 @@ void	exec_child(t_list *command, int prev_fd[2], int current_fd[2], char **env)
 	free(bin_path);
 }
 
-
 t_list	*exec_parent(t_list *command, int prev_fd[2], int current_fd[2])
 {
 	if (prev_fd[0] != -1)
@@ -262,10 +261,12 @@ void exec_commands(t_all *all)
 
 /******************* main ******************/
 
+	// env
 	// cat<minishell.c<otherfile.txt : otherfile iany ni cateny
 	// echo hello >minishell.c>otherfile.txt :  creer daoly fa le farany iiany no nisy hello
 	// echo "$USER{alphaNum + _}$HOME" $?
 	// cat << (herdoc)
+	// shellevel
 
 	// e"c"h"o" "hello world"
 	// ls -la '|' grep Okt
