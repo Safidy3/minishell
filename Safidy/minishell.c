@@ -262,8 +262,9 @@ void exec_commands(t_all *all)
 /******************* main ******************/
 
 	// env
-	// cat<minishell.c<otherfile.txt : otherfile iany ni cateny
-	// echo hello >minishell.c>otherfile.txt :  creer daoly fa le farany iiany no nisy hello
+	// cat<minishell.c<Makefile : Makefile iany ni cateny
+	// <minishell.c cat<Makefile : Makefile iany ni cateny
+	// echo hello >minishell.c>Makefile : creer daoly fa le farany iiany no nisy hello
 	// echo "$USER{alphaNum + _}$HOME" $?
 	// cat << (herdoc)
 	// shellevel
@@ -288,7 +289,8 @@ int	main(int argc, char **argv, char **env)
 	all->env = env;
 	all->command_list = NULL;
 	commands_list = NULL;
-	example_com = "ls -la | grep \"Oct\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
+	// example_com = "ls -la | grep \"Oct\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
+	example_com = "ls -la | cat<minishell.c<Makefile";
 	printf("%s\n\n", example_com);
 
 	commands = ft_split_esc(example_com, '|');
@@ -297,10 +299,10 @@ int	main(int argc, char **argv, char **env)
 
 	init_list(&commands_list, commands);
 	ft_lstiter(commands_list, print_list);
-	all->command_list = commands_list;
+	// all->command_list = commands_list;
 
-	printf("output :\n");
-	exec_commands(all);
+	// printf("output :\n");
+	// exec_commands(all);
 
 	free_list(commands_list);
 	free(all);
