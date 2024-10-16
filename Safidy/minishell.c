@@ -234,12 +234,16 @@ t_list	*exec_parent(t_list *command, int prev_fd[2], int current_fd[2])
 	return (command);
 }
 
-void exec_commands(t_all *all)
-{
-	t_list	*command;
-	pid_t	pid;
-	int		prev_fd[2];
-	int		current_fd[2];
+#define MAX_COMMANDS 100 // Define a limit for the number of commands
+
+void exec_commands(t_all *all) {
+	t_list *command;
+	pid_t pid;
+	int prev_fd[2];
+	int current_fd[2];
+	pid_t pids[MAX_COMMANDS]; // Array to store PIDs of child ocesses
+	int statuses[MAX_COMMANDS]; // Array to store exit 
+	int command_count = 0; // Counter for the number of 
 
 	prev_fd[0] = -1;
 	prev_fd[1] = -1;
@@ -251,13 +255,64 @@ void exec_commands(t_all *all)
 		pid = fork();
 		if (pid == 0)
 			exec_child(command, prev_fd, current_fd, all->env);
+		else if (pid > 0)
+		{
+			pids[command_count] = pid; // Store the PID in the array
+			command_count++; // Increment the count of commands
+			command = exec_parent(command, prev_fd, current_fd); // Execute the parent operations
+		}
 		else
-			command = exec_parent(command, prev_fd, current_fd);
+			exec_error(NULL, command, "fork failed\n"); // Handle fork error
 	}
-	if (prev_fd[0] != -1)
+
+	// Close any remaining file descriptors
+	if (prev_fd[0] != -1) {
 		close(prev_fd[0]);
-	while (wait(NULL) > 0);
+	}
+	
+	for (int i = 0; i < command_count; i++) // Wait for each child and capture exit statuses
+	{
+		int status;
+
+		waitpid(pids[i], &status, 0); // Wait for the specific child process
+		if (WIFEXITED(status)) // Check if the child terminated normally
+		{
+			statuses[i] = WEXITSTATUS(status); // Get the exit status
+			printf("Command %d exited with status %d\n", i, statuses[i]);
+		}
+		else
+		{
+			statuses[i] = -1; // If not normally terminated, set to -1
+			printf("Command %d did not terminate normally\n", i);
+		}
+	}
 }
+
+
+// void exec_commands(t_all *all)
+// {
+// 	t_list	*command;
+// 	pid_t	pid;
+// 	int		prev_fd[2];
+// 	int		current_fd[2];
+
+// 	prev_fd[0] = -1;
+// 	prev_fd[1] = -1;
+// 	command = all->command_list;
+// 	while (command)
+// 	{
+// 		if (command->next && pipe(current_fd) == -1)
+// 			exec_error(NULL, command, "pipe creation failed\n");
+// 		pid = fork();
+// 		if (pid == 0)
+// 			exec_child(command, prev_fd, current_fd, all->env);
+// 		else
+// 			command = exec_parent(command, prev_fd, current_fd);
+// 	}
+// 	if (prev_fd[0] != -1)
+// 		close(prev_fd[0]);
+// 	while (wait(NULL) > 0);
+// }
 
 /******************* main ******************/
 
@@ -290,7 +345,7 @@ int	main(int argc, char **argv, char **env)
 	all->command_list = NULL;
 	commands_list = NULL;
 	// example_com = "ls -la | grep \"Oct\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
-	example_com = "ls -la | cat<minishell.c<Makefile";
+	example_com = "cat Makefile";
 	printf("%s\n\n", example_com);
 
 	commands = ft_split_esc(example_com, '|');
@@ -299,10 +354,10 @@ int	main(int argc, char **argv, char **env)
 
 	init_list(&commands_list, commands);
 	ft_lstiter(commands_list, print_list);
-	// all->command_list = commands_list;
+	all->command_list = commands_list;
 
-	// printf("output :\n");
-	// exec_commands(all);
+	printf("output :\n");
+	exec_commands(all);
 
 	free_list(commands_list);
 	free(all);
