@@ -140,6 +140,24 @@ void	exec_error(char *bin_path, t_list *commands_list, char *msg)
 	exit(EXIT_FAILURE);
 }
 
+void	dup_in(int fd[2], t_list *commands_list, char *bin_path, int closeall)
+{
+	if (dup2(fd[0], STDIN_FILENO) == -1)
+		exec_error(bin_path, commands_list, "dup2 pipe\n");
+	close(fd[0]);
+	if (closeall != 0)
+		close(fd[1]);
+}
+
+void	dup_out(int fd[2], t_list *commands_list, char *bin_path, int closeall)
+{
+	if (dup2(fd[1], STDOUT_FILENO) == -1)
+		exec_error(bin_path, commands_list, "dup2 pipe\n");
+	close(fd[1]);
+	if (closeall != 0)
+		close(fd[0]);
+}
+
 char	*join_bin_path(t_list *commands_list, char *bin_path)
 {
 	char	*temp;
@@ -179,24 +197,6 @@ char	*get_bin_path(t_list *commands_list)
 	}
 	free(bin_paths);
 	return (result);
-}
-
-void	dup_in(int fd[2], t_list *commands_list, char *bin_path, int closeall)
-{
-	if (dup2(fd[0], STDIN_FILENO) == -1)
-		exec_error(bin_path, commands_list, "dup2 pipe\n");
-	close(fd[0]);
-	if (closeall != 0)
-		close(fd[1]);
-}
-
-void	dup_out(int fd[2], t_list *commands_list, char *bin_path, int closeall)
-{
-	if (dup2(fd[1], STDOUT_FILENO) == -1)
-		exec_error(bin_path, commands_list, "dup2 pipe\n");
-	close(fd[1]);
-	if (closeall != 0)
-		close(fd[0]);
 }
 
 void	exec_child(t_list *command, int prev_fd[2], int current_fd[2], char **env)
@@ -239,7 +239,7 @@ int	get_exit_stat(pid_t pids[MAX_COMMANDS], int command_count)
 	return (WEXITSTATUS(status));
 }
 
-void exec_commands(t_all *all)
+void	exec_commands(t_all *all)
 {
 	t_list	*command;
 	pid_t	pids[MAX_COMMANDS];
@@ -268,38 +268,18 @@ void exec_commands(t_all *all)
 	all->exit_status = get_exit_stat(pids, command_count);
 }
 
-// void exec_commands(t_all *all)
-// {
-// 	t_list	*command;
-// 	pid_t	pid;
-// 	int		prev_fd[2];
-// 	int		current_fd[2];
-
-// 	prev_fd[0] = -1;
-// 	prev_fd[1] = -1;
-// 	command = all->command_list;
-// 	while (command)
-// 	{
-// 		if (command->next && pipe(current_fd) == -1)
-// 			exec_error(NULL, command, "pipe creation failed\n");
-// 		pid = fork();
-// 		if (pid == 0)
-// 			exec_child(command, prev_fd, current_fd, all->env);
-// 		else
-// 			command = exec_parent(command, prev_fd, current_fd);
-// 	}
-// 	if (prev_fd[0] != -1)
-// 		close(prev_fd[0]);
-// 	while (wait(NULL) > 0);
-// }
-
 /******************* main ******************/
+
+	// echo "$USER{alphaNum + _}$HOME"
+	// echo '$HOME'
+	// "$USER$HOME" : safandri/home/safandri
+	// "$USER*9$HOME" : safandri*9/home/safandri
+	// "$USERad14$HOME" : /home/safandri
 
 	// env
 	// cat<minishell.c<Makefile : Makefile iany ni cateny
 	// <minishell.c cat<Makefile : Makefile iany ni cateny
-	// echo hello >minishell.c>Makefile : creer daoly fa le farany iiany no nisy hello
-	// echo "$USER{alphaNum + _}$HOME" $?
+	// echo hello >minishell.c>Makefile : creer daoly fa le farany iany no nisy hello
 	// shellevel
 	// cat << (heredoc)
 
@@ -307,40 +287,53 @@ void exec_commands(t_all *all)
 	// ls -la '|' grep Okt
 	// grep "Okt" | awk '{print | $g}'
 
-int	main(int argc, char **argv, char **env)
+// int	main(int argc, char **argv, char **env)
+// {
+// 	char	**commands;
+// 	char	*example_com;
+// 	t_all	*all;
+// 	t_list	*commands_list;
+
+// 	(void)argc;
+// 	(void)argv;
+
+// 	all = (t_all *)malloc(sizeof(t_all));
+// 	if (!all)
+// 		return (0);
+// 	all->exit_status = 0;
+// 	all->env = env;
+// 	all->command_list = NULL;
+// 	commands_list = NULL;
+// 	// example_com = "echo \'hello world $HOME$USER\' | ls -la | grep \"Oct\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
+// 	example_com = "echo \'h\'e\'l\'lo\"$null$USER\"";
+// 	// printf("%s\n\n", example_com);
+
+// 	commands = ft_split_esc(example_com, '|');
+// 	printf("split command :\n");
+// 	print_split(commands);
+// 	printf("\n\n");
+
+// 	init_list(&commands_list, commands);
+// 	printf("list command :\n");
+// 	ft_lstiter(commands_list, print_list);
+// 	all->command_list = commands_list;
+
+// 	printf("output :\n");
+// 	exec_commands(all);
+
+// 	free_list(commands_list);
+// 	free(all);
+// 	return (0);
+// }
+
+int	main()
 {
 	char	**commands;
 	char	*example_com;
-	t_all	*all;
-	t_list	*commands_list;
 
-	(void)argc;
-	(void)argv;
-
-	all = (t_all *)malloc(sizeof(t_all));
-	if (!all)
-		return (0);
-	all->exit_status = 0;
-	all->env = env;
-	all->command_list = NULL;
-	commands_list = NULL;
-	// example_com = "ls -la | grep \"Oct\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
-	// example_com = "cat Makefile";
-	example_com = "echo $?";
-	printf("%s\n\n", example_com);
-
-	commands = ft_split_esc(example_com, '|');
+	example_com = "echo \'h\'ello\"$null$USER\"";
+	printf("%s\n\n\n",example_com);
+	commands = ft_split_esc_2(example_com, ' ');
 	print_split(commands);
-	printf("\n\n");
-
-	init_list(&commands_list, commands);
-	ft_lstiter(commands_list, print_list);
-	all->command_list = commands_list;
-
-	printf("output :\n");
-	exec_commands(all);
-
-	free_list(commands_list);
-	free(all);
 	return (0);
 }
