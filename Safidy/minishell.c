@@ -199,9 +199,10 @@ char	*get_bin_path(t_list *commands_list)
 	return (result);
 }
 
-void	exec_child(t_list *command, int prev_fd[2], int current_fd[2], char **env)
+void	exec_child(t_list *command, int prev_fd[2],
+			int current_fd[2], char **env)
 {
-	char *bin_path;
+	char	*bin_path;
 
 	bin_path = get_bin_path(command);
 	if (!bin_path)
@@ -268,6 +269,55 @@ void	exec_commands(t_all *all)
 	all->exit_status = get_exit_stat(pids, command_count);
 }
 
+/******************	env var ********************/
+
+static void	expand_env_var(char **s, char **res_ptr)
+{
+	char	var_name[256];
+	char	*var_value;
+	int		var_len;
+
+	(*s)++;
+	var_len = 0;
+	while (**s && (ft_isalnum(**s) || **s == '_'))
+		var_name[var_len++] = *(*s)++;
+	var_name[var_len] = '\0';
+	var_value = getenv(var_name);
+	if (var_value)
+	{
+		strcpy(*res_ptr, var_value);
+		*res_ptr += ft_strlen(var_value);
+	}
+}
+
+static char	*replace_env_vars(char *s)
+{
+	char	*result;
+	char	*res_ptr;
+	int		in_quote;
+
+	in_quote = 0;
+	result = calloc(strlen(s) + 1, sizeof(char));
+	if (!result)
+		return (NULL);
+	res_ptr = result;
+	while (*s)
+	{
+		if (*s == '\'')
+		{
+			in_quote = !in_quote;
+			*res_ptr++ = *s++;
+		}
+		else if (*s == '$' && !in_quote)
+			expand_env_var(&s, &res_ptr);
+		else
+			*res_ptr++ = *s++;
+	}
+	*res_ptr = '\0';
+	return (result);
+}
+
+
 /******************* main ******************/
 
 	// echo "$USER{alphaNum + _}$HOME"
@@ -287,53 +337,42 @@ void	exec_commands(t_all *all)
 	// ls -la '|' grep Okt
 	// grep "Okt" | awk '{print | $g}'
 
-// int	main(int argc, char **argv, char **env)
-// {
-// 	char	**commands;
-// 	char	*example_com;
-// 	t_all	*all;
-// 	t_list	*commands_list;
-
-// 	(void)argc;
-// 	(void)argv;
-
-// 	all = (t_all *)malloc(sizeof(t_all));
-// 	if (!all)
-// 		return (0);
-// 	all->exit_status = 0;
-// 	all->env = env;
-// 	all->command_list = NULL;
-// 	commands_list = NULL;
-// 	// example_com = "echo \'hello world $HOME$USER\' | ls -la | grep \"Oct\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
-// 	example_com = "echo \'h\'e\'l\'lo\"$null$USER\"";
-// 	// printf("%s\n\n", example_com);
-
-// 	commands = ft_split_esc(example_com, '|');
-// 	printf("split command :\n");
-// 	print_split(commands);
-// 	printf("\n\n");
-
-// 	init_list(&commands_list, commands);
-// 	printf("list command :\n");
-// 	ft_lstiter(commands_list, print_list);
-// 	all->command_list = commands_list;
-
-// 	printf("output :\n");
-// 	exec_commands(all);
-
-// 	free_list(commands_list);
-// 	free(all);
-// 	return (0);
-// }
-
-int	main()
+int	main(int argc, char **argv, char **env)
 {
 	char	**commands;
 	char	*example_com;
+	t_all	*all;
+	t_list	*commands_list;
 
-	example_com = "echo \'h\'ello\"$null$USER\"";
-	printf("%s\n\n\n",example_com);
-	commands = ft_split_esc_2(example_com, ' ');
+	(void)argc;
+	(void)argv;
+	all = (t_all *)malloc(sizeof(t_all));
+	if (!all)
+		return (0);
+	all->exit_status = 0;
+	all->env = env;
+	all->command_list = NULL;
+	commands_list = NULL;
+	// example_com = "echo \'hello world $HOME$USER\' | ls -la | grep \"Oct\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
+	example_com = "echo \'h\'e\'l\'lo\"$null$USER\"";
+	// printf("%s\n\n", example_com);
+
+	example_com = replace_env_vars(example_com);
+	commands = ft_split_esc(example_com, '|');
+	printf("split command :\n");
 	print_split(commands);
+	printf("\n\n");
+
+	init_list(&commands_list, commands);
+	printf("list command :\n");
+	ft_lstiter(commands_list, print_list);
+	all->command_list = commands_list;
+
+	printf("output :\n");
+	exec_commands(all);
+
+	free_list(commands_list);
+	free(all);
 	return (0);
 }
+

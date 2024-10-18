@@ -1,10 +1,10 @@
-SRC = minishell.c ft_split_esc_2.c
+SRCS = minishell.c ft_split_esc_2.c
 
 # FLAGS = -Wall -Werror -Wextra -lreadline
 # FLAGS = -Wall -Werror -Wextra
 FLAGS =
 
-OBJS = $(SRC:.c=.o)
+OBJS = $(SRCS:.c=.o)
 NAME = minishell
 
 LIBFT_PATH = ./libft
@@ -17,7 +17,6 @@ all: $(NAME)
 
 $(NAME): $(LIBFT_ARCHIVE) $(OBJS)
 	@$(CC) -g $(FLAGS) $(OBJS) $(LIBFT_ARCHIVE) -o $(NAME)
-	@clear
 
 $(LIBFT_ARCHIVE):
 	@make bonus -C $(LIBFT_PATH)
@@ -33,7 +32,11 @@ fclean: clean
 re: fclean all
 
 run: all
+	@clear
 	@./$(NAME)
+
+norm:
+	norminette $(SRCS)
 
 debug: all
 	@valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(NAME)

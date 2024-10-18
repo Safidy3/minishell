@@ -19,26 +19,26 @@ static int	is_special_char(char c)
 	return (c == '<' || c == '>');
 }
 
-static char	*ft_escap_spliter(const char *s, char c)
+static char	*ft_escap_spliter(char *s, char c)
 {
 	while (*s == c)
 		s++;
-	return ((char *)s);
+	return (s);
 }
 
-static char	*ft_escape_quote(const char *s)
+static char	*ft_escape_quote(char *s)
 {
 	char	quote;
-	
+
 	quote = *s++;
 	while (*s && *s != quote)
 		s++;
 	if (*s)
 		s++;
-	return ((char *) s);
+	return ( s);
 }
 
-static const char *ft_escape_special_char(const char *s)
+static char	*ft_escape_special_char(char *s)
 {
 	if (is_special_char(*s))
 	{
@@ -53,7 +53,7 @@ static const char *ft_escape_special_char(const char *s)
 	return (s);
 }
 
-static size_t	ft_count_words(const char *s, char c)
+static size_t	ft_count_words(char *s, char c)
 {
 	size_t	count;
 
@@ -81,9 +81,9 @@ static size_t	ft_count_words(const char *s, char c)
 	return (count);
 }
 
-static void	skip_quote(const char *s, int *word_len, int *i)
+static void	skip_quote(char *s, int *word_len, int *i)
 {
-	char quote;
+	char	quote;
 
 	if (s[*i] == '\'' || s[*i] == '"')
 	{
@@ -96,7 +96,7 @@ static void	skip_quote(const char *s, int *word_len, int *i)
 	}
 }
 
-static void handle_special_char(const char *s, int *word_len, int *i)
+static void	handle_special_char(char *s, int *word_len, int *i)
 {
 	(*i)++;
 	if (is_special_char(s[*i]))
@@ -112,7 +112,7 @@ static void handle_special_char(const char *s, int *word_len, int *i)
 	}
 }
 
-static size_t	ft_count_words_len(const char *s, char c)
+static size_t	ft_count_words_len(char *s, char c)
 {
 	char	quote;
 	int		word_len;
@@ -129,7 +129,7 @@ static size_t	ft_count_words_len(const char *s, char c)
 			else if (s[i] && s[i] != c && !is_special_char(s[i]))
 				i++;
 			else if (s[i] == c || is_special_char(s[i]))
-				break;
+				break ;
 		}
 	}
 	else if (is_special_char(s[i]))
@@ -138,7 +138,7 @@ static size_t	ft_count_words_len(const char *s, char c)
 	return (word_len);
 }
 
-static char	*cpy_to_arr(char const *s, char *tab, int word_len)
+static char	*cpy_to_arr(char *s, char *tab, int word_len)
 {
 	char	quote;
 	int		i;
@@ -160,12 +160,10 @@ static char	*cpy_to_arr(char const *s, char *tab, int word_len)
 			tab[j++] = s[i++];
 	}
 	s += i;
-	// if (*s)
-	// 	s++;
-	return ((char *)s);
+	return (s);
 }
 
-char	**ft_split_esc_2(char const *s, char c)
+char	**ft_split_esc_2(char *s, char c)
 {
 	char	**tab;
 	size_t	words;
@@ -175,12 +173,9 @@ char	**ft_split_esc_2(char const *s, char c)
 	i = -1;
 	words = ft_count_words(s, c);
 	tab = (char **)calloc(sizeof(char *), (words + 1));
-	if (!tab || words == 0)
+	if (!tab || words == 0 || !s)
 		return (NULL);
 	word_len = ft_count_words_len(s, c);
-	tab[i] = (char *)calloc(sizeof(char), (word_len + 1));
-	if (!tab[i])
-		return (ft_free_exit(tab));
 	while (++i < words)
 	{
 		s = ft_escap_spliter(s, c);
@@ -189,7 +184,6 @@ char	**ft_split_esc_2(char const *s, char c)
 		if (!tab[i])
 			return (ft_free_exit(tab));
 		s = cpy_to_arr(s, tab[i], word_len);
-		printf("tab[i] = %s : %zu\n", tab[i], word_len);
 	}
 	return (tab);
 }
