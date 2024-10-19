@@ -35,7 +35,7 @@ static char	*ft_escape_quote(char *s)
 		s++;
 	if (*s)
 		s++;
-	return ( s);
+	return (s);
 }
 
 static char	*ft_escape_special_char(char *s)

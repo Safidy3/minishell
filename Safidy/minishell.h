@@ -44,6 +44,6 @@ typedef struct s_all
 	t_list	*command_list;
 }			t_all;
 
-char	**ft_split_esc_2(char const *s, char c);
+char	**ft_split_esc_2(char *s, char c);
 
 #endif

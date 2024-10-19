@@ -33,7 +33,7 @@ void	free_split_1(void *s)
 
 void	print_s(void *s)
 {
-	printf("%s \n", (char *) s);
+	printf("\"%s\", ", (char *) s);
 }
 
 void	split_iterate(void **array, void (*f)(void *))
@@ -72,8 +72,9 @@ void	print_split(char **array)
 
 void	print_list(void *s)
 {
+	printf("{");
 	split_iterate((void *) s, print_s);
-	printf("\n");
+	printf("}\n");
 }
 
 void	free_list_content(void *s)
@@ -127,6 +128,54 @@ void	init_list(t_list **commands_list, char **arr_commands)
 		free(arr_commands[i]);
 	}
 	free(arr_commands);
+}
+
+/******************	env var ********************/
+
+static void	expand_env_var(char **s, char **res_ptr)
+{
+	char	var_name[256];
+	char	*var_value;
+	int		var_len;
+
+	(*s)++;
+	var_len = 0;
+	while (**s && (ft_isalnum(**s) || **s == '_'))
+		var_name[var_len++] = *(*s)++;
+	var_name[var_len] = '\0';
+	var_value = getenv(var_name);
+	if (var_value)
+	{
+		strcpy(*res_ptr, var_value);
+		*res_ptr += ft_strlen(var_value);
+	}
+}
+
+static char	*replace_env_vars(char *s)
+{
+	char	*result;
+	char	*res_ptr;
+	int		in_quote;
+
+	in_quote = 0;
+	result = calloc(strlen(s) + 1, sizeof(char));
+	if (!result)
+		return (NULL);
+	res_ptr = result;
+	while (*s)
+	{
+		if (*s == '\'')
+		{
+			in_quote = !in_quote;
+			*res_ptr++ = *s++;
+		}
+		else if (*s == '$' && !in_quote)
+			expand_env_var(&s, &res_ptr);
+		else
+			*res_ptr++ = *s++;
+	}
+	*res_ptr = '\0';
+	return (result);
 }
 
 /******************* Exec && Pipe ******************/
@@ -199,21 +248,42 @@ char	*get_bin_path(t_list *commands_list)
 	return (result);
 }
 
+int	check_spetial_char(char **command)
+{
+	int	i;
+
+	i = -1;
+	while (command[++i])
+	{
+		if (command[i][0] == '>' || command[i][0] == '<' )
+		{
+			printf(">%s\n", command[i]);
+			exit(0);
+		}
+	}
+	return (0);
+}
+
 void	exec_child(t_list *command, int prev_fd[2],
 			int current_fd[2], char **env)
 {
 	char	*bin_path;
 
-	bin_path = get_bin_path(command);
-	if (!bin_path)
-		exec_error(NULL, command, "get_bin_path failed\n");
-	if (prev_fd[0] != -1)
-		dup_in(prev_fd, command, bin_path, 0);
-	if (command->next)
-		dup_out(current_fd, command, bin_path, 1);
-	execve(bin_path, (char **)command->content, env);
-	exec_error(bin_path, command, "execve failed\n");
-	free(bin_path);
+	if (check_spetial_char((char **)command->content) == 0)
+	{
+		bin_path = get_bin_path(command);
+		if (!bin_path)
+			exec_error(NULL, command, "get_bin_path failed\n");
+		if (prev_fd[0] != -1)
+			dup_in(prev_fd, command, bin_path, 0);
+		if (command->next)
+			dup_out(current_fd, command, bin_path, 1);
+		execve(bin_path, (char **)command->content, env);
+		exec_error(bin_path, command, "execve failed\n");
+		free(bin_path);
+	}
+	else
+		return;
 }
 
 t_list	*exec_parent(t_list *command, int prev_fd[2], int current_fd[2])
@@ -269,62 +339,7 @@ void	exec_commands(t_all *all)
 	all->exit_status = get_exit_stat(pids, command_count);
 }
 
-/******************	env var ********************/
-
-static void	expand_env_var(char **s, char **res_ptr)
-{
-	char	var_name[256];
-	char	*var_value;
-	int		var_len;
-
-	(*s)++;
-	var_len = 0;
-	while (**s && (ft_isalnum(**s) || **s == '_'))
-		var_name[var_len++] = *(*s)++;
-	var_name[var_len] = '\0';
-	var_value = getenv(var_name);
-	if (var_value)
-	{
-		strcpy(*res_ptr, var_value);
-		*res_ptr += ft_strlen(var_value);
-	}
-}
-
-static char	*replace_env_vars(char *s)
-{
-	char	*result;
-	char	*res_ptr;
-	int		in_quote;
-
-	in_quote = 0;
-	result = calloc(strlen(s) + 1, sizeof(char));
-	if (!result)
-		return (NULL);
-	res_ptr = result;
-	while (*s)
-	{
-		if (*s == '\'')
-		{
-			in_quote = !in_quote;
-			*res_ptr++ = *s++;
-		}
-		else if (*s == '$' && !in_quote)
-			expand_env_var(&s, &res_ptr);
-		else
-			*res_ptr++ = *s++;
-	}
-	*res_ptr = '\0';
-	return (result);
-}
-
-
 /******************* main ******************/
-
-	// echo "$USER{alphaNum + _}$HOME"
-	// echo '$HOME'
-	// "$USER$HOME" : safandri/home/safandri
-	// "$USER*9$HOME" : safandri*9/home/safandri
-	// "$USERad14$HOME" : /home/safandri
 
 	// env
 	// cat<minishell.c<Makefile : Makefile iany ni cateny
@@ -333,6 +348,11 @@ static char	*replace_env_vars(char *s)
 	// shellevel
 	// cat << (heredoc)
 
+	// echo "$USER{alphaNum + _}$HOME"
+	// echo '$HOME'
+	// "$USER$HOME" : safandri/home/safandri
+	// "$USER*9$HOME" : safandri*9/home/safandri
+	// "$USERad14$HOME" : /home/safandri
 	// e"c"h"o" "hello world"
 	// ls -la '|' grep Okt
 	// grep "Okt" | awk '{print | $g}'
@@ -353,23 +373,27 @@ int	main(int argc, char **argv, char **env)
 	all->env = env;
 	all->command_list = NULL;
 	commands_list = NULL;
-	// example_com = "echo \'hello world $HOME$USER\' | ls -la | grep \"Oct\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
-	example_com = "echo \'h\'e\'l\'lo\"$null$USER\"";
-	// printf("%s\n\n", example_com);
+	// example_com = "ls -la | grep \"Okt\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
+	example_com = "cat<   minishell.c<Makefile";
+	printf("%s\n\n", example_com);
 
 	example_com = replace_env_vars(example_com);
 	commands = ft_split_esc(example_com, '|');
-	printf("split command :\n");
-	print_split(commands);
-	printf("\n\n");
+	ft_free(example_com);
+
+	// printf("split command :\n");
+	// print_split(commands);
+	// printf("\n\n");
 
 	init_list(&commands_list, commands);
 	printf("list command :\n");
 	ft_lstiter(commands_list, print_list);
+	printf("\n\n");
 	all->command_list = commands_list;
 
 	printf("output :\n");
 	exec_commands(all);
+	printf("\n\n");
 
 	free_list(commands_list);
 	free(all);

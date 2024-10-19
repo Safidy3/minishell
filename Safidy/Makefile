@@ -14,6 +14,7 @@ LIBFT_ARCHIVE = $(LIBFT_PATH)/libft.a
 	@$(CC) -g $(FLAGS) -c $< -o $@
 
 all: $(NAME)
+	@clear
 
 $(NAME): $(LIBFT_ARCHIVE) $(OBJS)
 	@$(CC) -g $(FLAGS) $(OBJS) $(LIBFT_ARCHIVE) -o $(NAME)
@@ -32,7 +33,6 @@ fclean: clean
 re: fclean all
 
 run: all
-	@clear
 	@./$(NAME)
 
 norm:
