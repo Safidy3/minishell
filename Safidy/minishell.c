@@ -182,9 +182,6 @@ static char	*replace_env_vars(char *s)
 
 void	exec_error(char *bin_path, t_all *all, char *msg)
 {
-	t_list *commands_list;
-
-	commands_list = all->command_list;
 	ft_free(bin_path);
 	free_list(all->command_list);
 	ft_free(all);
@@ -258,23 +255,60 @@ int	check_spetial_char(char **command)
 
 	i = -1;
 	while (command[++i])
-	{
 		if (command[i][0] == '>' || command[i][0] == '<' )
-		{
-			printf(">%s\n", command[i]);
 			return (1);
+	return (0);
+}
+
+char	**get_redrection_array(char **command, t_all *all)
+{
+	char	*redirection_files[100];
+	int		i;
+	int		j;
+
+	i = -1;
+	j = -1;
+	while (command[++i])
+	{
+		if (command[i][0] == '>' || command[i][0] == '<')
+		{
+			redirection_files[++j] = ft_strdup(command[i]);
+			if (!redirection_files[j])
+				exec_error(NULL, all, "get_redrection_array\n");
+			printf("redirection_files[j] = %s\n", redirection_files[j]);
 		}
 	}
-	return (0);
+	return (redirection_files);
+}
+
+char	**get_new_command(char **command, t_all *all)
+{
+	char	*new_command[100];
+	int		i;
+	int		j;
+
+	i = -1;
+	j = -1;
+	while (command[++i])
+	{
+		if (command[i][0] != '>' && command[i][0] != '<')
+		{
+			new_command[++j] = ft_strdup(command[i]);
+			if (!new_command[j])
+				exec_error(NULL, all, "get_redrection_array\n");
+			printf("new_command[j] = %s\n", new_command[j]);
+		}
+	}
+	return (new_command);
 }
 
 void	exec_child(t_list *command, int prev_fd[2],
 			int current_fd[2], t_all *all)
 {
 	char	*bin_path;
-	char	**env;
+	char	**redirection_files;
+	char	**new_command;
 
-	env = all->env;
 	if (check_spetial_char((char **)command->content) == 0)
 	{
 		bin_path = get_bin_path(command);
@@ -284,12 +318,18 @@ void	exec_child(t_list *command, int prev_fd[2],
 			dup_in(prev_fd, all, bin_path, 0);
 		if (command->next)
 			dup_out(current_fd, all, bin_path, 1);
-		execve(bin_path, (char **)command->content, env);
+		execve(bin_path, (char **)command->content, all->env);
 		exec_error(bin_path, all, "execve failed\n");
 		free(bin_path);
 	}
 	else
+	{
+		redirection_files = get_redrection_array((char **)command->content, all);
+		new_command = get_new_command((char **)command->content, all);
+		// printf("redirection file :\n");
+		// print_split(redirection_files);
 		exec_error(NULL, all, "get_bin_path failed\n");
+	}
 }
 
 t_list	*exec_parent(t_list *command, int prev_fd[2], int current_fd[2])
@@ -380,7 +420,7 @@ int	main(int argc, char **argv, char **env)
 	all->command_list = NULL;
 	commands_list = NULL;
 	// example_com = "ls -la | grep \"Okt\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
-	example_com = "cat<   minishell.c<Makefile";
+	example_com = "<   minishell.c cat<Makefile";
 	printf("%s\n\n", example_com);
 
 	example_com = replace_env_vars(example_com);
@@ -400,7 +440,6 @@ int	main(int argc, char **argv, char **env)
 	printf("output :\n");
 	exec_commands(all);
 	printf("\n\n");
-
 
 	printf("in parent\n");
 	free_list(commands_list);
