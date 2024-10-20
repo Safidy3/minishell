@@ -28,7 +28,7 @@ void	ft_free(char *s)
 void	free_split_1(void *s)
 {
 	if ((char *) s)
-		free((char *) s);
+		ft_free((char *) s);
 }
 
 void	print_s(void *s)
@@ -82,7 +82,7 @@ void	free_list_content(void *s)
 	if (!s)
 		return ;
 	split_iterate(s, free_split_1);
-	free(s);
+	ft_free(s);
 }
 
 void	free_list(t_list *s)
@@ -93,10 +93,10 @@ void	free_list(t_list *s)
 	while (s)
 	{
 		temp = s->next;
-		free(s);
+		ft_free(s);
 		s = temp;
 	}
-	free(s);
+	ft_free(s);
 }
 
 /******************* init list ******************/
@@ -180,28 +180,32 @@ static char	*replace_env_vars(char *s)
 
 /******************* Exec && Pipe ******************/
 
-void	exec_error(char *bin_path, t_list *commands_list, char *msg)
+void	exec_error(char *bin_path, t_all *all, char *msg)
 {
+	t_list *commands_list;
+
+	commands_list = all->command_list;
 	ft_free(bin_path);
-	free_list(commands_list);
+	free_list(all->command_list);
+	ft_free(all);
 	ft_putstr_fd("Exec err: faild to ", 2);
 	ft_putstr_fd(msg, 2);
 	exit(EXIT_FAILURE);
 }
 
-void	dup_in(int fd[2], t_list *commands_list, char *bin_path, int closeall)
+void	dup_in(int fd[2], t_all *all, char *bin_path, int closeall)
 {
 	if (dup2(fd[0], STDIN_FILENO) == -1)
-		exec_error(bin_path, commands_list, "dup2 pipe\n");
+		exec_error(bin_path, all, "dup2 pipe\n");
 	close(fd[0]);
 	if (closeall != 0)
 		close(fd[1]);
 }
 
-void	dup_out(int fd[2], t_list *commands_list, char *bin_path, int closeall)
+void	dup_out(int fd[2], t_all *all, char *bin_path, int closeall)
 {
 	if (dup2(fd[1], STDOUT_FILENO) == -1)
-		exec_error(bin_path, commands_list, "dup2 pipe\n");
+		exec_error(bin_path, all, "dup2 pipe\n");
 	close(fd[1]);
 	if (closeall != 0)
 		close(fd[0]);
@@ -258,32 +262,34 @@ int	check_spetial_char(char **command)
 		if (command[i][0] == '>' || command[i][0] == '<' )
 		{
 			printf(">%s\n", command[i]);
-			exit(0);
+			return (1);
 		}
 	}
 	return (0);
 }
 
 void	exec_child(t_list *command, int prev_fd[2],
-			int current_fd[2], char **env)
+			int current_fd[2], t_all *all)
 {
 	char	*bin_path;
+	char	**env;
 
+	env = all->env;
 	if (check_spetial_char((char **)command->content) == 0)
 	{
 		bin_path = get_bin_path(command);
 		if (!bin_path)
-			exec_error(NULL, command, "get_bin_path failed\n");
+			exec_error(NULL, all, "get_bin_path failed\n");
 		if (prev_fd[0] != -1)
-			dup_in(prev_fd, command, bin_path, 0);
+			dup_in(prev_fd, all, bin_path, 0);
 		if (command->next)
-			dup_out(current_fd, command, bin_path, 1);
+			dup_out(current_fd, all, bin_path, 1);
 		execve(bin_path, (char **)command->content, env);
-		exec_error(bin_path, command, "execve failed\n");
+		exec_error(bin_path, all, "execve failed\n");
 		free(bin_path);
 	}
 	else
-		return;
+		exec_error(NULL, all, "get_bin_path failed\n");
 }
 
 t_list	*exec_parent(t_list *command, int prev_fd[2], int current_fd[2])
@@ -328,7 +334,7 @@ void	exec_commands(t_all *all)
 			exec_error(NULL, command, "pipe creation failed\n");
 		pids[command_count] = fork();
 		if (pids[command_count] == 0)
-			exec_child(command, prev_fd, current_fd, all->env);
+			exec_child(command, prev_fd, current_fd, all);
 		else if (pids[command_count++] > 0)
 			command = exec_parent(command, prev_fd, current_fd);
 		else
@@ -395,6 +401,8 @@ int	main(int argc, char **argv, char **env)
 	exec_commands(all);
 	printf("\n\n");
 
+
+	printf("in parent\n");
 	free_list(commands_list);
 	free(all);
 	return (0);
