@@ -33,7 +33,7 @@ void	free_split_1(void *s)
 
 void	print_s(void *s)
 {
-	printf("\"%s\", ", (char *) s);
+	printf("\"%s\"\n", (char *) s);
 }
 
 void	split_iterate(void **array, void (*f)(void *))
@@ -118,13 +118,13 @@ void	init_list(t_list **commands_list, char **arr_commands)
 	i = -1;
 	while (arr_commands[++i])
 	{
-		new_list = ft_lstnew((void *) ft_split_esc_2(arr_commands[i], ' '));
+		new_list = ft_newlst((void *) ft_split_esc_2(arr_commands[i], ' '));
 		if (!new_list)
 			list_init_error(*commands_list, arr_commands);
 		if (i == 0)
 			*commands_list = new_list;
 		else
-			ft_lstadd_back(commands_list, new_list);
+			ft_add_back_lst(commands_list, new_list);
 		free(arr_commands[i]);
 	}
 	free(arr_commands);
@@ -387,13 +387,14 @@ void	exec_commands(t_all *all)
 
 /******************* main ******************/
 
-	// env
+	// signal
 	// cat<minishell.c<Makefile : Makefile iany ni cateny
 	// <minishell.c cat<Makefile : Makefile iany ni cateny
 	// echo hello >minishell.c>Makefile : creer daoly fa le farany iany no nisy hello
 	// shellevel
 	// cat << (heredoc)
 
+	// env
 	// echo "$USER{alphaNum + _}$HOME"
 	// echo '$HOME'
 	// "$USER$HOME" : safandri/home/safandri
@@ -403,47 +404,97 @@ void	exec_commands(t_all *all)
 	// ls -la '|' grep Okt
 	// grep "Okt" | awk '{print | $g}'
 
-int	main(int argc, char **argv, char **env)
+// int	main(int argc, char **argv, char **envp)
+// {
+// 	char			**commands;
+// 	char			*example_com;
+// 	t_all			*all;
+// 	t_list			*commands_list;
+	
+// 	t_command_list	*env_list;
+// 	char			**env;
+
+// 	env_list = NULL;
+// 	int_lst_env(&env_list, envp);
+// 	env = list_to_array(env_list);
+
+// 	(void)argc;
+// 	(void)argv;
+// 	all = (t_all *)malloc(sizeof(t_all));
+// 	if (!all)
+// 		return (0);
+// 	all->exit_status = 0;
+// 	all->env = env;
+// 	all->command_list = NULL;
+// 	commands_list = NULL;
+	
+// 	example_com = readline("minishel >");
+// 	if (!example_com[0])
+// 		printf("tafiditra\n");
+// 	printf("%s\n\n", example_com);
+// 	// example_com = "ls -la | grep \"Oct\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
+// 	// example_com = "<   minishell.c cat<Makefile";
+
+
+// 	example_com = replace_env_vars(example_com);
+// 	commands = ft_split_esc(example_com, '|');
+// 	ft_free(example_com);
+
+// 	// printf("split command :\n");
+// 	// print_split(commands);
+// 	// printf("\n\n");
+
+// 	init_list(&commands_list, commands);
+// 	printf("list command :\n");
+// 	ft_lstiter(commands_list, print_list);
+// 	printf("\n\n");
+// 	all->command_list = commands_list;
+
+// 	printf("output :\n");
+// 	exec_commands(all);
+// 	printf("\n\n");
+
+// 	free_split(env);
+// 	ft_free_command(&env_list);
+
+// 	free_list(commands_list);
+// 	free(all);
+// 	return (0);
+// }
+
+
+
+
+int	main(int argc, char **argv, char **envp)
 {
-	char	**commands;
-	char	*example_com;
-	t_all	*all;
-	t_list	*commands_list;
+	char			*line;
+	t_command_list	*env_list;
+	char			**env;
+	char			**commande;
 
-	(void)argc;
-	(void)argv;
-	all = (t_all *)malloc(sizeof(t_all));
-	if (!all)
-		return (0);
-	all->exit_status = 0;
-	all->env = env;
-	all->command_list = NULL;
-	commands_list = NULL;
-	// example_com = "ls -la | grep \"Okt\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
-	example_com = "<   minishell.c cat<Makefile";
-	printf("%s\n\n", example_com);
+	env_list = NULL;
+	int_lst_env(&env_list, envp);
+	env = list_to_array(env_list);
 
-	example_com = replace_env_vars(example_com);
-	commands = ft_split_esc(example_com, '|');
-	ft_free(example_com);
 
-	// printf("split command :\n");
-	// print_split(commands);
-	// printf("\n\n");
+	line = "export LS_COLORS";
+	commande = ft_split_esc_2(line, ' ');
+	print_split(commande);
+	printf("\n\n\n\n");
 
-	init_list(&commands_list, commands);
-	printf("list command :\n");
-	ft_lstiter(commands_list, print_list);
-	printf("\n\n");
-	all->command_list = commands_list;
+	// ft_export(env_list, commande);
+	// ft_print_env(env_list);
+	printf("\n\n\n\n");
+	ft_unset(&env_list, commande);
+	ft_prin_export(env_list);
 
-	printf("output :\n");
-	exec_commands(all);
-	printf("\n\n");
-
-	printf("in parent\n");
-	free_list(commands_list);
-	free(all);
-	return (0);
+	free_split(commande);
+	free_split(env);
+	ft_free_command(&env_list);
 }
 
+	// line = readline("minishel >");
+	// if (line[0] == '\0')
+	// 	printf("s\n", line);
+	// else
+	// 	printf("tsy tafiditra : %s", line);
