@@ -1,4 +1,5 @@
-SRCS = minishell.c ft_split_esc_2.c ./builtins/ft_env.c ./builtins/ft_export.c ./builtins/ft_unset.c
+SRCS = minishell.c ft_split_esc_2.c \
+		./builtins/ft_env.c ./builtins/ft_export.c ./builtins/ft_unset.c
 
 # FLAGS = -Wall -Werror -Wextra -lreadline
 # FLAGS = -g -Wall -Werror -Wextra
@@ -16,7 +17,7 @@ LIBFT_ARCHIVE = $(LIBFT_PATH)/libft.a
 	@$(CC) $(FLAGS) -c $< -o $@
 
 all: $(NAME)
-	@clear
+#@clear
 
 $(NAME): $(LIBFT_ARCHIVE) $(OBJS)
 	@$(CC) $(FLAGS) $(OBJS) $(LIBFT_ARCHIVE) -o $(NAME)
@@ -42,5 +43,6 @@ norm:
 
 debug: all
 	@valgrind --suppressions=readline.supp --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(NAME)
+	@$(clean)
 
 .PHONY: all clean fclean re

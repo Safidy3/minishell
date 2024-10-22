@@ -23,10 +23,10 @@ void	ft_swap_string(char **s1, char **s2)
 	*s2 = tmp;
 }
 
-void	ft_sort_list(t_command_list *env)
+void	ft_sort_list(t_env_list *env)
 {
 	int				i;
-	t_command_list	*tmp;
+	t_env_list	*tmp;
 
 	i = 0;
 	tmp = env;
@@ -44,7 +44,7 @@ void	ft_sort_list(t_command_list *env)
 	}
 }
 
-void	join_first_second(int flag, t_command_list *new)
+void	join_first_second(int flag, t_env_list *new)
 {
 	char	*tmp;
 
@@ -60,12 +60,12 @@ void	join_first_second(int flag, t_command_list *new)
 	}
 }
 
-t_command_list	*ft_lstnew(char *content, int flag)
+t_env_list	*ft_lstnew(char *content, int flag)
 {
-	t_command_list	*new;
+	t_env_list	*new;
 	char			*line;
 
-	new = (t_command_list *)malloc(sizeof(t_command_list));
+	new = (t_env_list *)malloc(sizeof(t_env_list));
 	if (!new)
 		return (NULL);
 	new->value = strdup(content);
@@ -88,9 +88,9 @@ t_command_list	*ft_lstnew(char *content, int flag)
 	return (new);
 }
 
-t_command_list	*ft_lstlast(t_command_list *lst)
+t_env_list	*ft_lstlast(t_env_list *lst)
 {
-	t_command_list	*tmp;
+	t_env_list	*tmp;
 
 	while ((lst->next) != NULL)
 		lst = lst->next;
@@ -98,9 +98,9 @@ t_command_list	*ft_lstlast(t_command_list *lst)
 	return (tmp);
 }
 
-void	ft_lstadd_back(t_command_list **lst, t_command_list *new_element)
+void	ft_lstadd_back(t_env_list **lst, t_env_list *new_element)
 {
-	t_command_list	*last;
+	t_env_list	*last;
 
 	if (*lst == NULL)
 	{
@@ -113,14 +113,14 @@ void	ft_lstadd_back(t_command_list **lst, t_command_list *new_element)
 
 /************************************************** */
 
-void ft_free_command(t_command_list **env)
+void ft_free_env_list(t_env_list *env)
 {
-	t_command_list *tmp;
+	t_env_list	*tmp;
 
-	while ((*env))
+	while (env)
 	{
-		tmp = (*env);
-		(*env)=(*env)->next;
+		tmp = env;
+		env = env->next;
 		free(tmp->first);
 		free(tmp->second);
 		free(tmp->value);
@@ -128,9 +128,9 @@ void ft_free_command(t_command_list **env)
 	}
 }
 
-void	int_lst_env(t_command_list **list, char **envp)
+void	int_lst_env(t_env_list **list, char **envp)
 {
-	t_command_list *tmp;
+	t_env_list *tmp;
 	char **dir;
 	char *line;
 	int i ;
@@ -143,12 +143,12 @@ void	int_lst_env(t_command_list **list, char **envp)
 	}
 }
 
-char	**list_to_array(t_command_list *env)
+char	**list_to_array(t_env_list *env)
 {
 	int i;
 	char **dir;
 	char *cha_join;
-	t_command_list *tmp;
+	t_env_list *tmp;
 
 	i = 0;
 	tmp = env;
@@ -169,9 +169,9 @@ char	**list_to_array(t_command_list *env)
 	return(dir);
 }
 
-void	ft_print_env(t_command_list *env)
+void	ft_print_env(t_env_list *env)
 {
-	t_command_list *tmp;
+	t_env_list *tmp;
 	int i;
 
 	i = 0;

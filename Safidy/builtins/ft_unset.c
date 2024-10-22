@@ -12,7 +12,7 @@
 
 #include "../minishell.h"
 
-void	ft_free_tmp(t_command_list *tmp)
+void	ft_free_tmp(t_env_list *tmp)
 {
 	free(tmp->first);
 	free(tmp->second);
@@ -20,10 +20,10 @@ void	ft_free_tmp(t_command_list *tmp)
 	free(tmp);
 }
 
-void	ft_unset(t_command_list **env, char **commande)
+void	ft_unset(t_env_list **env, char **commande)
 {
-	t_command_list	*tmp;
-	t_command_list	*prev;
+	t_env_list	*tmp;
+	t_env_list	*prev;
 	int				i;
 
 	i = 0;

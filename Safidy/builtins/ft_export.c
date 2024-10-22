@@ -14,8 +14,6 @@
 
 /*************************************************************/
 
-
-
 int	ft_strcmp(const char *s1, const char *s2)
 {
 	size_t	i;
@@ -24,17 +22,11 @@ int	ft_strcmp(const char *s1, const char *s2)
 	while ((s1[i] != '\0' || s2[i] != '\0'))
 	{
 		if (s1[i] != s2[i])
-		{
 			return ((unsigned char) s1[i] - (unsigned char) s2[i]);
-		}
 		i++;
 	}
 	return (0);
 }
-
-
-
-
 
 /*************************************************************/
 
@@ -84,10 +76,10 @@ int	ft_export_error(char *variable_name, char *commande)
 	return (0);
 }
 
-t_command_list	*ft_dup_env(t_command_list **env)
+t_env_list	*ft_dup_env(t_env_list **env)
 {
-	t_command_list	*tmp;
-	t_command_list	*dup_env;
+	t_env_list	*tmp;
+	t_env_list	*dup_env;
 
 	dup_env = NULL;
 	tmp = *env;
@@ -99,10 +91,10 @@ t_command_list	*ft_dup_env(t_command_list **env)
 	return (dup_env);
 }
 
-void	ft_prin_export(t_command_list *env)
+void	ft_prin_export(t_env_list *env)
 {
-	t_command_list	*tmp;
-	t_command_list	*env_export;
+	t_env_list	*tmp;
+	t_env_list	*env_export;
 	int				i;
 
 	env_export = ft_dup_env(&env);
@@ -123,10 +115,10 @@ void	ft_prin_export(t_command_list *env)
 		}
 		i++;
 	}
-	ft_free_command(&env_export);
+	ft_free_env_list(env_export);
 }
 
-void	ft_update_flag_1(t_command_list *tmp, char *line)
+void	ft_update_flag_1(t_env_list *tmp, char *line)
 {
 	char	*char_tmp;
 
@@ -140,7 +132,7 @@ void	ft_update_flag_1(t_command_list *tmp, char *line)
 	free(char_tmp);
 }
 
-void	ft_update_flag_0(t_command_list *tmp, char *line, char *commande)
+void	ft_update_flag_0(t_env_list *tmp, char *line, char *commande)
 {
 	free(tmp->value);
 	free(tmp->second);
@@ -148,15 +140,13 @@ void	ft_update_flag_0(t_command_list *tmp, char *line, char *commande)
 	tmp->value = ft_strdup(commande);
 }
 
-void	ft_update_ensemble(int *flag, t_command_list *tmp, char *line,
+void	ft_update_ensemble(int *flag, t_env_list *tmp, char *line,
 		char *commande)
 {
-	if (*flag == 1) // flag=1 misy + eo alohanle =
+	if (*flag == 1)
 		ft_update_flag_1(tmp, line);
-	else // tsisy = de manova anle second
-	{
+	else
 		ft_update_flag_0(tmp, line, commande);
-	}
 }
 
 char	*ft_init_variable_name(char *commande, int *flag, char *line)
@@ -167,9 +157,9 @@ char	*ft_init_variable_name(char *commande, int *flag, char *line)
 		variable_name = ft_strdup(commande);
 	else
 	{
-		if (commande[line - commande - 1] == '+') // miala anle =
+		if (commande[line - commande - 1] == '+')
 			*flag = 1;
-		if (*flag == 1) // flag=1 misy + eo alohanle =
+		if (*flag == 1)
 			variable_name = ft_substr(commande, 0, (line - commande - 1));
 		else
 			variable_name = ft_substr(commande, 0, (line - commande));
@@ -177,10 +167,10 @@ char	*ft_init_variable_name(char *commande, int *flag, char *line)
 	return (variable_name);
 }
 
-void	update_final_export(char *line, t_command_list *tmp,
+void	update_final_export(char *line, t_env_list *tmp,
 		char *variable_name, int *flag, char *commande)
 {
-	if (ft_strcmp(tmp->first, variable_name) == 0) // refa efa misy le first
+	if (ft_strcmp(tmp->first, variable_name) == 0)
 	{
 		if (line)
 		{
@@ -191,12 +181,12 @@ void	update_final_export(char *line, t_command_list *tmp,
 	}
 }
 
-int	ft_maj_export(t_command_list *env, char *commande, int *flag)
+int	ft_maj_export(t_env_list *env, char *commande, int *flag)
 {
-	char			*line;
-	char			*char_tmp;
-	char			*variable_name;
-	t_command_list	*tmp;
+	char		*line;
+	char		*char_tmp;
+	char		*variable_name;
+	t_env_list	*tmp;
 
 	tmp = env;
 	line = strchr(commande, '=');
@@ -215,12 +205,12 @@ int	ft_maj_export(t_command_list *env, char *commande, int *flag)
 	return (0);
 }
 
-void	ft_export(t_command_list *env, char **commade)
+void	ft_export(t_env_list *env, char **commade)
 {
-	t_command_list	*tmp;
-	int				i;
-	int				flag;
-	char			*line;
+	t_env_list	*tmp;
+	int			i;
+	int			flag;
+	char		*line;
 
 	i = 1;
 	flag = 0;

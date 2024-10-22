@@ -12,7 +12,7 @@
 
 #include "minishell.h"
 
-// void	ft_init_enum(char *content, t_command_list *new)
+// void	ft_init_enum(char *content, t_env_list *new)
 // {
 // 	if (strcmp(content, ">") == 0)
 // 		new->type = R_OUT;
