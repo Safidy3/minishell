@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_env.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 12:28:22 by larakoto          #+#    #+#             */
-/*   Updated: 2024/10/20 12:28:24 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/10/23 13:40:18 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,9 +130,6 @@ void ft_free_env_list(t_env_list *env)
 
 void	int_lst_env(t_env_list **list, char **envp)
 {
-	t_env_list *tmp;
-	char **dir;
-	char *line;
 	int i ;
 
 	i = 0;

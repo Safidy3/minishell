@@ -2,9 +2,9 @@ SRCS = minishell.c ft_split_esc_2.c \
 		./builtins/ft_env.c ./builtins/ft_export.c ./builtins/ft_unset.c
 
 # FLAGS = -Wall -Werror -Wextra -lreadline
-# FLAGS = -g -Wall -Werror -Wextra
+FLAGS = -g -Wall -Werror -Wextra
 # FLAGS = -lreadline
-FLAGS = 
+# FLAGS = 
 
 
 OBJS = $(SRCS:.c=.o)

@@ -114,7 +114,6 @@ static void	handle_special_char(char *s, int *word_len, int *i)
 
 static size_t	ft_count_words_len(char *s, char c)
 {
-	char	quote;
 	int		word_len;
 	int		i;
 

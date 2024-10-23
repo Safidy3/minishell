@@ -219,7 +219,7 @@ void	dup_out(int fd[2], t_all *all, char *bin_path, int closeall)
 		close(fd[0]);
 }
 
-char	*join_bin_path(t_list *commands_list, char *bin_path)
+char	*join_bin_path(char *commands_list, char *bin_path)
 {
 	char	*temp;
 	char	*res;
@@ -228,15 +228,14 @@ char	*join_bin_path(t_list *commands_list, char *bin_path)
 	ft_free(bin_path);
 	if (!temp)
 		return (NULL);
-	res = ft_strjoin(temp,
-			(char *)((char **)commands_list->content)[0]);
+	res = ft_strjoin(temp, commands_list);
 	free(temp);
 	if (!res)
 		return (NULL);
 	return (res);
 }
 
-char	*get_bin_path(t_list *commands_list)
+char	*get_bin_path(char *commands_list)
 {
 	char	**bin_paths;
 	char	*bin_path;
@@ -252,7 +251,11 @@ char	*get_bin_path(t_list *commands_list)
 	{
 		bin_path = join_bin_path(commands_list, bin_paths[i]);
 		if (bin_path && access(bin_path, F_OK | X_OK) == 0)
+		{
+            if (result)
+                free(result);
 			result = bin_path;
+		}
 		else
 			ft_free(bin_path);
 	}
@@ -334,7 +337,7 @@ void	exec_child(t_list *command, int prev_fd[2],
 
 	if (check_spetial_char((char **)command->content) == 0)
 	{
-		bin_path = get_bin_path(command);
+		bin_path = get_bin_path((char *)((char **)command->content)[0]);
 		if (!bin_path)
 			exec_error(NULL, all, "get_bin_path failed\n");
 		if (prev_fd[0] != -1)
@@ -343,7 +346,6 @@ void	exec_child(t_list *command, int prev_fd[2],
 			dup_out(current_fd, all, bin_path, 1);
 		execve(bin_path, (char **)command->content, all->env_arr);
 		exec_error(bin_path, all, "execve failed\n");
-		free(bin_path);
 	}
 	else
 	{
@@ -358,9 +360,14 @@ void	exec_child(t_list *command, int prev_fd[2],
 		print_split(new_command);
 		printf("\n\n");
 
+		bin_path = get_bin_path(new_command[0]);
+		if (!bin_path)
+			exec_error(NULL, all, "get_bin_path failed\n");
+		printf("binpath = %s\n\n", bin_path);
+
 		free(redirection_files);
 		free(new_command);
-		exec_error(NULL, all, "nothing\n");
+		exec_error(bin_path, all, "nothing\n");
 	}
 }
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_export.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 10:02:40 by larakoto          #+#    #+#             */
-/*   Updated: 2024/10/18 10:02:44 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/10/23 13:40:56 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,7 +184,6 @@ void	update_final_export(char *line, t_env_list *tmp,
 int	ft_maj_export(t_env_list *env, char *commande, int *flag)
 {
 	char		*line;
-	char		*char_tmp;
 	char		*variable_name;
 	t_env_list	*tmp;
 
@@ -207,10 +206,8 @@ int	ft_maj_export(t_env_list *env, char *commande, int *flag)
 
 void	ft_export(t_env_list *env, char **commade)
 {
-	t_env_list	*tmp;
 	int			i;
 	int			flag;
-	char		*line;
 
 	i = 1;
 	flag = 0;
