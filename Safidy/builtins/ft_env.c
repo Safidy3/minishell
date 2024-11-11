@@ -25,10 +25,8 @@ void	ft_swap_string(char **s1, char **s2)
 
 void	ft_sort_list(t_env_list *env)
 {
-	int				i;
 	t_env_list	*tmp;
 
-	i = 0;
 	tmp = env;
 	while (tmp->next)
 	{
@@ -169,9 +167,7 @@ char	**list_to_array(t_env_list *env)
 void	ft_print_env(t_env_list *env)
 {
 	t_env_list *tmp;
-	int i;
 
-	i = 0;
 	tmp = env;
 	while (tmp)
 	{

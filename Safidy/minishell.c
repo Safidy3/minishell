@@ -274,6 +274,20 @@ int	check_spetial_char(char **command)
 	return (0);
 }
 
+char	*get_redirection_file_name(char *command)
+{
+	char	*redirection_file;
+	int		i;
+
+	i = 0;
+	while (command[i] && (command[i] == '>' || command[i] == '<' || command[i] == ' '))
+		i++;
+	redirection_file = ft_strdup(&command[i]);
+	if (!redirection_file)
+		return (NULL);
+	return (redirection_file);
+}
+
 char	**get_redrection_array(char **command, t_all *all)
 {
 	char	**redirection_files;
@@ -293,7 +307,7 @@ char	**get_redrection_array(char **command, t_all *all)
 	{
 		if (command[i][0] == '>' || command[i][0] == '<')
 		{
-			redirection_files[++j] = command[i];
+			redirection_files[++j] = get_redirection_file_name(command[i]);
 			if (!redirection_files[j])
 				exec_error(NULL, all, "get_redrection_array\n");
 		}
@@ -328,46 +342,56 @@ char	**get_new_command(char **command, t_all *all)
 	return (new_command);
 }
 
-void	exec_child(t_list *command, int prev_fd[2],
+void	exec_child(t_list *command_arr, int prev_fd[2],
 			int current_fd[2], t_all *all)
 {
 	char	*bin_path;
 	char	**redirection_files;
-	char	**new_command;
+	char	**command;
+	int		fd;
+	int		i;
 
-	if (check_spetial_char((char **)command->content) == 0)
+	i = 0;
+	if (check_spetial_char((char **)command_arr->content) == 0)
+		command = (char **)command_arr->content;
+	else
 	{
-		bin_path = get_bin_path((char *)((char **)command->content)[0]);
+		command = get_new_command((char **)command_arr->content, all);
+		redirection_files = get_redrection_array((char **)command_arr->content, all);
+
+		while (redirection_files[i])
+		{
+			if (redirection_files[i][0] == '>')
+			{
+				fd = open(redirection_files[i] + 1, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+				if (fd == -1)
+					exec_error(NULL, all, "open failed\n");
+				if (dup2(fd, STDOUT_FILENO) == -1)
+					exec_error(NULL, all, "dup2 failed\n");
+				close(fd);
+			}
+			else if (redirection_files[i][0] == '<')
+			{
+				fd = open(redirection_files[i] + 1, O_RDONLY);
+				if (fd == -1)
+					exec_error(NULL, all, "open failed\n");
+				if (dup2(fd, STDIN_FILENO) == -1)
+					exec_error(NULL, all, "dup2 failed\n");
+				close(fd);
+			}
+			i++;
+		}
+
+		bin_path = get_bin_path(command[0]);
 		if (!bin_path)
 			exec_error(NULL, all, "get_bin_path failed\n");
 		if (prev_fd[0] != -1)
 			dup_in(prev_fd, all, bin_path, 0);
-		if (command->next)
+		if (command_arr->next)
 			dup_out(current_fd, all, bin_path, 1);
-		execve(bin_path, (char **)command->content, all->env_arr);
+
+		execve(bin_path, command, all->env_arr);
 		exec_error(bin_path, all, "execve failed\n");
-	}
-	else
-	{
-		redirection_files = get_redrection_array((char **)command->content, all);
-		new_command = get_new_command((char **)command->content, all);
-
-		printf("redirection file :\n");
-		print_split(redirection_files);
-		printf("\n\n");
-
-		printf("New command :\n");
-		print_split(new_command);
-		printf("\n\n");
-
-		bin_path = get_bin_path(new_command[0]);
-		if (!bin_path)
-			exec_error(NULL, all, "get_bin_path failed\n");
-		printf("binpath = %s\n\n", bin_path);
-
-		free(redirection_files);
-		free(new_command);
-		exec_error(bin_path, all, "nothing\n");
 	}
 }
 
@@ -459,10 +483,10 @@ int	main(int argc, char **argv, char **envp)
 	// line = readline("minishel >");
 	// if (!line[0])
 	// 	printf("tafiditra\n");
-	// line = "ls -la | grep \"Oct\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
 
-	line = "<   minishell.c cat<Makefile";
-	printf("%s\n\n", line);
+	// line = "ls -la | grep \"Nov\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
+	line = "<   minishell.c cat utils.txt <Makefile";
+	// printf("%s\n\n", line);
 
 	line = replace_env_vars(line);
 	commands = ft_split_esc(line, '|');
@@ -474,13 +498,13 @@ int	main(int argc, char **argv, char **envp)
 
 	init_list(&commands_list, commands);
 	all->command_list = commands_list;
-	printf("list command :\n");
-	ft_lstiter(commands_list, print_list);
-	printf("\n\n");
+	// printf("list command :\n");
+	// ft_lstiter(commands_list, print_list);
+	// printf("\n\n");
 
 	printf("output :\n");
 	exec_commands(all);
-	printf("\n\n");
+	// printf("\n\n");
 
 	free_split(env_arr);
 	ft_free_env_list(env_list);

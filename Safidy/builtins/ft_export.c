@@ -59,9 +59,6 @@ int	ft_check_after_first_caracter(char *variable_name, char *commande)
 
 int	ft_export_error(char *variable_name, char *commande)
 {
-	int	i;
-
-	i = 0;
 	if (variable_name)
 	{
 		if (variable_name[0] == '\0' || (!ft_isalpha(variable_name[0])
