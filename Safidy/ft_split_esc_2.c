@@ -45,9 +45,9 @@ static char	*ft_escape_special_char(char *s)
 		s++;
 		if (is_special_char(*s))
 			s++;
-		while (*s == ' ')
+		while (ft_isspace(*s))
 			s++;
-		while (*s && *s != ' ' && !is_special_char(*s))
+		while (*s && !ft_isspace(*s) && !is_special_char(*s))
 			s++;
 	}
 	return (s);
@@ -101,9 +101,9 @@ static void	handle_special_char(char *s, int *word_len, int *i)
 	(*i)++;
 	if (is_special_char(s[*i]))
 		(*i)++;
-	while (s[*i] == ' ')
+	while (ft_isspace(s[*i]))
 		(*i)++;
-	while (s[*i] && s[*i] != ' ' && !is_special_char(s[*i]))
+	while (s[*i] && !ft_isspace(s[*i]) && !is_special_char(s[*i]))
 	{
 		if (s[*i] == '\'' || s[*i] == '"')
 			skip_quote(s, word_len, i);
