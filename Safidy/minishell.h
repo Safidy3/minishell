@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/11/11 13:27:45 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/12 16:56:56 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,19 +27,6 @@
 # include <string.h>
 
 # define MAX_COMMANDS 100
-
-enum e_typage
-{
-	STRING,
-	R_OUT,
-	R_IN,
-	R_PIPE,
-	RR_IN,
-	RR_OUT,
-	PIPE_FILE,
-	INPUT_FILE,
-	OUTPUT_FILE,
-};
 
 typedef struct	s_env_list
 {
@@ -83,7 +70,7 @@ void			ft_print_export_error(char *commande);
 int				ft_check_after_first_caracter(char *variable_name, char *commande);
 int				ft_export_error(char *variable_name, char *commande);
 t_env_list		*ft_dup_env(t_env_list **env);
-void			ft_prin_export(t_env_list *env);
+void			ft_print_export(t_env_list *env);
 void			ft_update_flag_1(t_env_list *tmp, char *line);
 void			ft_update_flag_0(t_env_list *tmp, char *line, char *commande);
 void			ft_update_ensemble(int *flag, t_env_list *tmp, char *line, char *commande);

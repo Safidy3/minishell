@@ -262,8 +262,8 @@ char	*get_bin_path(char *commands_list)
 		bin_path = join_bin_path(commands_list, bin_paths[i]);
 		if (bin_path && access(bin_path, F_OK | X_OK) == 0)
 		{
-            if (result)
-                free(result);
+			if (result)
+				free(result);
 			result = bin_path;
 		}
 		else
@@ -290,7 +290,8 @@ char	*get_redirection_file_name(char *command)
 	int		i;
 
 	i = 0;
-	while (command[i] && (command[i] == '>' || command[i] == '<' || ft_isspace(command[i])))
+	while (command[i] && (command[i] == '>' || command[i] == '<'
+			|| ft_isspace(command[i])))
 		i++;
 	redirection_file = ft_strdup(&command[i]);
 	if (!redirection_file)
@@ -325,7 +326,7 @@ char	**get_redrection_array(char **command, t_all *all)
 	return (redirection_files);
 }
 
-char	**get_in_redrection_array(char **command, t_all *all)
+char	**get_infile_array(char **command, t_all *all)
 {
 	char	**redirection_files;
 	int		count;
@@ -352,7 +353,7 @@ char	**get_in_redrection_array(char **command, t_all *all)
 	return (redirection_files);
 }
 
-char	**get_out_redrection_array(char **command, t_all *all)
+char	**get_outfile_array(char **command, t_all *all)
 {
 	char	**redirection_files;
 	int		count;
@@ -406,56 +407,50 @@ char	**get_new_command(char **command, t_all *all)
 	return (new_command);
 }
 
+void	manage_in_out_file(char **in_files, char **out_files, t_all *all)
+{
+	int		fd;
+	int		i;
+
+	i = -1;
+	while (in_files[++i])
+	{
+		fd = open(in_files[i], O_RDONLY);
+		if (fd == -1)
+			fd_error(NULL, all);
+		if (dup2(fd, STDIN_FILENO) == -1)
+			exec_error(NULL, all, "dup2 failed\n");
+		close(fd);
+	}
+	i = -1;
+	while (out_files[++i])
+	{
+		fd = open(out_files[i], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (fd == -1)
+			fd_error(NULL, all);
+		if (dup2(fd, STDOUT_FILENO) == -1)
+			exec_error(NULL, all, "open failed\n");
+		close(fd);
+	}
+}
+
 void	exec_child(t_list *command_arr, int prev_fd[2],
 			int current_fd[2], t_all *all)
 {
 	char	*bin_path;
-	char	**in_redirection_files;
-	char	**out_redirection_files;
+	char	**in_files;
+	char	**out_files;
 	char	**command;
-	int		fd;
-	int		i;
 
 	if (check_spetial_char((char **)command_arr->content) == 0)
 		command = (char **)command_arr->content;
 	else
 	{
 		command = get_new_command((char **)command_arr->content, all);
-		in_redirection_files = get_in_redrection_array((char **)command_arr->content, all);
-		out_redirection_files = get_out_redrection_array((char **)command_arr->content, all);
-
-		printf("new command :\n");
-		print_split(command);
-		printf("\n\n");
-		printf("in_redirection_files :\n");
-		print_split(in_redirection_files);
-		printf("\n\n");
-		printf("out_redirection_files :\n");
-		print_split(out_redirection_files);
-		printf("\n\n");
-
-		i = -1;
-		while (in_redirection_files[++i])
-		{
-			fd = open(in_redirection_files[i], O_RDONLY);
-			if (fd == -1)
-				fd_error(NULL, all);
-			if (dup2(fd, STDIN_FILENO) == -1)
-				exec_error(NULL, all, "dup2 failed\n");
-			close(fd);
-		}
-		i = -1;
-		while (out_redirection_files[++i])
-		{
-			fd = open(out_redirection_files[i], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-			if (fd == -1)
-				fd_error(NULL, all);
-			if (dup2(fd, STDOUT_FILENO) == -1)
-				exec_error(NULL, all, "open failed\n");
-			close(fd);
-		}
+		in_files = get_infile_array((char **)command_arr->content, all);
+		out_files = get_outfile_array((char **)command_arr->content, all);
+		manage_in_out_file(in_files, out_files, all);
 	}
-
 	bin_path = get_bin_path(command[0]);
 	if (!bin_path)
 		exec_error(NULL, all, "get_bin_path failed\n");
@@ -463,7 +458,6 @@ void	exec_child(t_list *command_arr, int prev_fd[2],
 		dup_in(prev_fd, all, bin_path, 0);
 	if (command_arr->next)
 		dup_out(current_fd, all, bin_path, 1);
-
 	printf("output :\n");
 	execve(bin_path, command, all->env_arr);
 	exec_error(bin_path, all, "execve failed\n");
@@ -513,13 +507,16 @@ void	exec_commands(t_all *all)
 
 /******************* main ******************/
 
+	// export list=ls ; $list
+	// export WWW=$(echo "hello world"); WWW=hello world
 	// signal
-	// cat<minishell.c<Makefile : Makefile iany ni cateny
-	// <minishell.c cat<Makefile : Makefile iany ni cateny
-	// echo hello >minishell.c>Makefile : creer daoly fa le farany iany no nisy hello
 	// shellevel
 	// cat << (heredoc)
 
+	// echo "$USER{alphaNum + _}$HOME"
+	// cat<minishell.c<Makefile : Makefile iany ni cateny
+	// <minishell.c cat<Makefile : Makefile iany ni cateny
+	// echo hello >minishell.c>Makefile : creer daoly fa le farany iany no nisy hello
 	// env
 	// echo "$USER{alphaNum + _}$HOME"
 	// echo '$HOME'
@@ -546,6 +543,16 @@ int	main(int argc, char **argv, char **envp)
 	int_lst_env(&env_list, envp);
 	env_arr = list_to_array(env_list);
 
+	// printf("env list :\n");
+	// ft_print_env(env_list);
+
+	char *export_var[2] = {ft_strdup("AAAA=helloWorld"), NULL};
+
+	ft_export(env_list, export_var);
+	print_split(env_arr);
+	// ft_print_export(env_list);
+
+
 	all = (t_all *)malloc(sizeof(t_all));
 	if (!all)
 		return (0);
@@ -560,24 +567,26 @@ int	main(int argc, char **argv, char **envp)
 
 	// line = "ls -la | grep \"Nov\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
 	// line = "<   minishell.c grep \"stdin\" utils.txt <Makefile";
-	line = "echo \"hello world\" > hellotest.txt";
-	// printf("%s\n\n", line);
+	// line = "echo \"hello world\" > infile1 > infile2 > hellotest.txt";
+	line = "$HOME";
 
 	line = replace_env_vars(line);
+	printf("%s\n\n", line);
 	commands = ft_split_esc(line, '|');
 	ft_free(line);
 
-	printf("split command :\n");
-	print_split(commands);
-	printf("\n\n");
+	// printf("split command :\n");
+	// print_split(commands);
+	// printf("\n\n");
 
 	init_list(&commands_list, commands);
 	all->command_list = commands_list;
-	printf("list command :\n");
-	ft_lstiter(commands_list, print_list);
-	printf("\n\n");
+	
+	// printf("list command :\n");
+	// ft_lstiter(commands_list, print_list);
+	// printf("\n\n");
 
-	exec_commands(all);
+	// exec_commands(all);
 
 	free_split(env_arr);
 	ft_free_env_list(env_list);
@@ -586,30 +595,3 @@ int	main(int argc, char **argv, char **envp)
 	free(all);
 	return (0);
 }
-
-// int	main(int argc, char **argv, char **envp)
-// {
-// 	char			*line;
-// 	t_env_list	*env_list;
-// 	char			**env;
-// 	char			**commande;
-
-// 	env_list = NULL;
-// 	int_lst_env(&env_list, envp);
-// 	env = list_to_array(env_list);
-
-// 	line = "export LS_COLORS";
-// 	commande = ft_split_esc_2(line, ' ');
-// 	print_split(commande);
-// 	printf("\n\n\n\n");
-
-// 	// ft_export(env_list, commande);
-// 	// ft_print_env(env_list);
-// 	printf("\n\n\n\n");
-// 	ft_unset(&env_list, commande);
-// 	ft_prin_export(env_list);
-
-// 	free_split(commande);
-// 	free_split(env);
-// 	ft_free_env_list(&env_list);
-// }

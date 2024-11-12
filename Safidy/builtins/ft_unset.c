@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_unset.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 16:33:16 by larakoto          #+#    #+#             */
-/*   Updated: 2024/10/19 16:33:19 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/11/12 15:24:07 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void	ft_unset(t_env_list **env, char **commande)
 {
 	t_env_list	*tmp;
 	t_env_list	*prev;
-	int				i;
+	int			i;
 
 	i = 0;
 	while (commande[i])

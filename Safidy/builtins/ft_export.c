@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 10:02:40 by larakoto          #+#    #+#             */
-/*   Updated: 2024/10/23 13:40:56 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/12 17:23:27 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,13 +48,13 @@ int	ft_check_after_first_caracter(char *variable_name, char *commande)
 	{
 		if (!ft_isalpha(variable_name[i]) && !ft_isdigit(variable_name[i])
 			&& variable_name[i] != '_')
-			{
-				ft_print_export_error(commande);
-				return(1);
-			}
+		{
+			ft_print_export_error(commande);
+			return (1);
+		}
 		i++;
 	}
-	return(0);
+	return (0);
 }
 
 int	ft_export_error(char *variable_name, char *commande)
@@ -88,17 +88,17 @@ t_env_list	*ft_dup_env(t_env_list **env)
 	return (dup_env);
 }
 
-void	ft_prin_export(t_env_list *env)
+void	ft_print_export(t_env_list *env)
 {
 	t_env_list	*tmp;
 	t_env_list	*env_export;
-	int				i;
+	int			i;
 
 	env_export = ft_dup_env(&env);
 	ft_sort_list(env_export);
 	tmp = env_export;
 	i = 0;
-	while ((tmp))
+	while (tmp)
 	{
 		if (strcmp(tmp->first, "_") == 0)
 			tmp = tmp->next;
@@ -188,30 +188,26 @@ int	ft_maj_export(t_env_list *env, char *commande, int *flag)
 	line = strchr(commande, '=');
 	variable_name = ft_init_variable_name(commande, flag, line);
 	if (ft_export_error(variable_name, commande) == 1)
-	{
-		free(variable_name);
-		return (1);
-	}
+		return (free(variable_name), 1);
 	while (tmp)
 	{
 		update_final_export(line, tmp, variable_name, flag, commande);
 		tmp = tmp->next;
 	}
-	free(variable_name);
-	return (0);
+	return (free(variable_name), 0);
 }
 
-void	ft_export(t_env_list *env, char **commade)
+void	ft_export(t_env_list *env, char **commande)
 {
 	int			i;
 	int			flag;
 
 	i = 1;
 	flag = 0;
-	while (commade[i] != NULL)
+	while (commande[i] != NULL)
 	{
-		if (commade[i] && ft_maj_export(env, commade[i], &flag) == 0)
-			ft_lstadd_back(&env, ft_lstnew(commade[i], flag));
+		if (commande[i] && ft_maj_export(env, commande[i], &flag) == 0)
+			ft_lstadd_back(&env, ft_lstnew(commande[i], flag));
 		i++;
 	}
 }

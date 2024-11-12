@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 12:28:22 by larakoto          #+#    #+#             */
-/*   Updated: 2024/10/23 13:40:18 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/12 16:12:57 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ void	join_first_second(int flag, t_env_list *new)
 t_env_list	*ft_lstnew(char *content, int flag)
 {
 	t_env_list	*new;
-	char			*line;
+	char		*line;
 
 	new = (t_env_list *)malloc(sizeof(t_env_list));
 	if (!new)
@@ -111,7 +111,7 @@ void	ft_lstadd_back(t_env_list **lst, t_env_list *new_element)
 
 /************************************************** */
 
-void ft_free_env_list(t_env_list *env)
+void	ft_free_env_list(t_env_list *env)
 {
 	t_env_list	*tmp;
 
@@ -128,7 +128,7 @@ void ft_free_env_list(t_env_list *env)
 
 void	int_lst_env(t_env_list **list, char **envp)
 {
-	int i ;
+	int	i;
 
 	i = 0;
 	while (envp[i])
@@ -140,10 +140,10 @@ void	int_lst_env(t_env_list **list, char **envp)
 
 char	**list_to_array(t_env_list *env)
 {
-	int i;
-	char **dir;
-	char *cha_join;
-	t_env_list *tmp;
+	int			i;
+	char		**dir;
+	char		*cha_join;
+	t_env_list	*tmp;
 
 	i = 0;
 	tmp = env;
@@ -156,22 +156,22 @@ char	**list_to_array(t_env_list *env)
 	i = -1;
 	while (env)
 	{
-		cha_join = ft_strjoin((env->first),"=");
-		dir[++i] = ft_strjoin(cha_join,env->second);
+		cha_join = ft_strjoin((env->first), "=");
+		dir[++i] = ft_strjoin(cha_join, env->second);
 		free(cha_join);
 		env = env->next;
 	}
-	return(dir);
+	return (dir);
 }
 
 void	ft_print_env(t_env_list *env)
 {
-	t_env_list *tmp;
+	t_env_list	*tmp;
 
 	tmp = env;
 	while (tmp)
 	{
-		printf("%s\n",tmp->value);
+		printf("%s\n", tmp->value);
 		tmp = tmp->next;
 	}
 }
