@@ -202,8 +202,8 @@ void	ft_export(t_env_list *env, char **commande)
 	int			i;
 	int			flag;
 
-	i = 1;
 	flag = 0;
+	i = 0;
 	while (commande[i] != NULL)
 	{
 		if (commande[i] && ft_maj_export(env, commande[i], &flag) == 0)

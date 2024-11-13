@@ -21,7 +21,8 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 # include "libft/libft.h"
-#include <fcntl.h>
+# include <fcntl.h>
+# include <stdbool.h>
 
 
 # include <string.h>

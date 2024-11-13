@@ -1,5 +1,6 @@
 #include "minishell.h"
 
+#define MAX_VAR_LEN 256
 // ls -la | grep mini | awk '{print $9}' | head -n 1
 /*
 color in C
@@ -129,49 +130,79 @@ void	init_list(t_list **commands_list, char **arr_commands)
 
 /******************	env var ********************/
 
-static void	expand_env_var(char **s, char **res_ptr)
+static size_t	get_env_len(const char *s)
 {
-	char	var_name[256];
+	size_t	total_len;
+	char	var_name[MAX_VAR_LEN];
+	size_t	i;
 	char	*var_value;
-	int		var_len;
+
+	total_len = 0;
+	while (*s)
+	{
+		if (*s == '$')
+		{
+			s++;
+			i = 0;
+			while (*s && (ft_isalnum(*s) || *s == '_') && i < MAX_VAR_LEN - 1)
+				var_name[i++] = *s++;
+			var_name[i] = '\0';
+			var_value = getenv(var_name);
+			if (var_value)
+				total_len += ft_strlen(var_value);
+			s--;
+		}
+		else
+			total_len++;
+		s++;
+	}
+	return (total_len);
+}
+
+static void	copy_env_var(const char **s, char **dst)
+{
+	char	var_name[MAX_VAR_LEN];
+	char	*var_value;
+	size_t	i;
 
 	(*s)++;
-	var_len = 0;
-	while (**s && (ft_isalnum(**s) || **s == '_'))
-		var_name[var_len++] = *(*s)++;
-	var_name[var_len] = '\0';
+	i = 0;
+	while (**s && (ft_isalnum(**s) || **s == '_') && i < 255)
+		var_name[i++] = *(*s)++;
+	var_name[i] = '\0';
 	var_value = getenv(var_name);
 	if (var_value)
 	{
-		strcpy(*res_ptr, var_value);
-		*res_ptr += ft_strlen(var_value);
+		ft_strlcpy(*dst, var_value, ft_strlen(var_value) + 1);
+		*dst += ft_strlen(var_value);
 	}
+	(*s)--;
 }
 
-static char	*replace_env_vars(char *s)
+char	*replace_env_vars(const char *s)
 {
 	char	*result;
-	char	*res_ptr;
+	char	*dst;
 	int		in_quote;
 
-	in_quote = 0;
-	result = (char *)calloc(ft_strlen(s) + 1, sizeof(char));
+	if (!s)
+		return (NULL);
+	result = malloc(sizeof(char) * (get_env_len(s) + 1));
 	if (!result)
 		return (NULL);
-	res_ptr = result;
+	dst = result;
+	in_quote = 0;
 	while (*s)
 	{
 		if (*s == '\'')
-		{
 			in_quote = !in_quote;
-			*res_ptr++ = *s++;
-		}
-		else if (*s == '$' && !in_quote)
-			expand_env_var(&s, &res_ptr);
+		if (*s == '$' && !in_quote)
+			copy_env_var(&s, &dst);
 		else
-			*res_ptr++ = *s++;
+			*dst++ = *s;
+		s++;
 	}
-	*res_ptr = '\0';
+	*dst = '\0';
 	return (result);
 }
 
@@ -239,10 +270,9 @@ char	*join_bin_path(char *commands_list, char *bin_path)
 	if (!temp)
 		return (NULL);
 	res = ft_strjoin(temp, commands_list);
-	free(temp);
 	if (!res)
 		return (NULL);
-	return (res);
+	return (free(temp), res);
 }
 
 char	*get_bin_path(char *commands_list)
@@ -269,8 +299,7 @@ char	*get_bin_path(char *commands_list)
 		else
 			ft_free(bin_path);
 	}
-	free(bin_paths);
-	return (result);
+	return (free(bin_paths), result);
 }
 
 int	check_spetial_char(char **command)
@@ -527,71 +556,82 @@ void	exec_commands(t_all *all)
 	// ls -la '|' grep Okt
 	// grep "Okt" | awk '{print | $g}'
 
-int	main(int argc, char **argv, char **envp)
+int main()
 {
-	char			**commands;
-	char			*line;
-	t_all			*all;
-	t_list			*commands_list;
-	t_env_list		*env_list;
-	char			**env_arr;
 
-	(void)argc;
-	(void)argv;
-	commands_list = NULL;
-	env_list = NULL;
-	int_lst_env(&env_list, envp);
-	env_arr = list_to_array(env_list);
+	char *line = "$HOME";
+	char *var_line = "$HOME";
+	printf("before : %s HELLO WORLD\n", line);
 
-	// printf("env list :\n");
-	// ft_print_env(env_list);
+	var_line = replace_env_vars(line);
+	printf("after : %s HELLO WORLD\n", var_line);
 
-	char *export_var[2] = {ft_strdup("AAAA=helloWorld"), NULL};
-
-	ft_export(env_list, export_var);
-	print_split(env_arr);
-	// ft_print_export(env_list);
-
-
-	all = (t_all *)malloc(sizeof(t_all));
-	if (!all)
-		return (0);
-	all->exit_status = 0;
-	all->env_arr = env_arr;
-	all->env_list = env_list;
-	all->command_list = NULL;
-
-	// line = readline("minishel >");
-	// if (!line[0])
-	// 	printf("tafiditra\n");
-
-	// line = "ls -la | grep \"Nov\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
-	// line = "<   minishell.c grep \"stdin\" utils.txt <Makefile";
-	// line = "echo \"hello world\" > infile1 > infile2 > hellotest.txt";
-	line = "$HOME";
-
-	line = replace_env_vars(line);
-	printf("%s\n\n", line);
-	commands = ft_split_esc(line, '|');
-	ft_free(line);
-
-	// printf("split command :\n");
-	// print_split(commands);
-	// printf("\n\n");
-
-	init_list(&commands_list, commands);
-	all->command_list = commands_list;
-	
-	// printf("list command :\n");
-	// ft_lstiter(commands_list, print_list);
-	// printf("\n\n");
-
-	// exec_commands(all);
-
-	free_split(env_arr);
-	ft_free_env_list(env_list);
-
-	free_list(commands_list);
-	free(all);
-	return (0);
 }
+
+
+// int	main(int argc, char **argv, char **envp)
+// {
+// 	char			**commands;
+// 	char			*line;
+// 	t_all			*all;
+// 	t_list			*commands_list;
+// 	t_env_list		*env_list;
+// 	char			**env_arr;
+
+// 	(void)argc;
+// 	(void)argv;
+// 	commands_list = NULL;
+// 	env_list = NULL;
+// 	int_lst_env(&env_list, envp);
+// 	env_arr = list_to_array(env_list);
+
+// 	// printf("env list :\n");
+// 	// ft_print_env(env_list);
+// 	// print_split(env_arr);
+
+// 	char *export_var[2] = {"BBB=$(echo \"hello world\")", NULL};
+// 	ft_export(env_list, export_var);
+// 	ft_print_export(env_list);
+
+// 	all = (t_all *)malloc(sizeof(t_all));
+// 	if (!all)
+// 		return (0);
+// 	all->exit_status = 0;
+// 	all->env_arr = env_arr;
+// 	all->env_list = env_list;
+// 	all->command_list = NULL;
+
+// 	// line = readline("minishel >");
+// 	// if (!line[0])
+// 	// 	printf("tafiditra\n");
+
+// 	// line = "ls -la | grep \"Nov\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
+// 	// line = "<   minishell.c grep \"stdin\" utils.txt <Makefile";
+// 	// line = "echo \"hello world\" > infile1 > infile2 > hellotest.txt";
+// 	line = "$HOME";
+
+// 	line = replace_env_vars(line);
+// 	printf("%s\n\n", line);
+// 	commands = ft_split_esc(line, '|');
+// 	ft_free(line);
+
+// 	// printf("split command :\n");
+// 	// print_split(commands);
+// 	// printf("\n\n");
+
+// 	init_list(&commands_list, commands);
+// 	all->command_list = commands_list;
+	
+// 	// printf("list command :\n");
+// 	// ft_lstiter(commands_list, print_list);
+// 	// printf("\n\n");
+
+// 	// exec_commands(all);
+
+// 	free_split(env_arr);
+// 	ft_free_env_list(env_list);
+
+// 	free_list(commands_list);
+// 	free(all);
+// 	return (0);
+// }
