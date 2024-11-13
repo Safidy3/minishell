@@ -1,6 +1,7 @@
 #include "minishell.h"
 
 #define MAX_VAR_LEN 256
+
 // ls -la | grep mini | awk '{print $9}' | head -n 1
 /*
 color in C
@@ -14,6 +15,7 @@ color in C
 	36 – Cyan
 	37 – White
 */
+
 /******************* split iteration ******************/
 
 void	ft_free(char *s)
@@ -463,6 +465,48 @@ void	manage_in_out_file(char **in_files, char **out_files, t_all *all)
 	}
 }
 
+
+int	check_builtins(char *command, t_all *all)
+{
+	int	exit_status;
+
+	exit_status = all->exit_status;
+	if (!ft_strncmp(command, "export", ft_strlen("export")))
+	{
+
+		exec_error(NULL, all, "builtings\n");
+	}
+	else if (!ft_strncmp(command, "env", ft_strlen("env")))
+	{
+		ft_print_env(all->env_list);
+		exec_error(NULL, all, "builtings\n");
+	}
+	else if (!ft_strncmp(command, "echo", ft_strlen("echo")))
+	{
+
+		exec_error(NULL, all, "builtings\n");
+	}
+	else if (!ft_strncmp(command, "cd", ft_strlen("cd")))
+	{
+
+		exec_error(NULL, all, "builtings\n");
+	}
+	else if (!ft_strncmp(command, "pwd", ft_strlen("pwd")))
+	{
+
+		exec_error(NULL, all, "builtings\n");
+	}
+	else if (!ft_strncmp(command, "exit", ft_strlen("exit")))
+	{
+		free_list(all->command_list);
+		free_split(all->env_arr);
+		ft_free_env_list(all->env_list);
+		free(all);
+		exit(exit_status);
+	}
+	return (0);
+}
+
 void	exec_child(t_list *command_arr, int prev_fd[2],
 			int current_fd[2], t_all *all)
 {
@@ -480,6 +524,8 @@ void	exec_child(t_list *command_arr, int prev_fd[2],
 		out_files = get_outfile_array((char **)command_arr->content, all);
 		manage_in_out_file(in_files, out_files, all);
 	}
+	if (check_builtins(command[0], all))
+		return ;
 	bin_path = get_bin_path(command[0]);
 	if (!bin_path)
 		exec_error(NULL, all, "get_bin_path failed\n");
@@ -538,9 +584,11 @@ void	exec_commands(t_all *all)
 
 	// export list=ls ; $list
 	// export WWW=$(echo "hello world"); WWW=hello world
-	// signal
+	
 	// shellevel
 	// cat << (heredoc)
+	// signal
+	// loop and readline
 
 	// echo "$USER{alphaNum + _}$HOME"
 	// cat<minishell.c<Makefile : Makefile iany ni cateny
@@ -556,82 +604,89 @@ void	exec_commands(t_all *all)
 	// ls -la '|' grep Okt
 	// grep "Okt" | awk '{print | $g}'
 
-int main()
+// int main()
+// {
+// 	char *line = "$HOME";
+// 	char *var_line = "$HOME";
+// 	printf("before : %s HELLO WORLD\n", line);
+// 	var_line = replace_env_vars(line);
+// 	printf("after : %s HELLO WORLD\n", var_line);
+// char *export_var[2] = {"BBB=$(echo \"hello world\")", NULL};
+// ft_export(env_list, export_var);
+// ft_print_export(env_list);
+// }
+
+
+int	main(int argc, char **argv, char **envp)
 {
+	char		**commands;
+	char		*line;
+	t_all		*all;
+	t_list		*commands_list;
+	t_env_list	*env_list;
+	char		**env_arr;
 
-	char *line = "$HOME";
-	char *var_line = "$HOME";
-	printf("before : %s HELLO WORLD\n", line);
+	(void)argc;
+	(void)argv;
+	commands_list = NULL;
+	env_list = NULL;
+	int_lst_env(&env_list, envp);
+	env_arr = list_to_array(env_list);
 
-	var_line = replace_env_vars(line);
-	printf("after : %s HELLO WORLD\n", var_line);
+	all = (t_all *)malloc(sizeof(t_all));
+	if (!all)
+		return (0);
+	all->exit_status = 0;
+	all->env_arr = env_arr;
+	all->env_list = env_list;
+	all->command_list = NULL;
 
+    using_history();
+    while (1)
+	{
+        line = readline(">: ");
+        if (*line)
+            add_history(line);
+		line = replace_env_vars(line);
+		commands = ft_split_esc(line, '|');
+		ft_free(line);
+		init_list(&commands_list, commands);
+		all->command_list = commands_list;
+
+		exec_commands(all);
+		free_list(commands_list);
+	}
+	return (free(all), ft_free_env_list(env_list), free_split(env_arr), 0);
 }
 
 
-// int	main(int argc, char **argv, char **envp)
-// {
-// 	char			**commands;
-// 	char			*line;
-// 	t_all			*all;
-// 	t_list			*commands_list;
-// 	t_env_list		*env_list;
-// 	char			**env_arr;
 
-// 	(void)argc;
-// 	(void)argv;
-// 	commands_list = NULL;
-// 	env_list = NULL;
-// 	int_lst_env(&env_list, envp);
-// 	env_arr = list_to_array(env_list);
 
-// 	// printf("env list :\n");
-// 	// ft_print_env(env_list);
-// 	// print_split(env_arr);
 
-// 	char *export_var[2] = {"BBB=$(echo \"hello world\")", NULL};
-// 	ft_export(env_list, export_var);
-// 	ft_print_export(env_list);
+// int main() {
+//     char *input;
 
-// 	all = (t_all *)malloc(sizeof(t_all));
-// 	if (!all)
-// 		return (0);
-// 	all->exit_status = 0;
-// 	all->env_arr = env_arr;
-// 	all->env_list = env_list;
-// 	all->command_list = NULL;
+//     // Initialize readline and history
+//     using_history();
 
-// 	// line = readline("minishel >");
-// 	// if (!line[0])
-// 	// 	printf("tafiditra\n");
+//     while (1)
+// 	{
+//         // Prompt for user input
+//         input = readline("Enter a command: ");
 
-// 	// line = "ls -la | grep \"Nov\" | awk '{print $9}' | head -n 10 | grep 'm'i'n'i's'h'e'll.";
-// 	// line = "<   minishell.c grep \"stdin\" utils.txt <Makefile";
-// 	// line = "echo \"hello world\" > infile1 > infile2 > hellotest.txt";
-// 	line = "$HOME";
+//         if (input == NULL)
+//             break;  // Exit if no input (Ctrl+D)
 
-// 	line = replace_env_vars(line);
-// 	printf("%s\n\n", line);
-// 	commands = ft_split_esc(line, '|');
-// 	ft_free(line);
+//         // If input is not empty, add it to history
+//         if (*input)
+//             add_history(input);
 
-// 	// printf("split command :\n");
-// 	// print_split(commands);
-// 	// printf("\n\n");
+//         // Print the input to the console
+//         printf("You entered: %s\n", input);
 
-// 	init_list(&commands_list, commands);
-// 	all->command_list = commands_list;
-	
-// 	// printf("list command :\n");
-// 	// ft_lstiter(commands_list, print_list);
-// 	// printf("\n\n");
+//         // Free the memory allocated by readline
+//         free(input);
+//     }
 
-// 	// exec_commands(all);
-
-// 	free_split(env_arr);
-// 	ft_free_env_list(env_list);
-
-// 	free_list(commands_list);
-// 	free(all);
-// 	return (0);
+//     return 0;
 // }
