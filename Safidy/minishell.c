@@ -217,7 +217,7 @@ char	*replace_env_vars(const char *s)
 	return (result);
 }
 
-/******************* Exec && Pipe ******************/
+/******************* Exec Error ******************/
 
 void	fd_error(char *bin_path, t_all *all)
 {
@@ -254,6 +254,8 @@ int	get_exit_stat(pid_t pids[MAX_COMMANDS], int command_count)
 	return (WEXITSTATUS(status));
 }
 
+/******************* Exec Pipe ******************/
+
 void	dup_in(int fd[2], t_all *all, char *bin_path, int closeall)
 {
 	if (dup2(fd[0], STDIN_FILENO) == -1)
@@ -271,6 +273,8 @@ void	dup_out(int fd[2], t_all *all, char *bin_path, int closeall)
 	if (closeall != 0)
 		close(fd[0]);
 }
+
+/******************* Exec BINARY PATH ******************/
 
 char	*join_bin_path(char *commands_list, char *bin_path)
 {
@@ -339,6 +343,8 @@ char	*get_redirection_file_name(char *command)
 		return (NULL);
 	return (redirection_file);
 }
+
+/******************* Exec redirection file ******************/
 
 char	**get_redrection_array(char **command, t_all *all)
 {
@@ -477,6 +483,8 @@ void	manage_in_out_file(char **in_files, char **out_files, t_all *all)
 	}
 }
 
+/******************* Exec builtings ******************/
+
 int	is_builtins(t_list *command)
 {
 	char	**executable;
@@ -533,11 +541,12 @@ int	exec_builtins(t_list *command_list, t_all *all)
 		free_split(all->env_arr);
 		ft_free_env_list(all->env_list);
 		free(all);
-		// exit(0);
 		exit(exit_status);
 	}
 	return (0);
 }
+
+/******************* EXEC ******************/
 
 void	exec_child(t_list *command_arr, int prev_fd[2],
 			int current_fd[2], t_all *all)
