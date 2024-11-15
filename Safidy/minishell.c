@@ -77,6 +77,15 @@ void	print_list(void *s)
 	split_iterate((void *) s, print_s);
 }
 
+void	print_command_list(t_list *commands)
+{
+	while (commands)
+	{
+		split_iterate((void *) commands->content, print_s);
+		commands = commands->next;
+	}
+}
+
 void	free_list_content(void *s)
 {
 	if (!s)
@@ -239,6 +248,7 @@ int	get_exit_stat(pid_t pids[MAX_COMMANDS], int command_count)
 	int	i;
 
 	i = 0;
+	status = 0;
 	while (++i < command_count)
 		waitpid(pids[i], &status, 0);
 	return (WEXITSTATUS(status));
@@ -424,6 +434,8 @@ char	**get_new_command(char **command, t_all *all)
 	while (command[++i])
 		if (command[i][0] != '>' && command[i][0] != '<')
 			count++;
+	if (count == 0)
+		return (NULL);
 	new_command = (char **)calloc(sizeof(char *), count + 1);
 	i = -1;
 	while (command[++i])
@@ -465,43 +477,63 @@ void	manage_in_out_file(char **in_files, char **out_files, t_all *all)
 	}
 }
 
-
-int	check_builtins(char *command, t_all *all)
+int	is_builtins(t_list *command)
 {
+	char	**executable;
+
+	executable = get_new_command((char **)command->content, NULL);
+	if (!ft_strncmp(executable[0], "export", ft_strlen("export"))
+		|| !ft_strncmp(executable[0], "env", ft_strlen("env"))
+		|| !ft_strncmp(executable[0], "echo", ft_strlen("echo"))
+		|| !ft_strncmp(executable[0], "cd", ft_strlen("cd"))
+		|| !ft_strncmp(executable[0], "pwd", ft_strlen("pwd"))
+		|| !ft_strncmp(executable[0], "exit", ft_strlen("exit")))
+	{
+		free(executable);
+		return (1);
+	}
+	free(executable);
+	return (0);
+}
+
+int	exec_builtins(t_list *command_list, t_all *all)
+{
+	char **command;
 	int	exit_status;
 
-	exit_status = all->exit_status;
-	if (!ft_strncmp(command, "export", ft_strlen("export")))
+	command = (char **)command_list->content;
+	if (!ft_strncmp(command[0], "export", ft_strlen("export")))
 	{
-
-		exec_error(NULL, all, "builtings\n");
+		printf("export BUILTINGS\n");
+		ft_export(all->env_list, command);
+		ft_print_export(all->env_list);
+		exec_error(NULL, all, "builtings export\n");
 	}
-	else if (!ft_strncmp(command, "env", ft_strlen("env")))
-	{
+	else if (!ft_strncmp(command[0], "env", ft_strlen("env")))
 		ft_print_env(all->env_list);
-		exec_error(NULL, all, "builtings\n");
-	}
-	else if (!ft_strncmp(command, "echo", ft_strlen("echo")))
+	else if (!ft_strncmp(command[0], "echo", ft_strlen("echo")))
 	{
-
-		exec_error(NULL, all, "builtings\n");
+		printf("echo BUILTINGS\n");
+		exec_error(NULL, all, "builtings echo\n");
 	}
-	else if (!ft_strncmp(command, "cd", ft_strlen("cd")))
+	else if (!ft_strncmp(command[0], "cd", ft_strlen("cd")))
 	{
-
-		exec_error(NULL, all, "builtings\n");
+		printf("cd BUILTINGS\n");
+		exec_error(NULL, all, "builtings cd\n");
 	}
-	else if (!ft_strncmp(command, "pwd", ft_strlen("pwd")))
+	else if (!ft_strncmp(command[0], "pwd", ft_strlen("pwd")))
 	{
-
-		exec_error(NULL, all, "builtings\n");
+		printf("pwd BUILTINGS\n");
+		exec_error(NULL, all, "builtings pwd\n");
 	}
-	else if (!ft_strncmp(command, "exit", ft_strlen("exit")))
+	else if (!ft_strncmp(command[0], "exit", ft_strlen("exit")))
 	{
+		exit_status = all->exit_status;
 		free_list(all->command_list);
 		free_split(all->env_arr);
 		ft_free_env_list(all->env_list);
 		free(all);
+		// exit(0);
 		exit(exit_status);
 	}
 	return (0);
@@ -524,8 +556,6 @@ void	exec_child(t_list *command_arr, int prev_fd[2],
 		out_files = get_outfile_array((char **)command_arr->content, all);
 		manage_in_out_file(in_files, out_files, all);
 	}
-	if (check_builtins(command[0], all))
-		return ;
 	bin_path = get_bin_path(command[0]);
 	if (!bin_path)
 		exec_error(NULL, all, "get_bin_path failed\n");
@@ -538,17 +568,16 @@ void	exec_child(t_list *command_arr, int prev_fd[2],
 	exec_error(bin_path, all, "execve failed\n");
 }
 
-t_list	*exec_parent(t_list *command, int prev_fd[2], int current_fd[2])
+t_list	*exec_parent(t_list *command_arr, int prev_fd[2], int current_fd[2])
 {
 	if (prev_fd[0] != -1)
 		close(prev_fd[0]);
-	if (command->next)
+	if (command_arr->next)
 	{
 		close(current_fd[1]);
 		prev_fd[0] = current_fd[0];
 	}
-	command = command->next;
-	return (command);
+	return (command_arr->next);
 }
 
 void	exec_commands(t_all *all)
@@ -568,7 +597,9 @@ void	exec_commands(t_all *all)
 		if (command->next && pipe(current_fd) == -1)
 			exec_error(NULL, all, "pipe creation failed\n");
 		pids[command_count] = fork();
-		if (pids[command_count] == 0)
+		if (is_builtins(command))
+			exec_builtins(command, all);
+		else if (pids[command_count] == 0)
 			exec_child(command, prev_fd, current_fd, all);
 		else if (pids[command_count++] > 0)
 			command = exec_parent(command, prev_fd, current_fd);
@@ -608,12 +639,14 @@ void	exec_commands(t_all *all)
 // {
 // 	char *line = "$HOME";
 // 	char *var_line = "$HOME";
+
+// 	// char *export_var[2] = {"BBB=$(echo \"hello world\")", NULL};
+// 	// ft_export(env_list, export_var);
+// 	// ft_print_export(env_list);
+
 // 	printf("before : %s HELLO WORLD\n", line);
 // 	var_line = replace_env_vars(line);
 // 	printf("after : %s HELLO WORLD\n", var_line);
-// char *export_var[2] = {"BBB=$(echo \"hello world\")", NULL};
-// ft_export(env_list, export_var);
-// ft_print_export(env_list);
 // }
 
 
@@ -622,71 +655,60 @@ int	main(int argc, char **argv, char **envp)
 	char		**commands;
 	char		*line;
 	t_all		*all;
-	t_list		*commands_list;
-	t_env_list	*env_list;
-	char		**env_arr;
 
-	(void)argc;
-	(void)argv;
-	commands_list = NULL;
-	env_list = NULL;
-	int_lst_env(&env_list, envp);
-	env_arr = list_to_array(env_list);
+	(void) argc;
+	(void) argv;
 
 	all = (t_all *)malloc(sizeof(t_all));
 	if (!all)
 		return (0);
 	all->exit_status = 0;
-	all->env_arr = env_arr;
-	all->env_list = env_list;
 	all->command_list = NULL;
+	all->env_list = NULL;
+	int_lst_env(&all->env_list, envp);
+	all->env_arr = list_to_array(all->env_list);
+
+	// char *export_var[2] = {"BBB=$(hello world)", NULL};
+	// ft_export(all->env_list, export_var);
+	// ft_print_export(all->env_list);
 
     using_history();
     while (1)
 	{
-        line = readline(">: ");
-        if (*line)
-            add_history(line);
+		line = readline(">: ");
+		if (*line)
+			add_history(line);
 		line = replace_env_vars(line);
+		printf("command = %s\n", line);
 		commands = ft_split_esc(line, '|');
 		ft_free(line);
-		init_list(&commands_list, commands);
-		all->command_list = commands_list;
-
+		init_list(&all->command_list, commands);
+		print_command_list(all->command_list);
 		exec_commands(all);
-		free_list(commands_list);
+		free_list(all->command_list);
 	}
-	return (free(all), ft_free_env_list(env_list), free_split(env_arr), 0);
+	return (free(all), ft_free_env_list(all->env_list), free_split(all->env_arr), 0);
 }
 
 
-
-
-
-// int main() {
+// int main()
+// {
 //     char *input;
-
 //     // Initialize readline and history
 //     using_history();
-
 //     while (1)
 // 	{
 //         // Prompt for user input
 //         input = readline("Enter a command: ");
-
 //         if (input == NULL)
 //             break;  // Exit if no input (Ctrl+D)
-
 //         // If input is not empty, add it to history
 //         if (*input)
 //             add_history(input);
-
 //         // Print the input to the console
 //         printf("You entered: %s\n", input);
-
 //         // Free the memory allocated by readline
 //         free(input);
 //     }
-
 //     return 0;
 // }
