@@ -258,7 +258,7 @@ int	get_exit_stat(pid_t pids[MAX_COMMANDS], int command_count)
 	int	status;
 	int	i;
 
-	i = 0;
+	i = -1;
 	status = 0;
 	while (++i < command_count)
 		waitpid(pids[i], &status, 0);
@@ -399,6 +399,7 @@ static int handle_output_redirection(t_redirect *redirect, t_all *all)
 {
     int fd;
 
+	fd = 0;
     if (redirect->type == TRUNCATE)
         fd = open(redirect->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     else
@@ -425,26 +426,26 @@ static int	handle_input_redirection(t_redirect *redirect, t_all *all)
 
 void	manage_redirections(t_redirect **redirections, t_all *all)
 {
-    int	fd;
-    int	i;
+	int	fd;
+	int	i;
 
-    i = -1;
+	i = -1;
 	if (!redirections)
 		return ;
-    while (redirections[++i])
-    {
-        fd = -1;
-        if (redirections[i]->type == TRUNCATE || redirections[i]->type == APPEND)
-            fd = handle_output_redirection(redirections[i], all);
-        else if (redirections[i]->type == INPUT)
-            fd = handle_input_redirection(redirections[i], all);
-        else if (redirections[i]->type == HEREDOC)
-            break;  // TODO: heredoc
-        if (fd != -1)
-            close(fd);
+	while (redirections[++i])
+	{
+		fd = -1;
+		if (redirections[i]->type == TRUNCATE || redirections[i]->type == APPEND)
+			fd = handle_output_redirection(redirections[i], all);
+		else if (redirections[i]->type == INPUT)
+			fd = handle_input_redirection(redirections[i], all);
+		else if (redirections[i]->type == HEREDOC)
+			break ;
+		if (fd != -1)
+			close(fd);
 		ft_free(redirections[i]->filename);
 		free(redirections[i]);
-    }
+	}
 	free(redirections);
 }
 
@@ -495,10 +496,14 @@ int	is_builtins(t_list *command)
 
 int	exec_builtins(t_list *command_list, t_all *all)
 {
-	char	**command;
-	int		exit_status;
+	char		**command;
+	int			exit_status;
+	t_redirect	**redirections;
 
 	command = (char **)command_list->content;
+	redirections = get_all_redirections(command, all);
+	manage_redirections(redirections, all);
+
 	if (!ft_strncmp(command[0], "export", ft_strlen("export")))
 	{
 		if (array_len(command) == 1)
@@ -545,7 +550,6 @@ void	exec_child(t_list *command_arr, int prev_fd[2],
 
 	command = get_new_command((char **)command_arr->content, all);
 	redirections = get_all_redirections((char **)command_arr->content, all);
-	// print_redir(redirections);
 	manage_redirections(redirections, all);
 	bin_path = get_bin_path(command[0]);
 	if (!bin_path)
@@ -554,7 +558,6 @@ void	exec_child(t_list *command_arr, int prev_fd[2],
 		dup_in(prev_fd, all, bin_path, 0);
 	if (command_arr->next)
 		dup_out(current_fd, all, bin_path, 1);
-	// printf("output :\n");
 	execve(bin_path, command, all->env_arr);
 	exec_error(bin_path, all, "execve failed\n");
 }
@@ -607,27 +610,6 @@ void	exec_commands(t_all *all)
 
 /******************* main ******************/
 
-	// export list=ls ; $list
-	// export WWW=$(echo "hello world"); WWW=hello world
-	// signal
-	// shellevel
-	// cat << (heredoc)
-
-	// loop and readline
-	// echo "$USER{alphaNum + _}$HOME"
-	// cat<minishell.c<Makefile : Makefile iany ni cateny
-	// <minishell.c cat<Makefile : Makefile iany ni cateny
-	// echo hello >minishell.c>Makefile : creer daoly fa le farany iany no nisy hello
-	// env
-	// echo "$USER{alphaNum + _}$HOME"
-	// echo '$HOME'
-	// "$USER$HOME" : safandri/home/safandri
-	// "$USER*9$HOME" : safandri*9/home/safandri
-	// "$USERad14$HOME" : /home/safandri
-	// e"c"h"o" "hello world"
-	// ls -la '|' grep Okt
-	// grep "Okt" | awk '{print | $g}'
-
 int	main(int argc, char **argv, char **envp)
 {
 	char		**commands;
@@ -646,11 +628,6 @@ int	main(int argc, char **argv, char **envp)
 	int_lst_env(&all->env_list, envp);
 	all->env_arr = list_to_array(all->env_list);
 
-	// char *export_var[2] = {"BBB=$(hello world)", NULL};
-	// ft_export(all->env_list, export_var);
-	// ft_print_export(all->env_list);
-
-    using_history();
     while (1)
 	{
 		line = readline(">: ");
@@ -666,25 +643,23 @@ int	main(int argc, char **argv, char **envp)
 	return (free(all), ft_free_env_list(all->env_list), free_split(all->env_arr), 0);
 }
 
+// export list=ls ; $list
+// export WWW=$(echo "hello world"); WWW=hello world
+// signal : ctrl-C, ctrl-D, ctrl-\
+// shellevel
+// cat << (heredoc)
 
-// int main()
-// {
-//     char *input;
-//     // Initialize readline and history
-//     using_history();
-//     while (1)
-// 	{
-//         // Prompt for user input
-//         input = readline("Enter a command: ");
-//         if (input == NULL)
-//             break;  // Exit if no input (Ctrl+D)
-//         // If input is not empty, add it to history
-//         if (*input)
-//             add_history(input);
-//         // Print the input to the console
-//         printf("You entered: %s\n", input);
-//         // Free the memory allocated by readline
-//         free(input);
-//     }
-//     return 0;
-// }
+// loop and readline
+// echo "$USER{alphaNum + _}$HOME"
+// cat<minishell.c<Makefile : Makefile iany ni cateny
+// <minishell.c cat<Makefile : Makefile iany ni cateny
+// echo hello >minishell.c>Makefile : creer daoly fa le farany iany no nisy hello
+// env
+// echo "$USER{alphaNum + _}$HOME"
+// echo '$HOME'
+// "$USER$HOME" : safandri/home/safandri
+// "$USER*9$HOME" : safandri*9/home/safandri
+// "$USERad14$HOME" : /home/safandri
+// e"c"h"o" "hello world"
+// ls -la '|' grep Okt
+// grep "Okt" | awk '{print | $g}'
