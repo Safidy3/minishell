@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/11/15 14:42:13 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/16 15:53:16 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,9 @@ typedef struct	s_env_list
 
 typedef struct	s_all
 {
-	char		**env_arr;
 	int			exit_status;
 	t_list		*command_list;
+	char		**env_arr;
 	t_env_list	*env_list;
 }				t_all;
 
@@ -102,5 +102,11 @@ void			ft_export(t_env_list *env, char **commade);
 
 void			ft_free_tmp(t_env_list *tmp);
 void			ft_unset(t_env_list **env, char **commande);
+
+/************************************** */
+
+void			ft_pwd();
+void			ft_cd(char *path, t_all *all);
+
 
 #endif

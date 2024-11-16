@@ -483,55 +483,45 @@ int	is_builtins(t_list *command)
 
 	executable = get_new_command((char **)command->content, NULL);
 	if (!ft_strncmp(executable[0], "export", ft_strlen("export"))
+		|| !ft_strncmp(executable[0], "unset", ft_strlen("unset"))
 		|| !ft_strncmp(executable[0], "env", ft_strlen("env"))
 		|| !ft_strncmp(executable[0], "echo", ft_strlen("echo"))
 		|| !ft_strncmp(executable[0], "cd", ft_strlen("cd"))
 		|| !ft_strncmp(executable[0], "pwd", ft_strlen("pwd"))
 		|| !ft_strncmp(executable[0], "exit", ft_strlen("exit")))
-	{
-		free(executable);
-		return (1);
-	}
-	free(executable);
-	return (0);
+		return (free(executable), 1);
+	return (free(executable), 0);
 }
 
 int	exec_builtins(t_list *command_list, t_all *all)
 {
-	char **command;
-	int	exit_status;
+	char	**command;
+	int		exit_status;
 
 	command = (char **)command_list->content;
 	if (!ft_strncmp(command[0], "export", ft_strlen("export")))
 	{
-		printf("export BUILTINGS\n");
 		if (array_len(command) == 1)
 			ft_print_export(all->env_list);
 		else
-		{
 			ft_export(all->env_list, command);
-			ft_print_export(all->env_list);
-		}
-		// exec_error(NULL, all, "builtings export\n");
 	}
+
+	else if (!ft_strncmp(command[0], "unset", ft_strlen("unset")))
+		ft_unset(&all->env_list, command);
+
 	else if (!ft_strncmp(command[0], "env", ft_strlen("env")))
 		ft_print_env(all->env_list);
+
 	else if (!ft_strncmp(command[0], "echo", ft_strlen("echo")))
-	{
-		// printf("echo BUILTINGS\n");
 		printf("%s\n", command[1]);
-		// exec_error(NULL, all, "builtings echo\n");
-	}
+
 	else if (!ft_strncmp(command[0], "cd", ft_strlen("cd")))
-	{
-		printf("cd BUILTINGS\n");
-		exec_error(NULL, all, "builtings cd\n");
-	}
+		ft_cd(command[1], all);
+
 	else if (!ft_strncmp(command[0], "pwd", ft_strlen("pwd")))
-	{
-		printf("pwd BUILTINGS\n");
-		exec_error(NULL, all, "builtings pwd\n");
-	}
+		ft_pwd();
+
 	else if (!ft_strncmp(command[0], "exit", ft_strlen("exit")))
 	{
 		exit_status = all->exit_status;
@@ -619,12 +609,11 @@ void	exec_commands(t_all *all)
 
 	// export list=ls ; $list
 	// export WWW=$(echo "hello world"); WWW=hello world
-	
+	// signal
 	// shellevel
 	// cat << (heredoc)
-	// signal
-	// loop and readline
 
+	// loop and readline
 	// echo "$USER{alphaNum + _}$HOME"
 	// cat<minishell.c<Makefile : Makefile iany ni cateny
 	// <minishell.c cat<Makefile : Makefile iany ni cateny
@@ -638,20 +627,6 @@ void	exec_commands(t_all *all)
 	// e"c"h"o" "hello world"
 	// ls -la '|' grep Okt
 	// grep "Okt" | awk '{print | $g}'
-
-
-// int main()
-// {
-// 	char *line = "$HOME";
-// 	char *var_line = "$HOME";
-// 	// char *export_var[2] = {"BBB=$(echo \"hello world\")", NULL};
-// 	// ft_export(env_list, export_var);
-// 	// ft_print_export(env_list);
-// 	printf("before : %s HELLO WORLD\n", line);
-// 	var_line = replace_env_vars(line);
-// 	printf("after : %s HELLO WORLD\n", var_line);
-// }
-
 
 int	main(int argc, char **argv, char **envp)
 {
@@ -682,11 +657,9 @@ int	main(int argc, char **argv, char **envp)
 		if (*line)
 			add_history(line);
 		line = replace_env_vars(line);
-		// printf("command = %s\n", line);
 		commands = ft_split_esc(line, '|');
 		ft_free(line);
 		init_list(&all->command_list, commands);
-		// print_command_list(all->command_list);
 		exec_commands(all);
 		free_list(all->command_list);
 	}

@@ -1,9 +1,9 @@
 SRCS = minishell.c ft_split_esc_2.c \
-		./builtins/ft_env.c ./builtins/ft_export.c ./builtins/ft_unset.c
+		./builtins/ft_env.c ./builtins/ft_export.c ./builtins/ft_unset.c ./builtins/pwd_cd.c
 
-FLAGS = -Wall -Werror -Wextra -lreadline
-# FLAGS = -g -Wall -Werror -Wextra
-# FLAGS = -lreadline
+# FLAGS = -Wall -Werror -Wextra -lreadline
+FLAGS = -g -Wall -Werror -Wextra
+RELINE_FLAG = -lreadline
 # FLAGS = -g
 
 
@@ -20,7 +20,7 @@ all: $(NAME)
 #@clear
 
 $(NAME): $(LIBFT_ARCHIVE) $(OBJS)
-	@$(CC) $(FLAGS) $(OBJS) $(LIBFT_ARCHIVE) -o $(NAME)
+	@$(CC) $(FLAGS) $(OBJS) $(LIBFT_ARCHIVE) -o $(NAME) $(RELINE_FLAG)
 
 $(LIBFT_ARCHIVE):
 	@make bonus -C $(LIBFT_PATH)

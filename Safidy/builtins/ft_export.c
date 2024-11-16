@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 10:02:40 by larakoto          #+#    #+#             */
-/*   Updated: 2024/11/15 17:10:50 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/16 16:51:07 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ t_env_list	*ft_dup_env(t_env_list **env)
 
 	dup_env = NULL;
 	tmp = *env;
-	while ((tmp))
+	while (tmp)
 	{
 		ft_lstadd_back(&dup_env, ft_lstnew(tmp->value, 0));
 		tmp = tmp->next;
@@ -199,8 +199,8 @@ int	ft_maj_export(t_env_list *env, char *commande, int *flag)
 
 void	ft_export(t_env_list *env, char **commande)
 {
-	int			i;
-	int			flag;
+	int	i;
+	int	flag;
 
 	flag = 0;
 	i = 0;
