@@ -29,6 +29,11 @@
 
 # define MAX_COMMANDS 100
 
+# define TRUNCATE 1
+# define APPEND 2
+# define INPUT 3
+# define HEREDOC 4
+
 typedef struct	s_env_list
 {
 	char		*value;
@@ -45,6 +50,19 @@ typedef struct	s_all
 	t_list		*command_list;
 	t_env_list	*env_list;
 }				t_all;
+
+/*
+	1:'>' truncate output
+	2:'>>' append output
+	3:'<' input
+	4:'<<' heredoc
+*/
+typedef struct	s_redirect
+{
+	char		*filename;
+	int			type;
+}				t_redirect;
+
 
 char			**ft_split_esc_2(char *s, char c);
 

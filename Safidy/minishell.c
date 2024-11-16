@@ -16,6 +16,17 @@ color in C
 	37 – White
 */
 
+void	print_redir(t_redirect **redirections)
+{
+	int	i;
+
+	i = -1;
+	printf("redirections :\n");
+	while (redirections[++i])
+		printf("%s %d, ", redirections[i]->filename, redirections[i]->type);
+	printf("\n\n\n");
+}
+
 /******************* split iteration ******************/
 
 void	ft_free(char *s)
@@ -329,6 +340,8 @@ int	check_spetial_char(char **command)
 	return (0);
 }
 
+/******************* Exec redirection file ******************/
+
 char	*get_redirection_file_name(char *command)
 {
 	char	*redirection_file;
@@ -344,87 +357,95 @@ char	*get_redirection_file_name(char *command)
 	return (redirection_file);
 }
 
-/******************* Exec redirection file ******************/
-
-char	**get_redrection_array(char **command, t_all *all)
+t_redirect    **get_all_redirections(char **command, t_all *all)
 {
-	char	**redirection_files;
-	int		count;
-	int		i;
-	int		j;
+	t_redirect	**redirection_files;
+	int			count;
+	int			i;
+	int			j;
 
 	count = 0;
 	i = -1;
-	j = -1;
 	while (command[++i])
 		if (command[i][0] == '>' || command[i][0] == '<')
 			count++;
-	redirection_files = (char **)calloc(sizeof(char *), count + 1);
+	if (count == 0)
+		return (NULL);
+	redirection_files = (t_redirect **)calloc(sizeof(t_redirect *), count + 1);
+	if (!redirection_files)
+		exec_error(NULL, all, "malloc error\n");
 	i = -1;
+	j = -1;
 	while (command[++i])
 	{
 		if (command[i][0] == '>' || command[i][0] == '<')
 		{
-			redirection_files[++j] = get_redirection_file_name(command[i]);
+			redirection_files[++j] = (t_redirect *)malloc(sizeof(t_redirect));
 			if (!redirection_files[j])
-				exec_error(NULL, all, "get_redrection_array\n");
+				exec_error(NULL, all, "malloc error\n");
+			redirection_files[j]->filename = get_redirection_file_name(command[i]);
+			if (command[i][0] == '>')
+				redirection_files[j]->type = (command[i][1] == '>') ? APPEND : TRUNCATE;
+			else
+				redirection_files[j]->type = (command[i][1] == '<') ? HEREDOC : INPUT;
+			if (!redirection_files[j]->filename)
+				exec_error(NULL, all, "get_redirections\n");
 		}
 	}
 	return (redirection_files);
 }
 
-char	**get_infile_array(char **command, t_all *all)
+static int handle_output_redirection(t_redirect *redirect, t_all *all)
 {
-	char	**redirection_files;
-	int		count;
-	int		i;
-	int		j;
+    int fd;
 
-	count = 0;
-	i = -1;
-	j = -1;
-	while (command[++i])
-		if (command[i][0] == '<')
-			count++;
-	redirection_files = (char **)calloc(sizeof(char *), count + 1);
-	i = -1;
-	while (command[++i])
-	{
-		if (command[i][0] == '<')
-		{
-			redirection_files[++j] = get_redirection_file_name(command[i]);
-			if (!redirection_files[j])
-				exec_error(NULL, all, "get_redrection_array\n");
-		}
-	}
-	return (redirection_files);
+    if (redirect->type == TRUNCATE)
+        fd = open(redirect->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    else
+        fd = open(redirect->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+
+    if (fd == -1)
+        fd_error(NULL, all);
+    if (dup2(fd, STDOUT_FILENO) == -1)
+        exec_error(NULL, all, "dup2 failed\n");
+    return (fd);
 }
 
-char	**get_outfile_array(char **command, t_all *all)
+static int	handle_input_redirection(t_redirect *redirect, t_all *all)
 {
-	char	**redirection_files;
-	int		count;
-	int		i;
-	int		j;
+    int	fd;
 
-	count = 0;
-	i = -1;
-	j = -1;
-	while (command[++i])
-		if (command[i][0] == '>')
-			count++;
-	redirection_files = (char **)calloc(sizeof(char *), count + 1);
-	i = -1;
-	while (command[++i])
-	{
-		if (command[i][0] == '>')
-		{
-			redirection_files[++j] = get_redirection_file_name(command[i]);
-			if (!redirection_files[j])
-				exec_error(NULL, all, "get_redrection_array\n");
-		}
-	}
-	return (redirection_files);
+    fd = open(redirect->filename, O_RDONLY);
+    if (fd == -1)
+        fd_error(NULL, all);
+    if (dup2(fd, STDIN_FILENO) == -1)
+        exec_error(NULL, all, "dup2 failed\n");
+    return (fd);
+}
+
+void	manage_redirections(t_redirect **redirections, t_all *all)
+{
+    int	fd;
+    int	i;
+
+    i = -1;
+	if (!redirections)
+		return ;
+    while (redirections[++i])
+    {
+        fd = -1;
+        if (redirections[i]->type == TRUNCATE || redirections[i]->type == APPEND)
+            fd = handle_output_redirection(redirections[i], all);
+        else if (redirections[i]->type == INPUT)
+            fd = handle_input_redirection(redirections[i], all);
+        else if (redirections[i]->type == HEREDOC)
+            break;  // TODO: heredoc
+        if (fd != -1)
+            close(fd);
+		ft_free(redirections[i]->filename);
+		free(redirections[i]);
+    }
+	free(redirections);
 }
 
 char	**get_new_command(char **command, t_all *all)
@@ -440,8 +461,6 @@ char	**get_new_command(char **command, t_all *all)
 	while (command[++i])
 		if (command[i][0] != '>' && command[i][0] != '<')
 			count++;
-	if (count == 0)
-		return (NULL);
 	new_command = (char **)calloc(sizeof(char *), count + 1);
 	i = -1;
 	while (command[++i])
@@ -454,33 +473,6 @@ char	**get_new_command(char **command, t_all *all)
 		}
 	}
 	return (new_command);
-}
-
-void	manage_in_out_file(char **in_files, char **out_files, t_all *all)
-{
-	int		fd;
-	int		i;
-
-	i = -1;
-	while (in_files[++i])
-	{
-		fd = open(in_files[i], O_RDONLY);
-		if (fd == -1)
-			fd_error(NULL, all);
-		if (dup2(fd, STDIN_FILENO) == -1)
-			exec_error(NULL, all, "dup2 failed\n");
-		close(fd);
-	}
-	i = -1;
-	while (out_files[++i])
-	{
-		fd = open(out_files[i], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		if (fd == -1)
-			fd_error(NULL, all);
-		if (dup2(fd, STDOUT_FILENO) == -1)
-			exec_error(NULL, all, "open failed\n");
-		close(fd);
-	}
 }
 
 /******************* Exec builtings ******************/
@@ -513,16 +505,22 @@ int	exec_builtins(t_list *command_list, t_all *all)
 	if (!ft_strncmp(command[0], "export", ft_strlen("export")))
 	{
 		printf("export BUILTINGS\n");
-		ft_export(all->env_list, command);
-		ft_print_export(all->env_list);
-		exec_error(NULL, all, "builtings export\n");
+		if (array_len(command) == 1)
+			ft_print_export(all->env_list);
+		else
+		{
+			ft_export(all->env_list, command);
+			ft_print_export(all->env_list);
+		}
+		// exec_error(NULL, all, "builtings export\n");
 	}
 	else if (!ft_strncmp(command[0], "env", ft_strlen("env")))
 		ft_print_env(all->env_list);
 	else if (!ft_strncmp(command[0], "echo", ft_strlen("echo")))
 	{
-		printf("echo BUILTINGS\n");
-		exec_error(NULL, all, "builtings echo\n");
+		// printf("echo BUILTINGS\n");
+		printf("%s\n", command[1]);
+		// exec_error(NULL, all, "builtings echo\n");
 	}
 	else if (!ft_strncmp(command[0], "cd", ft_strlen("cd")))
 	{
@@ -551,20 +549,14 @@ int	exec_builtins(t_list *command_list, t_all *all)
 void	exec_child(t_list *command_arr, int prev_fd[2],
 			int current_fd[2], t_all *all)
 {
-	char	*bin_path;
-	char	**in_files;
-	char	**out_files;
-	char	**command;
+	char		*bin_path;
+	char		**command;
+	t_redirect	**redirections;
 
-	if (check_spetial_char((char **)command_arr->content) == 0)
-		command = (char **)command_arr->content;
-	else
-	{
-		command = get_new_command((char **)command_arr->content, all);
-		in_files = get_infile_array((char **)command_arr->content, all);
-		out_files = get_outfile_array((char **)command_arr->content, all);
-		manage_in_out_file(in_files, out_files, all);
-	}
+	command = get_new_command((char **)command_arr->content, all);
+	redirections = get_all_redirections((char **)command_arr->content, all);
+	// print_redir(redirections);
+	manage_redirections(redirections, all);
 	bin_path = get_bin_path(command[0]);
 	if (!bin_path)
 		exec_error(NULL, all, "get_bin_path failed\n");
@@ -572,12 +564,12 @@ void	exec_child(t_list *command_arr, int prev_fd[2],
 		dup_in(prev_fd, all, bin_path, 0);
 	if (command_arr->next)
 		dup_out(current_fd, all, bin_path, 1);
-	printf("output :\n");
+	// printf("output :\n");
 	execve(bin_path, command, all->env_arr);
 	exec_error(bin_path, all, "execve failed\n");
 }
 
-t_list	*exec_parent(t_list *command_arr, int prev_fd[2], int current_fd[2])
+void	exec_parent(t_list *command_arr, int prev_fd[2], int current_fd[2])
 {
 	if (prev_fd[0] != -1)
 		close(prev_fd[0]);
@@ -586,7 +578,6 @@ t_list	*exec_parent(t_list *command_arr, int prev_fd[2], int current_fd[2])
 		close(current_fd[1]);
 		prev_fd[0] = current_fd[0];
 	}
-	return (command_arr->next);
 }
 
 void	exec_commands(t_all *all)
@@ -605,15 +596,19 @@ void	exec_commands(t_all *all)
 	{
 		if (command->next && pipe(current_fd) == -1)
 			exec_error(NULL, all, "pipe creation failed\n");
-		pids[command_count] = fork();
 		if (is_builtins(command))
 			exec_builtins(command, all);
-		else if (pids[command_count] == 0)
-			exec_child(command, prev_fd, current_fd, all);
-		else if (pids[command_count++] > 0)
-			command = exec_parent(command, prev_fd, current_fd);
 		else
-			exec_error(NULL, all, "fork failed\n");
+		{
+			pids[command_count] = fork();
+			if (pids[command_count] == 0)
+				exec_child(command, prev_fd, current_fd, all);
+			else if (pids[command_count++] > 0)
+				exec_parent(command, prev_fd, current_fd);
+			else
+				exec_error(NULL, all, "fork failed\n");
+		}
+		command = command->next;
 	}
 	if (prev_fd[0] != -1)
 		close(prev_fd[0]);
@@ -644,15 +639,14 @@ void	exec_commands(t_all *all)
 	// ls -la '|' grep Okt
 	// grep "Okt" | awk '{print | $g}'
 
+
 // int main()
 // {
 // 	char *line = "$HOME";
 // 	char *var_line = "$HOME";
-
 // 	// char *export_var[2] = {"BBB=$(echo \"hello world\")", NULL};
 // 	// ft_export(env_list, export_var);
 // 	// ft_print_export(env_list);
-
 // 	printf("before : %s HELLO WORLD\n", line);
 // 	var_line = replace_env_vars(line);
 // 	printf("after : %s HELLO WORLD\n", var_line);
@@ -688,11 +682,11 @@ int	main(int argc, char **argv, char **envp)
 		if (*line)
 			add_history(line);
 		line = replace_env_vars(line);
-		printf("command = %s\n", line);
+		// printf("command = %s\n", line);
 		commands = ft_split_esc(line, '|');
 		ft_free(line);
 		init_list(&all->command_list, commands);
-		print_command_list(all->command_list);
+		// print_command_list(all->command_list);
 		exec_commands(all);
 		free_list(all->command_list);
 	}

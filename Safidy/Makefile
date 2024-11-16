@@ -1,11 +1,11 @@
 SRCS = minishell.c ft_split_esc_2.c \
 		./builtins/ft_env.c ./builtins/ft_export.c ./builtins/ft_unset.c
 
-FLAGS = -Wall -Werror -Wextra
-RDLINE_FLAG = -lreadline
+FLAGS = -Wall -Werror -Wextra -lreadline
 # FLAGS = -g -Wall -Werror -Wextra
 # FLAGS = -lreadline
 # FLAGS = -g
+
 
 OBJS = $(SRCS:.c=.o)
 NAME = minishell
@@ -14,12 +14,13 @@ LIBFT_PATH = ./libft
 LIBFT_ARCHIVE = $(LIBFT_PATH)/libft.a
 
 %.o: %.c
-	@cc $(FLAGS) -c $< -o $@
+	@$(CC) $(FLAGS) -c $< -o $@
 
 all: $(NAME)
+#@clear
 
 $(NAME): $(LIBFT_ARCHIVE) $(OBJS)
-	@cc $(FLAGS) $(OBJS) $(LIBFT_ARCHIVE) -o $(NAME) $(RDLINE_FLAG)
+	@$(CC) $(FLAGS) $(OBJS) $(LIBFT_ARCHIVE) -o $(NAME)
 
 $(LIBFT_ARCHIVE):
 	@make bonus -C $(LIBFT_PATH)
@@ -45,3 +46,5 @@ debug: all
 	@$(clean)
 
 .PHONY: all clean fclean re
+
+# stdin test from Makefile
