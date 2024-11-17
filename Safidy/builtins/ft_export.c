@@ -19,7 +19,7 @@ int	ft_strcmp(const char *s1, const char *s2)
 	size_t	i;
 
 	i = 0;
-	while ((s1[i] != '\0' || s2[i] != '\0'))
+	while (s1[i] != '\0' && s2[i] != '\0')
 	{
 		if (s1[i] != s2[i])
 			return ((unsigned char) s1[i] - (unsigned char) s2[i]);
@@ -164,20 +164,6 @@ char	*ft_init_variable_name(char *commande, int *flag, char *line)
 	return (variable_name);
 }
 
-void	update_final_export(char *line, t_env_list *tmp,
-		char *variable_name, int *flag, char *commande)
-{
-	if (ft_strcmp(tmp->first, variable_name) == 0)
-	{
-		if (line)
-		{
-			ft_update_ensemble(flag, tmp, line, commande);
-			free(variable_name);
-		}
-		free(variable_name);
-	}
-}
-
 int	ft_maj_export(t_env_list *env, char *commande, int *flag)
 {
 	char		*line;
@@ -191,7 +177,11 @@ int	ft_maj_export(t_env_list *env, char *commande, int *flag)
 		return (free(variable_name), 1);
 	while (tmp)
 	{
-		update_final_export(line, tmp, variable_name, flag, commande);
+		if (ft_strcmp(tmp->first, variable_name) == 0 && line)
+		{	
+			ft_update_ensemble(flag, tmp, line, commande);
+			return (free(variable_name), 1);
+		}
 		tmp = tmp->next;
 	}
 	return (free(variable_name), 0);
@@ -203,7 +193,7 @@ void	ft_export(t_env_list *env, char **commande)
 	int	flag;
 
 	flag = 0;
-	i = 0;
+	i = 1;
 	while (commande[i] != NULL)
 	{
 		if (commande[i] && ft_maj_export(env, commande[i], &flag) == 0)
