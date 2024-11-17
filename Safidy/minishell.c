@@ -596,9 +596,7 @@ void	builtin_execution(char **command, t_all *all)
 	else if (!ft_strncmp(command[0], "env", ft_strlen("env")))
 		ft_print_env(all->env_list);
 	else if (!ft_strncmp(command[0], "echo", ft_strlen("echo")))
-	{
 		ft_echo(command);
-	}
 	else if (!ft_strncmp(command[0], "cd", ft_strlen("cd")))
 		ft_cd(command[1], all);
 	else if (!ft_strncmp(command[0], "pwd", ft_strlen("pwd")))

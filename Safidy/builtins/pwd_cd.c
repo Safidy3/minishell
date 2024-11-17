@@ -20,15 +20,38 @@ void ft_pwd()
 	free(s);
 }
 
-void ft_cd(char *path, t_all *all)
+char	*manage_home_path(char *path, t_all *all)
+{
+	t_env_list	*env;
+
+	env = all->env_list;
+	if (!ft_strcmp(path, "~") || !path)
+	{
+		while (env)
+		{
+			if (strcmp(env->first, "HOME") == 0)
+				return (env->second);
+			env = env->next;
+		}
+	}
+	return (path);
+}
+
+void	ft_cd(char *path, t_all *all)
 {
 	t_env_list	*env;
 	char		*o_path;
 	char		*n_path;
 
+	path = manage_home_path(path, all);
 	o_path = getcwd(NULL,0);
-	chdir(path);
+	if (!o_path)
+		return (perror("getcwd"));
+	if (chdir(path) != 0)
+		return (free(o_path), perror(path));
 	n_path = getcwd(NULL,0);
+	if (!n_path)
+		return (perror("getcwd"));
 	env = all->env_list;
 	while (env)
 	{
