@@ -80,6 +80,7 @@ void			ft_free_env_list(t_env_list *env);
 
 void			int_lst_env(t_env_list **list,char **envp);
 char			**list_to_array(t_env_list *env);
+char			*ft_getenv(char *env_var, t_all *all);
 void			ft_print_env(t_env_list *env);
 
 /************************************** */

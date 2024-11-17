@@ -152,7 +152,26 @@ void	init_list(t_list **commands_list, char **arr_commands)
 
 /******************	env var ********************/
 
-static size_t	get_env_len(const char *s)
+char	*ft_getenv(char *env_var, t_all *all)
+{
+	t_env_list	*tmp;
+	char		*res;
+
+	tmp = all->env_list;
+	res = NULL;
+	while (tmp)
+	{
+		if (ft_strcmp(tmp->first, env_var) == 0)
+		{
+			res = ft_strdup(tmp->second);
+			break;
+		}
+		tmp = tmp->next;
+	}
+	return (res);
+}
+
+static size_t	get_env_len(const char *s, t_all *all)
 {
 	size_t	total_len;
 	char	var_name[MAX_VAR_LEN];
@@ -169,7 +188,7 @@ static size_t	get_env_len(const char *s)
 			while (*s && (ft_isalnum(*s) || *s == '_') && i < MAX_VAR_LEN - 1)
 				var_name[i++] = *s++;
 			var_name[i] = '\0';
-			var_value = getenv(var_name);
+			var_value = ft_getenv(var_name, all);
 			if (var_value)
 				total_len += ft_strlen(var_value);
 			s--;
@@ -181,7 +200,7 @@ static size_t	get_env_len(const char *s)
 	return (total_len);
 }
 
-static void	copy_env_var(const char **s, char **dst)
+static void	copy_env_var(const char **s, char **dst, t_all *all)
 {
 	char	var_name[MAX_VAR_LEN];
 	char	*var_value;
@@ -192,7 +211,9 @@ static void	copy_env_var(const char **s, char **dst)
 	while (**s && (ft_isalnum(**s) || **s == '_') && i < 255)
 		var_name[i++] = *(*s)++;
 	var_name[i] = '\0';
-	var_value = getenv(var_name);
+	var_value = ft_getenv(var_name, all);
+	// (void) all;
+	// var_value = getenv(var_name);
 	if (var_value)
 	{
 		ft_strlcpy(*dst, var_value, ft_strlen(var_value) + 1);
@@ -201,7 +222,7 @@ static void	copy_env_var(const char **s, char **dst)
 	(*s)--;
 }
 
-char	*replace_env_vars(const char *s)
+char	*replace_env_vars(const char *s, t_all *all)
 {
 	char	*result;
 	char	*dst;
@@ -209,7 +230,7 @@ char	*replace_env_vars(const char *s)
 
 	if (!s)
 		return (NULL);
-	result = malloc(sizeof(char) * (get_env_len(s) + 1));
+	result = malloc(sizeof(char) * (get_env_len(s, all) + 1));
 	if (!result)
 		return (NULL);
 	dst = result;
@@ -219,7 +240,7 @@ char	*replace_env_vars(const char *s)
 		if (*s == '\'')
 			in_quote = !in_quote;
 		if (*s == '$' && !in_quote)
-			copy_env_var(&s, &dst);
+			copy_env_var(&s, &dst, all);
 		else
 			*dst++ = *s;
 		s++;
@@ -546,7 +567,7 @@ void ft_echo(char **tokens)
     int	token_count;
 	int	start_index;
 	int skip_newline;
-	
+
 	token_count = array_len(tokens);
 	start_index = 0;
 	skip_newline = 0;
@@ -702,7 +723,8 @@ int	main(int argc, char **argv, char **envp)
 		line = readline(">: ");
 		if (*line)
 			add_history(line);
-		line = replace_env_vars(line);
+		line = replace_env_vars(line, all);
+		printf("replaced line : %s\n", line);
 		commands = ft_split_esc(line, '|');
 		ft_free(line);
 		init_list(&all->command_list, commands);
