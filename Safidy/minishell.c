@@ -171,6 +171,70 @@ char	*ft_getenv(char *env_var, t_all *all)
 	return (res);
 }
 
+char	*capture_command_output(char *var_name, t_all *all)
+{
+	t_all	*new_all;
+
+    int     pipe_fd[2];
+    int     stdout_backup;
+    char    *result;
+    char    *line;
+    char    *temp;
+    
+    // Create pipe
+    if (pipe(pipe_fd) == -1)
+        return (NULL);
+
+    // Backup original stdout and stderr
+    stdout_backup = dup(STDOUT_FILENO);
+    dup2(pipe_fd[1], STDOUT_FILENO);
+    close(pipe_fd[1]);
+
+    // Execute command (using your existing function)
+	new_all = (t_all *)malloc(sizeof(t_all));
+	if (!new_all)
+		return (NULL);
+	new_all->exit_status = all->exit_status;
+	new_all->command_list = all->command_list;
+	new_all->env_list = all->env_list;
+	new_all->env_arr = all->env_arr;
+	line = var_name;
+	line = replace_env_vars(line, new_all);
+	char **commands = ft_split_esc(line, '|');
+	ft_free(line);
+	init_list(&new_all->command_list, commands);
+	exec_commands(new_all);
+	free_list(new_all->command_list);
+
+	// Restore original stdout and stderr
+    dup2(stdout_backup, STDOUT_FILENO);
+    close(stdout_backup);
+
+    result = ft_strdup("");
+    if (!result)
+    {
+        close(pipe_fd[0]);
+        return (NULL);
+    }
+
+    // Read all lines using get_next_line
+    while ((line = get_next_line(pipe_fd[0])))
+    {
+        temp = ft_strjoin(result, line);
+        free(result);
+        free(line);
+        if (!temp)
+        {
+            close(pipe_fd[0]);
+            return (NULL);
+        }
+        result = temp;
+    }
+
+    close(pipe_fd[0]);
+    return (result);
+}
+
 static size_t	get_env_len(const char *s, t_all *all)
 {
 	size_t	total_len;
@@ -184,14 +248,36 @@ static size_t	get_env_len(const char *s, t_all *all)
 		if (*s == '$')
 		{
 			s++;
-			i = 0;
-			while (*s && (ft_isalnum(*s) || *s == '_') && i < MAX_VAR_LEN - 1)
-				var_name[i++] = *s++;
-			var_name[i] = '\0';
-			var_value = ft_getenv(var_name, all);
-			if (var_value)
-				total_len += ft_strlen(var_value);
-			s--;
+			if (*s == '(')
+			{
+				i = 0;
+				s++;
+				while (*s && *s != ')' && i < MAX_VAR_LEN - 1)
+					var_name[i++] = *s++;
+				var_name[i] = '\0';
+				if (*s == ')')
+				{
+					var_value = capture_command_output(var_name, all);
+					printf("%s = %s\n", var_name, var_value);
+					if (var_value)
+					{
+						total_len += ft_strlen(var_value);
+						free(var_value);
+					}
+				}
+				s--;
+			}
+			else
+			{
+				i = 0;
+				while (*s && (ft_isalnum(*s) || *s == '_') && i < MAX_VAR_LEN - 1)
+					var_name[i++] = *s++;
+				var_name[i] = '\0';
+				var_value = ft_getenv(var_name, all);
+				if (var_value)
+					total_len += ft_strlen(var_value);
+				s--;
+			}
 		}
 		else
 			total_len++;
@@ -200,26 +286,50 @@ static size_t	get_env_len(const char *s, t_all *all)
 	return (total_len);
 }
 
-static void	copy_env_var(const char **s, char **dst, t_all *all)
+void	copy_env_var(const char *s, char *dst, t_all *all)
 {
 	char	var_name[MAX_VAR_LEN];
 	char	*var_value;
 	size_t	i;
 
-	(*s)++;
-	i = 0;
-	while (**s && (ft_isalnum(**s) || **s == '_') && i < 255)
-		var_name[i++] = *(*s)++;
-	var_name[i] = '\0';
-	var_value = ft_getenv(var_name, all);
-	// (void) all;
-	// var_value = getenv(var_name);
-	if (var_value)
+	s++;
+	if (*s == '(')
 	{
-		ft_strlcpy(*dst, var_value, ft_strlen(var_value) + 1);
-		*dst += ft_strlen(var_value);
+		s++;
+		i = 0;
+		while (*s && *s != ')' && i < MAX_VAR_LEN - 1)
+			var_name[i++] = *s++;
+		var_name[i] = '\0';
+		printf("var_name : %s\n", var_name);
+
+		capture_command_output(var_name, all);
+
+		// if (*s == ')')
+		// {
+		// 	var_value = execute_command(var_name, all);
+		// 	if (var_value)
+		// 	{
+		// 		ft_strlcpy(dst, var_value, ft_strlen(var_value) + 1);
+		// 		dst += ft_strlen(var_value);
+		// 		free(var_value);
+		// 	}
+		// }
 	}
-	(*s)--;
+	else
+	{
+		i = 0;
+		while (*s && (ft_isalnum(*s) || *s == '_') && i < 255)
+			var_name[i++] = *(s)++;
+		var_name[i] = '\0';
+		var_value = ft_getenv(var_name, all);
+		printf("var_name : %s, var_value : %s\n", var_name, var_value);
+		if (var_value)
+		{
+			ft_strlcpy(dst, var_value, ft_strlen(var_value) + 1);
+			dst += ft_strlen(var_value);
+		}
+	}
+	s--;
 }
 
 char	*replace_env_vars(const char *s, t_all *all)
@@ -227,6 +337,9 @@ char	*replace_env_vars(const char *s, t_all *all)
 	char	*result;
 	char	*dst;
 	int		in_quote;
+
+	(void) dst;
+	(void) in_quote;
 
 	if (!s)
 		return (NULL);
@@ -240,7 +353,7 @@ char	*replace_env_vars(const char *s, t_all *all)
 		if (*s == '\'')
 			in_quote = !in_quote;
 		if (*s == '$' && !in_quote)
-			copy_env_var(&s, &dst, all);
+			copy_env_var(s, dst, all);
 		else
 			*dst++ = *s;
 		s++;
@@ -564,31 +677,31 @@ int	is_builtins(t_list *command)
 
 void ft_echo(char **tokens)
 {
-    int	token_count;
+	int	token_count;
 	int	start_index;
 	int skip_newline;
 
 	token_count = array_len(tokens);
 	start_index = 0;
 	skip_newline = 0;
-    if (token_count > 0 && strcmp(tokens[0], "echo") == 0)
+	if (token_count > 0 && strcmp(tokens[0], "echo") == 0)
 	{
-        if (token_count > 1 && strcmp(tokens[1], "-n") == 0)
+		if (token_count > 1 && strcmp(tokens[1], "-n") == 0)
 		{
 			skip_newline = 1;
-            start_index = 1;
+			start_index = 1;
 		}
 		while (++start_index < token_count)
 		{
-            printf("%s", tokens[start_index]);
-            if (start_index < token_count - 1)
-                printf(" ");
-        }
-        if (!skip_newline)
-            printf("\n");
-    }
+			printf("%s", tokens[start_index]);
+			if (start_index < token_count - 1)
+				printf(" ");
+		}
+		if (!skip_newline)
+			printf("\n");
+	}
 	else
-        printf("Command not recognized or invalid input.\n");
+		printf("Command not recognized or invalid input.\n");
 }
 
 void	restore_og_std(int std_backup[2], t_all *all)

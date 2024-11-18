@@ -1,5 +1,6 @@
 SRCS = minishell.c ft_split_esc_2.c \
-		./builtins/ft_env.c ./builtins/ft_export.c ./builtins/ft_unset.c ./builtins/pwd_cd.c
+		./builtins/ft_env.c ./builtins/ft_export.c ./builtins/ft_unset.c ./builtins/pwd_cd.c\
+		./gnl/get_next_line.c ./gnl/get_next_line_utils.c \
 
 # FLAGS = -Wall -Werror -Wextra -lreadline
 FLAGS = -g -Wall -Werror -Wextra

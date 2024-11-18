@@ -20,10 +20,11 @@
 # include <readline/history.h>
 # include <sys/types.h>
 # include <sys/wait.h>
-# include "libft/libft.h"
 # include <fcntl.h>
 # include <stdbool.h>
 
+# include "libft/libft.h"
+# include "gnl/get_next_line.h"
 
 # include <string.h>
 
@@ -108,5 +109,11 @@ void			ft_unset(t_env_list **env, char **commande);
 void			ft_pwd();
 void			ft_cd(char *path, t_all *all);
 
+/************************************** */
+
+char			*replace_env_vars(const char *s, t_all *all);
+void			exec_commands(t_all *all);
+void			init_list(t_list **commands_list, char **arr_commands);
+char			**ft_split_esc(char const *s, char c);
 
 #endif
