@@ -1,6 +1,5 @@
 #include "minishell.h"
 
-#define MAX_VAR_LEN 256
 
 // ls -la | grep mini | awk '{print $9}' | head -n 1
 /*
@@ -175,22 +174,22 @@ char	*capture_command_output(char *var_name, t_all *all)
 {
 	t_all	*new_all;
 
-    int     pipe_fd[2];
-    int     stdout_backup;
-    char    *result;
-    char    *line;
-    char    *temp;
-    
-    // Create pipe
-    if (pipe(pipe_fd) == -1)
-        return (NULL);
+	int     pipe_fd[2];
+	int     stdout_backup;
+	char    *result;
+	char    *line;
+	char    *temp;
+	
+	// Create pipe
+	if (pipe(pipe_fd) == -1)
+		return (NULL);
 
-    // Backup original stdout and stderr
-    stdout_backup = dup(STDOUT_FILENO);
-    dup2(pipe_fd[1], STDOUT_FILENO);
-    close(pipe_fd[1]);
+	// Backup var_command stdout and stderr
+	stdout_backup = dup(STDOUT_FILENO);
+	dup2(pipe_fd[1], STDOUT_FILENO);
+	close(pipe_fd[1]);
 
-    // Execute command (using your existing function)
+	// Execute command (using your existing function)
 	new_all = (t_all *)malloc(sizeof(t_all));
 	if (!new_all)
 		return (NULL);
@@ -206,161 +205,240 @@ char	*capture_command_output(char *var_name, t_all *all)
 	exec_commands(new_all);
 	free_list(new_all->command_list);
 
-	// Restore original stdout and stderr
-    dup2(stdout_backup, STDOUT_FILENO);
-    close(stdout_backup);
+	// Restore var_command stdout and stderr
+	dup2(stdout_backup, STDOUT_FILENO);
+	close(stdout_backup);
 
-    result = ft_strdup("");
-    if (!result)
-    {
-        close(pipe_fd[0]);
-        return (NULL);
-    }
+	result = ft_strdup("");
+	if (!result)
+	{
+		close(pipe_fd[0]);
+		return (NULL);
+	}
 
-    // Read all lines using get_next_line
-    while ((line = get_next_line(pipe_fd[0])))
-    {
-        temp = ft_strjoin(result, line);
-        free(result);
-        free(line);
-        if (!temp)
-        {
-            close(pipe_fd[0]);
-            return (NULL);
-        }
-        result = temp;
-    }
+	// Read all lines using get_next_line
+	while ((line = get_next_line(pipe_fd[0])))
+	{
+		temp = ft_strjoin(result, line);
+		free(result);
+		free(line);
+		if (!temp)
+		{
+			close(pipe_fd[0]);
+			return (NULL);
+		}
+		result = temp;
+	}
 
-    close(pipe_fd[0]);
-    return (result);
+	close(pipe_fd[0]);
+	return (result);
 }
 
-static size_t	get_env_len(const char *s, t_all *all)
-{
-	size_t	total_len;
-	char	var_name[MAX_VAR_LEN];
-	size_t	i;
-	char	*var_value;
 
-	total_len = 0;
-	while (*s)
+// echo hello $HOME $(ls) $(pwd)
+
+
+// void	collect_command_variable(const char *scan, t_cmd_var *cmd_vars, t_all *all)
+// {
+// 	int			cmd_var_count = 0;
+// 	int			in_quote = 0;
+// 	char		cmd[MAX_VAR_LEN];
+// 	int			i;
+// 	while (*scan)
+// 	{
+// 		if (*scan == '\'')
+// 			in_quote = !in_quote;
+// 		if (*scan == '$' && !in_quote)
+// 		{
+// 			scan++;
+// 			if (*scan == '(')
+// 			{
+// 				scan++;
+// 				i = 0;
+// 				while (*scan && *scan != ')' && i < MAX_VAR_LEN - 1)
+// 					cmd[i++] = *scan++;
+// 				cmd[i] = '\0';
+// 				if (*scan == ')')
+// 				{
+// 					cmd_vars = realloc(cmd_vars, (cmd_var_count + 1) * sizeof(t_cmd_var));
+// 					cmd_vars[cmd_var_count].var_command = ft_strdup(cmd);
+// 					cmd_vars[cmd_var_count].output = capture_command_output(cmd, all);
+// 					if (cmd_vars[cmd_var_count].output)
+// 						total_len += ft_strlen(cmd_vars[cmd_var_count].output);
+// 					cmd_var_count++;
+// 				}
+// 			}
+// 		}
+// 		scan++;
+// 	}
+// }
+
+char	*replace_env_vars(const char *s, t_all *all)
+{
+	char        *result;
+	char        *dst;
+	int         in_quote = 0;
+	t_cmd_var   *cmd_vars = NULL;
+	int         cmd_var_count = 0;
+	int         total_len = 0;
+
+	const char *scan = s;
+	while (*scan)
 	{
-		if (*s == '$')
+		if (*scan == '\'')
+			in_quote = !in_quote;
+		
+		if (*scan == '$' && !in_quote)
 		{
-			s++;
-			if (*s == '(')
+			scan++;
+			if (*scan == '(')
 			{
-				i = 0;
-				s++;
-				while (*s && *s != ')' && i < MAX_VAR_LEN - 1)
-					var_name[i++] = *s++;
-				var_name[i] = '\0';
-				if (*s == ')')
+				char cmd[MAX_VAR_LEN];
+				int i = 0;
+				scan++;
+				while (*scan && *scan != ')' && i < MAX_VAR_LEN - 1)
+					cmd[i++] = *scan++;
+				cmd[i] = '\0';
+				if (*scan == ')')
 				{
-					var_value = capture_command_output(var_name, all);
-					printf("%s = %s\n", var_name, var_value);
-					if (var_value)
-					{
-						total_len += ft_strlen(var_value);
-						free(var_value);
-					}
+					cmd_vars = realloc(cmd_vars, (cmd_var_count + 1) * sizeof(t_cmd_var));
+					cmd_vars[cmd_var_count].original = ft_strdup(cmd);
+					cmd_vars[cmd_var_count].output = capture_command_output(cmd, all);
+					printf("cmd_vars.output = %s\n",cmd_vars[cmd_var_count].output);	
+					if (cmd_vars[cmd_var_count].output)
+						total_len += ft_strlen(cmd_vars[cmd_var_count].output);
+					cmd_var_count++;
 				}
-				s--;
 			}
 			else
 			{
-				i = 0;
-				while (*s && (ft_isalnum(*s) || *s == '_') && i < MAX_VAR_LEN - 1)
-					var_name[i++] = *s++;
+				char var_name[MAX_VAR_LEN];
+				char *var_value;
+				int i = 0;
+				while (*scan && (ft_isalnum(*scan) || *scan == '_') && i < MAX_VAR_LEN - 1)
+					var_name[i++] = *scan++;
 				var_name[i] = '\0';
 				var_value = ft_getenv(var_name, all);
 				if (var_value)
 					total_len += ft_strlen(var_value);
-				s--;
+				free(var_value);
 			}
 		}
 		else
 			total_len++;
-		s++;
+		scan++;
 	}
-	return (total_len);
+	
+
+	// printf("total_len = %d\n", total_len);
+	// // Allocate final result
+	// result = malloc(sizeof(char) * (total_len + 1));
+	// if (!result)
+	// {
+	// 	int i = -1;
+	// 	while (++i < cmd_var_count)
+	// 	{
+	// 		free(cmd_vars[i].original);
+	// 		free(cmd_vars[i].output);
+	// 	}
+	// 	free(cmd_vars);
+	// 	return NULL;
+	// }
+
+
+
+	// // Second pass: replace variables
+	// dst = result;
+	// in_quote = 0;
+	// while (*s)
+	// {
+	// 	if (*s == '\'')
+	// 		in_quote = !in_quote;
+		
+	// 	if (*s == '$' && !in_quote)
+	// 	{
+	// 		s++;
+	// 		if (*s == '(')
+	// 		{
+	// 			// Find matching command output
+	// 			s++;
+	// 			char cmd[MAX_VAR_LEN];
+	// 			int i = 0;
+	// 			while (*s && *s != ')' && i < MAX_VAR_LEN - 1)
+	// 				cmd[i++] = *s++;
+	// 			cmd[i] = '\0';
+				
+	// 			if (*s == ')')
+	// 			{
+	// 				for (int j = 0; j < cmd_var_count; j++)
+	// 				{
+	// 					if (ft_strcmp(cmd, cmd_vars[j].original) == 0 && cmd_vars[j].output)
+	// 					{
+	// 						ft_strlcpy(dst, cmd_vars[j].output, ft_strlen(cmd_vars[j].output) + 1);
+	// 						dst += ft_strlen(cmd_vars[j].output);
+	// 						break;
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 		else
+	// 		{
+	// 			// Regular environment variable handling
+	// 			char var_name[MAX_VAR_LEN];
+	// 			int i = 0;
+	// 			while (*s && (ft_isalnum(*s) || *s == '_') && i < MAX_VAR_LEN - 1)
+	// 				var_name[i++] = *s++;
+	// 			var_name[i] = '\0';
+				
+	// 			char *var_value = ft_getenv(var_name, all);
+	// 			if (var_value)
+	// 			{
+    // 			    int len = ft_strlen(var_value);
+	// 				if (dst - result + len >= total_len)
+	// 				{
+	// 					fprintf(stderr, "Buffer overflow detected\n");
+	// 					free(var_value);
+	// 					break;
+	// 				}
+	// 				ft_strlcpy(dst, var_value, ft_strlen(var_value) + 1);
+	// 				dst += ft_strlen(var_value);
+	// 				free(var_value);
+	// 			}
+	// 		}
+	// 		s--;
+	// 	}
+	// 	else
+	// 		*dst++ = *s;
+	// 	s++;
+	// }
+	// *dst = '\0';
+	
+	// // Free command variables
+	// for (int i = 0; i < cmd_var_count; i++)
+	// {
+	// 	free(cmd_vars[i].original);
+	// 	free(cmd_vars[i].output);
+	// }
+	// free(cmd_vars);
+	
+	return result;
 }
 
-void	copy_env_var(const char *s, char *dst, t_all *all)
-{
-	char	var_name[MAX_VAR_LEN];
-	char	*var_value;
-	size_t	i;
 
-	s++;
-	if (*s == '(')
-	{
-		s++;
-		i = 0;
-		while (*s && *s != ')' && i < MAX_VAR_LEN - 1)
-			var_name[i++] = *s++;
-		var_name[i] = '\0';
-		printf("var_name : %s\n", var_name);
 
-		capture_command_output(var_name, all);
 
-		// if (*s == ')')
-		// {
-		// 	var_value = execute_command(var_name, all);
-		// 	if (var_value)
-		// 	{
-		// 		ft_strlcpy(dst, var_value, ft_strlen(var_value) + 1);
-		// 		dst += ft_strlen(var_value);
-		// 		free(var_value);
-		// 	}
-		// }
-	}
-	else
-	{
-		i = 0;
-		while (*s && (ft_isalnum(*s) || *s == '_') && i < 255)
-			var_name[i++] = *(s)++;
-		var_name[i] = '\0';
-		var_value = ft_getenv(var_name, all);
-		printf("var_name : %s, var_value : %s\n", var_name, var_value);
-		if (var_value)
-		{
-			ft_strlcpy(dst, var_value, ft_strlen(var_value) + 1);
-			dst += ft_strlen(var_value);
-		}
-	}
-	s--;
-}
 
-char	*replace_env_vars(const char *s, t_all *all)
-{
-	char	*result;
-	char	*dst;
-	int		in_quote;
 
-	(void) dst;
-	(void) in_quote;
 
-	if (!s)
-		return (NULL);
-	result = malloc(sizeof(char) * (get_env_len(s, all) + 1));
-	if (!result)
-		return (NULL);
-	dst = result;
-	in_quote = 0;
-	while (*s)
-	{
-		if (*s == '\'')
-			in_quote = !in_quote;
-		if (*s == '$' && !in_quote)
-			copy_env_var(s, dst, all);
-		else
-			*dst++ = *s;
-		s++;
-	}
-	*dst = '\0';
-	return (result);
-}
+
+
+
+
+
+
+
+
+
 
 /******************* Exec Error ******************/
 
@@ -836,8 +914,9 @@ int	main(int argc, char **argv, char **envp)
 		line = readline(">: ");
 		if (*line)
 			add_history(line);
+		// line = "echo $USER $(ls) $(pwd)";
 		line = replace_env_vars(line, all);
-		printf("replaced line : %s\n", line);
+		// printf("replaced line : %s\n", line);
 		commands = ft_split_esc(line, '|');
 		ft_free(line);
 		init_list(&all->command_list, commands);
@@ -845,7 +924,7 @@ int	main(int argc, char **argv, char **envp)
 		// printf("exit status : %d\n", all->exit_status);
 		free_list(all->command_list);
 	}
-	return (free(all), ft_free_env_list(all->env_list), free_split(all->env_arr), 0);
+	return (ft_free_env_list(all->env_list), free_split(all->env_arr), free(all),  0);
 }
 
 // export list=ls ; $list

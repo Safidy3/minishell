@@ -3,9 +3,9 @@ SRCS = minishell.c ft_split_esc_2.c \
 		./gnl/get_next_line.c ./gnl/get_next_line_utils.c \
 
 # FLAGS = -Wall -Werror -Wextra -lreadline
-FLAGS = -g -Wall -Werror -Wextra
+# FLAGS = -g -Wall -Werror -Wextra
 RELINE_FLAG = -lreadline
-# FLAGS = -g
+FLAGS = -g
 
 
 OBJS = $(SRCS:.c=.o)

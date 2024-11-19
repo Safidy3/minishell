@@ -29,6 +29,7 @@
 # include <string.h>
 
 # define MAX_COMMANDS 100
+# define MAX_VAR_LEN 256
 
 # define TRUNCATE 1
 # define APPEND 2
@@ -64,6 +65,11 @@ typedef struct	s_redirect
 	int			type;
 }				t_redirect;
 
+typedef struct	s_cmd_var 
+{
+    char		*original;
+    char		*output;
+}				t_cmd_var;
 
 char			**ft_split_esc_2(char *s, char c);
 
