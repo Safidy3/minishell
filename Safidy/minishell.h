@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/11/16 15:53:16 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/19 13:59:19 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,12 +64,6 @@ typedef struct	s_redirect
 	char		*filename;
 	int			type;
 }				t_redirect;
-
-typedef struct	s_cmd_var 
-{
-    char		*original;
-    char		*output;
-}				t_cmd_var;
 
 char			**ft_split_esc_2(char *s, char c);
 
