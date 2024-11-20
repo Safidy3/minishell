@@ -118,6 +118,14 @@ void	free_list(t_list *s)
 	free(s);
 }
 
+void	free_all_struct(t_all *all)
+{
+	free_list(all->command_list);
+	free_split(all->env_arr);
+	ft_free_env_list(all->env_list);
+	free(all);
+}
+
 /******************* init list ******************/
 
 void	list_init_error(t_list *commands_list, char **arr_commands)
@@ -246,17 +254,13 @@ char	*replace_env_vars(const char *s, t_all *all)
 	return (result);
 }
 
-
 /******************* Exec Error ******************/
 
 void	fd_error(char *bin_path, t_all *all)
 {
 	perror("fd error ");
 	ft_free(bin_path);
-	free_list(all->command_list);
-	free_split(all->env_arr);
-	ft_free_env_list(all->env_list);
-	free(all);
+	free_all_struct(all);
 	exit(EXIT_FAILURE);
 }
 
@@ -514,18 +518,6 @@ void	manage_redirections(t_redirect **redirections, t_all *all)
 	free(redirections);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 char	**get_new_command(char **command, t_all *all)
 {
 	char	**new_command;
@@ -756,10 +748,65 @@ void	exec_commands(t_all *all)
 	}
 	if (prev_fd[0] != -1)
 		close(prev_fd[0]);
+	all->heredoc_command = 0;
 	all->exit_status = get_exit_stat(pids, command_count);
 }
 
 /******************* main ******************/
+
+void	command_error(t_all *all)
+{
+	ft_putstr_fd("error : faild to allocate command\n", 1);
+	free_all_struct(all);
+	exit(EXIT_FAILURE);
+}
+
+int	is_valid_command(char * command)
+{
+	int	i;
+
+	i = -1;
+	while (command[++i])
+	{
+		while (ft_isspace(command[i]))
+			i++;
+		if (command[i] == '|' || command[i] == '\0'
+			|| ft_strncmp(&command[i], ">>>", 3) == 0
+			|| ft_strncmp(&command[i], "<<<", 3) == 0
+			|| ft_strncmp(&command[i], "&&&", 3) == 0)
+		{
+			ft_putstr_fd("bash: syntax error\n", 1);
+			return (0);
+		}
+		else
+			while (command[i] && command[i] != '|')
+				i++;
+		if (!command[i])
+			break;
+	}
+	return (1);
+}
+
+int	valid_command(char *command, t_all *all)
+{
+	int		i;
+	int		is_empty;
+
+	is_empty = 0;
+	if (ft_strlen(command) == 0)
+		return (0);
+	i = ft_strlen(command);
+	while (ft_isspace(command[--i]))
+		;
+	if (command[i] && command[i] == '|')
+		all->heredoc_command = 1;
+	if (!is_valid_command(command))
+	{
+		free(command);
+		return (0);
+	}
+	return (1);
+}
 
 int	main(int argc, char **argv, char **envp)
 {
@@ -769,13 +816,13 @@ int	main(int argc, char **argv, char **envp)
 
 	(void) argc;
 	(void) argv;
-
 	all = (t_all *)malloc(sizeof(t_all));
 	if (!all)
 		return (0);
 	all->exit_status = 0;
 	all->command_list = NULL;
 	all->env_list = NULL;
+	all->heredoc_command = 0;
 	int_lst_env(&all->env_list, envp);
 	all->env_arr = list_to_array(all->env_list);
 	while (1)
@@ -785,17 +832,24 @@ int	main(int argc, char **argv, char **envp)
 			add_history(line);
 		line = replace_env_vars(line, all);
 		commands = ft_split_esc(line, '|');
-		ft_free(line);
-		init_list(&all->command_list, commands);
-		exec_commands(all);
-		free_list(all->command_list);
+		print_split(commands);
+		printf("line = '%s'\n", line);
+		if (valid_command(line, all))
+		{
+			ft_free(line);
+			init_list(&all->command_list, commands);
+			exec_commands(all);
+			free_list(all->command_list);
+		}
 	}
-	return (ft_free_env_list(all->env_list), free_split(all->env_arr), free(all),  0);
+	return (free_all_struct(all),  0);
 }
 
 /* signal : ctrl-C, ctrl-D, ctrl-\ */
 // shellevel
-// ls | (heredoc command)
+// ls | (heredoc command) -> ft_split_esc(line, '|') -> all->heredoc_command
+// 
+// export VAR && export VAR
 
 // cat << (heredoc)
 // export list=ls ; $list
@@ -813,5 +867,3 @@ int	main(int argc, char **argv, char **envp)
 // e"c"h"o" "hello world"
 // ls -la '|' grep Okt
 // grep "Okt" | awk '{print | $g}'
-
-

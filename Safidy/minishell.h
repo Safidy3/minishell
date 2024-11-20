@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/11/19 13:59:19 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/20 17:45:54 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ typedef struct	s_all
 	int			exit_status;
 	t_list		*command_list;
 	char		**env_arr;
+	int			heredoc_command;
 	t_env_list	*env_list;
 }				t_all;
 
