@@ -1,11 +1,4 @@
-#include "libft.h"
-
-static char	*ft_escap_spliter(const char *s, char c)
-{
-	while (*s == c)
-		s++;
-	return ((char *)s);
-}
+#include "minishell.h"
 
 static char	*ft_escape_quote(const char *s)
 {
@@ -19,17 +12,25 @@ static char	*ft_escape_quote(const char *s)
 	return ((char *) s);
 }
 
-static size_t	ft_count_words(const char *s, char c)
+static char	*set_last_pipe(const char *s, int *last_was_pipe)
+{
+	*last_was_pipe = 1;
+	return ((char *)++s);
+}
+
+static size_t ft_count_words(t_all *all, const char *s, char c)
 {
 	size_t	count;
+	int		last_was_pipe;
 
 	count = 0;
+	last_was_pipe = 0;
 	while (*s)
 	{
-		s = ft_escap_spliter(s, c);
 		if (*s && *s != c)
 		{
 			count++;
+			last_was_pipe = 0;
 			while (*s && *s != c)
 			{
 				if (*s == '\'' || *s == '\"')
@@ -38,9 +39,14 @@ static size_t	ft_count_words(const char *s, char c)
 					s++;
 			}
 		}
+		else if (*s == c)
+			s = set_last_pipe(s, &last_was_pipe);
 	}
+	if (last_was_pipe)
+		all->heredoc_command = 1;
 	return (count);
 }
+
 
 static size_t	ft_count_words_len(const char *s, char c)
 {
@@ -79,16 +85,7 @@ static void	*ft_free_exit(char **tab)
 	return (NULL);
 }
 
-static char	*cpy_to_arr(char const *s, char **tab, int word_len, int i)
-{
-	ft_strlcpy(tab[i], s, word_len + 1);
-	s += word_len;
-	if (*s)
-		s++;
-	return ((char *)s);
-}
-
-char	**ft_split_esc(char const *s, char c)
+char	**ft_split_esc(t_all *all, const char *s, char c)
 {
 	char	**tab;
 	size_t	words;
@@ -96,18 +93,22 @@ char	**ft_split_esc(char const *s, char c)
 	size_t	i;
 
 	i = -1;
-	words = ft_count_words(s, c);
+	words = ft_count_words(all, s, c);
 	tab = (char **)calloc(sizeof(char *), (words + 1));
 	if (!tab || words == 0)
 		return (NULL);
 	while (++i < words)
 	{
-		s = ft_escap_spliter(s, c);
+		while (*s == c)
+			s++;
 		word_len = ft_count_words_len(s, c);
 		tab[i] = (char *)malloc(sizeof(char) * (word_len + 1));
 		if (!tab[i])
 			return (ft_free_exit(tab));
-		s = cpy_to_arr(s, tab, word_len, i);
+		ft_strlcpy(tab[i], s, word_len + 1);
+		s += word_len;
+		if (*s)
+			s++;
 	}
 	return (tab);
 }

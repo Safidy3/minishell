@@ -570,18 +570,24 @@ void	exec_child(t_list *command_arr, int prev_fd[2],
 	char		**command;
 	char		*bin_path;
 
+	redirections = get_all_redirections((char **)command_arr->content, all);
+	manage_redirections(redirections, all);
 	command = get_new_command((char **)command_arr->content, all);
 	if (!command)
 		exec_error(NULL, all, "get_new_command failed\n");
-	redirections = get_all_redirections((char **)command_arr->content, all);
-	manage_redirections(redirections, all);
+
+	printf("command[0] = %s\n", command[0]);
+
 	bin_path = get_bin_path(command[0]);
 	if (!bin_path)
 		command_not_found(command_arr, bin_path, all, command);
 	if (prev_fd[0] != -1)
 		dup_in(prev_fd, all, bin_path, 0);
-	if (command_arr->next)
+	if (command_arr->next || (!command_arr->next && all->heredoc_command == 1))
+	{
+		printf("tafiditra\n");
 		dup_out(current_fd, all, bin_path, 1);
+	}
 	execve(bin_path, command, all->env_arr);
 	exec_error(bin_path, all, "execve failed\n");
 }
@@ -748,7 +754,6 @@ void	exec_commands(t_all *all)
 	}
 	if (prev_fd[0] != -1)
 		close(prev_fd[0]);
-	all->heredoc_command = 0;
 	all->exit_status = get_exit_stat(pids, command_count);
 }
 
@@ -787,19 +792,13 @@ int	is_valid_command(char * command)
 	return (1);
 }
 
-int	valid_command(char *command, t_all *all)
+int	valid_command(char *command)
 {
-	int		i;
 	int		is_empty;
 
 	is_empty = 0;
 	if (ft_strlen(command) == 0)
 		return (0);
-	i = ft_strlen(command);
-	while (ft_isspace(command[--i]))
-		;
-	if (command[i] && command[i] == '|')
-		all->heredoc_command = 1;
 	if (!is_valid_command(command))
 	{
 		free(command);
@@ -807,6 +806,12 @@ int	valid_command(char *command, t_all *all)
 	}
 	return (1);
 }
+
+// void	manage_heredoc_command(t_all *all)
+// {
+
+
+// }
 
 int	main(int argc, char **argv, char **envp)
 {
@@ -831,16 +836,19 @@ int	main(int argc, char **argv, char **envp)
 		if (*line)
 			add_history(line);
 		line = replace_env_vars(line, all);
-		commands = ft_split_esc(line, '|');
+		commands = ft_split_esc(all, line, '|');
 		print_split(commands);
-		printf("line = '%s'\n", line);
-		if (valid_command(line, all))
+		printf("heredoc = '%d'\n", all->heredoc_command);
+		if (valid_command(line))
 		{
 			ft_free(line);
 			init_list(&all->command_list, commands);
 			exec_commands(all);
 			free_list(all->command_list);
+			// if (all->heredoc_command == 1)
+			// 	manage_heredoc_command(all);
 		}
+		all->heredoc_command = 0;
 	}
 	return (free_all_struct(all),  0);
 }
@@ -848,7 +856,6 @@ int	main(int argc, char **argv, char **envp)
 /* signal : ctrl-C, ctrl-D, ctrl-\ */
 // shellevel
 // ls | (heredoc command) -> ft_split_esc(line, '|') -> all->heredoc_command
-// 
 // export VAR && export VAR
 
 // cat << (heredoc)

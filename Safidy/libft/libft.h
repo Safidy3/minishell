@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:07:45 by safandri          #+#    #+#             */
-/*   Updated: 2024/11/12 14:44:29 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/22 10:04:46 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,6 @@ char				*ft_substr(char const *s, unsigned int start, size_t len);
 char				*ft_strjoin(char const *s1, char const *s2);
 char				*ft_strtrim(char const *s1, char const *set);
 char				**ft_split(char const *s, char c);
-char				**ft_split_esc(char const *s, char c);
 char				*ft_itoa(int n);
 char				*ft_itoa_base(long int nbr, char *base);
 char				*ft_itoa_unsigned_base(unsigned int nbr, char *base);

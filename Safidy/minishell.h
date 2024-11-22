@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/11/20 17:45:54 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/22 10:23:49 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,6 +115,6 @@ void			ft_cd(char *path, t_all *all);
 char			*replace_env_vars(const char *s, t_all *all);
 void			exec_commands(t_all *all);
 void			init_list(t_list **commands_list, char **arr_commands);
-char			**ft_split_esc(char const *s, char c);
+char			**ft_split_esc(t_all *all, const char *s, char c);
 
 #endif
