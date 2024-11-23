@@ -197,7 +197,10 @@ static size_t	get_env_len(const char *s, t_all *all)
 			var_name[i] = '\0';
 			var_value = ft_getenv(var_name, all);
 			if (var_value)
+			{
 				total_len += ft_strlen(var_value);
+				free(var_value);
+			}
 			s--;
 		}
 		else
@@ -223,6 +226,7 @@ static void	copy_env_var(const char **s, char **dst, t_all *all)
 	{
 		ft_strlcpy(*dst, var_value, ft_strlen(var_value) + 1);
 		*dst += ft_strlen(var_value);
+		free(var_value);
 	}
 	(*s)--;
 }
@@ -576,13 +580,16 @@ void	exec_child(t_list *command_arr, int prev_fd[2],
 	if (!command)
 		exec_error(NULL, all, "get_new_command failed\n");
 
-	printf("command[0] = %s\n", command[0]);
-
 	bin_path = get_bin_path(command[0]);
 	if (!bin_path)
 		command_not_found(command_arr, bin_path, all, command);
 	if (prev_fd[0] != -1)
 		dup_in(prev_fd, all, bin_path, 0);
+	// if (command_arr->next || (!command_arr->next && all->heredoc_command == 1))
+	// {
+	// 	printf("tafiditra\n");
+	// 	dup_out(current_fd, all, bin_path, 1);
+	// }
 	if (command_arr->next || (!command_arr->next && all->heredoc_command == 1))
 	{
 		printf("tafiditra\n");
@@ -807,12 +814,6 @@ int	valid_command(char *command)
 	return (1);
 }
 
-// void	manage_heredoc_command(t_all *all)
-// {
-
-
-// }
-
 int	main(int argc, char **argv, char **envp)
 {
 	char	**commands;
@@ -837,8 +838,8 @@ int	main(int argc, char **argv, char **envp)
 			add_history(line);
 		line = replace_env_vars(line, all);
 		commands = ft_split_esc(all, line, '|');
-		print_split(commands);
-		printf("heredoc = '%d'\n", all->heredoc_command);
+		// print_split(commands);
+		// printf("heredoc = '%d'\n", all->heredoc_command);
 		if (valid_command(line))
 		{
 			ft_free(line);

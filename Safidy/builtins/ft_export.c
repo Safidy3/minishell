@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 10:02:40 by larakoto          #+#    #+#             */
-/*   Updated: 2024/11/16 17:23:14 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/23 14:27:11 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,7 +133,10 @@ void	ft_update_flag_0(t_env_list *tmp, char *line, char *commande)
 {
 	free(tmp->value);
 	free(tmp->second);
-	tmp->second = ft_strdup(++line);
+	if (line)
+		tmp->second = ft_strdup(++line);
+	else
+		(tmp->second = NULL);
 	tmp->value = ft_strdup(commande);
 }
 
@@ -169,16 +172,22 @@ int	ft_maj_export(t_env_list *env, char *commande, int *flag)
 	char		*line;
 	char		*variable_name;
 	t_env_list	*tmp;
+	int			is_in;
 
+
+	is_in = 0;
+	while (tmp)
+		if (ft_strcmp(tmp->first, variable_name) == 0)
+			is_in = 1;
 	tmp = env;
-	line = strchr(commande, '=');
+	line = ft_strchr(commande, '=');
 	variable_name = ft_init_variable_name(commande, flag, line);
 	if (ft_export_error(variable_name, commande) == 1)
 		return (free(variable_name), 1);
 	while (tmp)
 	{
-		if (ft_strcmp(tmp->first, variable_name) == 0 && line)
-		{	
+		if (ft_strcmp(tmp->first, variable_name) == 0)
+		{
 			ft_update_ensemble(flag, tmp, line, commande);
 			return (free(variable_name), 1);
 		}

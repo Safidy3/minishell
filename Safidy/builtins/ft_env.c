@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 12:28:22 by larakoto          #+#    #+#             */
-/*   Updated: 2024/11/16 17:41:48 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/23 14:24:53 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,7 +171,8 @@ void	ft_print_env(t_env_list *env)
 	tmp = env;
 	while (tmp)
 	{
-		printf("%s=%s\n", tmp->first, tmp->second);
+		if (tmp->second)
+			printf("%s=%s\n", tmp->first, tmp->second);
 		tmp = tmp->next;
 	}
 }
