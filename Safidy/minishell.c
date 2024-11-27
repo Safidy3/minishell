@@ -181,22 +181,33 @@ char	*ft_getenv(char *env_var, t_all *all)
 char	*get_env_name(char *s)
 {
 	char	*var_name;
-	size_t	i;
 	size_t	len;
+	size_t	i;
+	size_t	j;
 
 	if (*s != '$')
 		return (NULL);
 	s++;
 	i = -1;
 	len = 0;
-	while (s[len] && (ft_isalnum(s[len]) || s[len] == '_') && len < 255)
+	printf("varnameOG = %s\n", s);
+	while (s[++i] && ft_isdigit(s[i]))
+		;
+	j = --i;
+	printf("varnameJ = %s\n", &s[j + 1]);
+	while (s[++i] && !ft_isspace(s[i]))
 		len++;
+	printf("s = %s, len = %zu\n", &s[j + 1], len);
 	var_name = (char *)malloc(sizeof(char) * (len + 1));
 	if (!var_name)
 		return (NULL);
 	var_name[len] = '\0';
-	while (s[++i] && i < len)
-		var_name[i] = s[i];
+	i = -1;
+	while (s[++j] && ++i < len)
+	{
+		var_name[++i] = s[j];
+		printf("%zu : %c = %c\n", i, var_name[i], s[j]);
+	}
 	return (var_name);
 }
 
@@ -232,6 +243,7 @@ void append_env_value(char **dst, const char **s, t_all *all)
 	char	*env_name;
 	char	*env_val;
 	char	*temp;
+	char	*exit_stat;
 
 	if (**s == '$' && ft_isalnum(*(*s + 1)))
 	{
@@ -247,9 +259,19 @@ void append_env_value(char **dst, const char **s, t_all *all)
 		*s += ft_strlen(env_name) + 1;
 		ft_free(env_name);
 	}
+	else if (**s == '$' && *(*s + 1) == '?'
+				&& (ft_isspace(*(*s + 2)) || !(*(*s + 2))))
+	{
+		exit_stat = ft_itoa(all->exit_status);
+		temp = *dst;
+		*dst = ft_strjoin(*dst, exit_stat);
+		free(temp);
+		free(exit_stat);
+		*s += 2;
+	}
 }
 
-void append_quoted_text(char **dst, const char **s, char quote, t_all *all)
+void	append_quoted_text(char **dst, const char **s, char quote, t_all *all)
 {
 	*dst = copy_char(*dst, *(*s)++);
 	while (**s && **s != quote)
@@ -281,8 +303,7 @@ char *replace_env_vars(const char *s, t_all *all)
 			append_env_value(&dst, &s, all);
 		else if (*s == '~'
 				&& (!*(s + 1) || ft_isspace(*(s + 1)) || *(s + 1) == '/')
-				&& (!*(s - 1) || ft_isspace(*(s - 1)))
-			)
+				&& (!*(s - 1) || ft_isspace(*(s - 1))))
 		{
 			temp = dst;
 			dst = ft_strjoin(dst, ft_getenv("HOME", all));
@@ -694,6 +715,7 @@ int	builtin_execution(char **command, t_all *all)
 {
 	int	exit_status;
 
+	exit_status = 0;
 	if (!ft_strncmp(command[0], "export", ft_strlen("export")))
 	{
 		if (array_len(command) == 1)
@@ -752,9 +774,7 @@ int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_all
 
 /******************* EXEC ******************/
 
-/*
-	ls -la | grep Nov | cat | wc -l
-*/
+/* ls -la | grep Nov | cat | wc -l */
 
 void	exec_commands(t_all *all)
 {
@@ -765,7 +785,6 @@ void	exec_commands(t_all *all)
 	int		current_fd[2];
 	int		command_count;
 
-
 	t_redirect	**redirections;
 	char		**command;
 	char		*bin_path;
@@ -773,7 +792,7 @@ void	exec_commands(t_all *all)
 	command_count = 0;
 	prev_fd[0] = -1;
 	prev_fd[1] = -1;
-	
+
 	command_list = all->command_list;
 	command_count = ft_lstsize(all->command_list);
 
@@ -887,83 +906,14 @@ int	valid_command(char *command, t_all *all)
 
 /******************* main ******************/
 
-// int	main(int argc, char **argv, char **envp)
-// {
-// 	char	**commands;
-// 	char	*line;
-// 	t_all	*all;
-
-// 	(void) argc;
-// 	(void) argv;
-// 	all = (t_all *)malloc(sizeof(t_all));
-// 	if (!all)
-// 		return (0);
-// 	all->exit_status = 0;
-// 	all->command_list = NULL;
-// 	all->env_list = NULL;
-// 	all->heredoc_command = 0;
-// 	int_lst_env(&all->env_list, envp);
-// 	all->env_arr = list_to_array(all->env_list);
-// 	while (1)
-// 	{
-// 		line = readline(">: ");
-// 		if (*line)
-// 			add_history(line);
-// 		line = replace_env_vars(line, all);
-// 		// printf("line : %s\n", line);
-		
-// 		commands = ft_split_esc(all, line, '|');
-// 		// printf("commands :\n");
-// 		// print_split(commands);
-// 		if (valid_command(line, all))
-// 		{
-// 			ft_free(line);
-// 			init_list(&all->command_list, commands);
-
-// 			// printf("command_list :\n\n");
-// 			// print_command_list(all->command_list);
-// 			// printf("\n\n");
-
-// 			exec_commands(all);
-// 			free_list(all->command_list);
-// 			// printf("\nexit_status : %d\n\n", all->exit_status);
-// 		}
-// 		all->heredoc_command = 0;
-// 	}
-// 	return (free_all_struct(all),  0);
-// }
-
-/* signal : ctrl-C, ctrl-D, ctrl-\ */
-// shellevel
-// ls | (heredoc command) -> ft_split_esc(line, '|') -> all->heredoc_command
-
-// export VAR && export VAR
-// cat << (heredoc)
-// export list=ls ; $list
-// loop and readline
-// echo "$USER{alphaNum + _}$HOME"
-// cat<minishell.c<Makefile : Makefile iany ni cateny
-// <minishell.c cat<Makefile : Makefile iany ni cateny
-// echo hello >minishell.c>Makefile : creer daoly fa le farany iany no nisy hello
-// env
-// echo "$USER{alphaNum + _}$HOME"
-// echo '$HOME'
-// "$USER$HOME" : safandri/home/safandri
-// "$USER*9$HOME" : safandri*9/home/safandri
-// "$USERad14$HOME" : /home/safandri
-// e"c"h"o" "hello world"
-// ls -la '|' grep Okt
-// grep "Okt" | awk '{print | $g}'
-
-
-
-/***********************  tester  **************************/
-
-int	ft_launch_minishell(char *line, char **envp)
+int	main(int argc, char **argv, char **envp)
 {
 	char	**commands;
+	char	*line;
 	t_all	*all;
 
+	(void) argc;
+	(void) argv;
 	all = (t_all *)malloc(sizeof(t_all));
 	if (!all)
 		return (0);
@@ -973,8 +923,36 @@ int	ft_launch_minishell(char *line, char **envp)
 	all->heredoc_command = 0;
 	int_lst_env(&all->env_list, envp);
 	all->env_arr = list_to_array(all->env_list);
-	if (*line)
-		add_history(line);
+	
+	// while (1)
+	// {
+	// 	line = readline(">: ");
+	// 	if (*line)
+	// 		add_history(line);
+	// 	line = replace_env_vars(line, all);
+	// 	// printf("line : %s\n", line);
+		
+	// 	commands = ft_split_esc(all, line, '|');
+	// 	// printf("commands :\n");
+	// 	// print_split(commands);
+	// 	if (valid_command(line, all))
+	// 	{
+	// 		ft_free(line);
+	// 		init_list(&all->command_list, commands);
+
+	// 		// printf("command_list :\n\n");
+	// 		// print_command_list(all->command_list);
+	// 		// printf("\n\n");
+
+	// 		exec_commands(all);
+	// 		free_list(all->command_list);
+	// 		// printf("\nexit_status : %d\n\n", all->exit_status);
+	// 	}
+	// 	all->heredoc_command = 0;
+	// }
+
+	line = "echo $14788USER85fgs";
+	add_history(line);
 	line = replace_env_vars(line, all);
 	commands = ft_split_esc(all, line, '|');
 	if (valid_command(line, all))
@@ -984,18 +962,54 @@ int	ft_launch_minishell(char *line, char **envp)
 		exec_commands(all);
 		free_list(all->command_list);
 	}
-	all->heredoc_command = 0;
-	return (all->exit_status);
-	// return (free_all_struct(all),  all->exit_status);
+
+	return (0);
+	return (free_all_struct(all),  0);
 }
 
-int	main(int argc, char **argv, char **envp)
-{
-	(void) argc;
-	(void) argv;
-	if (argc >= 3 && !ft_strncmp(argv[1], "-c", 3))
-	{
-		int exit_status = ft_launch_minishell(argv[2], envp);
-		exit(exit_status);
-	}
-}
+/* signal : ctrl-C, ctrl-D, ctrl-\ */
+// shellevel
+// ls | (heredoc command) -> ft_split_esc(line, '|') -> all->heredoc_command
+
+/***********************  tester  **************************/
+
+// int	ft_launch_minishell(char *line, char **envp)
+// {
+// 	char	**commands;
+// 	t_all	*all;
+
+// 	all = (t_all *)malloc(sizeof(t_all));
+// 	if (!all)
+// 		return (0);
+// 	all->exit_status = 0;
+// 	all->command_list = NULL;
+// 	all->env_list = NULL;
+// 	all->heredoc_command = 0;
+// 	int_lst_env(&all->env_list, envp);
+// 	all->env_arr = list_to_array(all->env_list);
+// 	if (*line)
+// 		add_history(line);
+// 	line = replace_env_vars(line, all);
+// 	commands = ft_split_esc(all, line, '|');
+// 	if (valid_command(line, all))
+// 	{
+// 		ft_free(line);
+// 		init_list(&all->command_list, commands);
+// 		exec_commands(all);
+// 		free_list(all->command_list);
+// 	}
+// 	all->heredoc_command = 0;
+// 	return (all->exit_status);
+// 	// return (free_all_struct(all),  all->exit_status);
+// }
+
+// int	main(int argc, char **argv, char **envp)
+// {
+// 	(void) argc;
+// 	(void) argv;
+// 	if (argc >= 3 && !ft_strncmp(argv[1], "-c", 3))
+// 	{
+// 		int exit_status = ft_launch_minishell(argv[2], envp);
+// 		exit(exit_status);
+// 	}
+// }

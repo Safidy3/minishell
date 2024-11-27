@@ -189,7 +189,7 @@ char	**ft_split_esc_2(char *s, char c)
 		// 	s++;
 		// }
 		// else
-			s = cpy_to_arr(s, tab[i], word_len);
+		s = cpy_to_arr(s, tab[i], word_len);
 	}
 	return (tab);
 }
