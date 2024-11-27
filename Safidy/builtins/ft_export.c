@@ -30,16 +30,16 @@ int	ft_strcmp(const char *s1, const char *s2)
 
 /*************************************************************/
 
-void	ft_print_export_error(char *commande)
+void	ft_print_export_error(char *command)
 {
 	ft_putstr_fd("export: ", 2);
 	ft_putstr_fd("'", 2);
-	ft_putstr_fd(commande, 2);
+	ft_putstr_fd(command, 2);
 	ft_putstr_fd("'", 2);
 	ft_putstr_fd(": not a valid identifier\n", 2);
 }
 
-int	ft_check_after_first_caracter(char *variable_name, char *commande)
+int	ft_check_after_first_caracter(char *variable_name, char *command)
 {
 	int	i;
 
@@ -49,7 +49,7 @@ int	ft_check_after_first_caracter(char *variable_name, char *commande)
 		if (!ft_isalpha(variable_name[i]) && !ft_isdigit(variable_name[i])
 			&& variable_name[i] != '_')
 		{
-			ft_print_export_error(commande);
+			ft_print_export_error(command);
 			return (1);
 		}
 		i++;
@@ -57,17 +57,17 @@ int	ft_check_after_first_caracter(char *variable_name, char *commande)
 	return (0);
 }
 
-int	ft_export_error(char *variable_name, char *commande)
+int	ft_export_error(char *variable_name, char *command)
 {
 	if (variable_name)
 	{
 		if (variable_name[0] == '\0' || (!ft_isalpha(variable_name[0])
 				&& variable_name[0] != '_'))
 		{
-			ft_print_export_error(commande);
+			ft_print_export_error(command);
 			return (1);
 		}
-		else if (ft_check_after_first_caracter(variable_name, commande) == 1)
+		else if (ft_check_after_first_caracter(variable_name, command) == 1)
 			return (1);
 	}
 	return (0);
@@ -115,98 +115,97 @@ void	ft_print_export(t_env_list *env)
 	ft_free_env_list(env_export);
 }
 
-void	ft_update_flag_1(t_env_list *tmp, char *line)
+void	ft_update_flag_1(t_env_list *env_list, char *line)
 {
 	char	*char_tmp;
 
-	char_tmp = ft_strdup(tmp->second);
-	free(tmp->second);
-	tmp->second = ft_strjoin(char_tmp, ++line);
+	char_tmp = ft_strdup(env_list->second);
+	free(env_list->second);
+	env_list->second = ft_strjoin(char_tmp, ++line);
 	free(char_tmp);
-	free(tmp->value);
-	char_tmp = ft_strjoin(tmp->first, "=");
-	tmp->value = ft_strjoin(char_tmp, tmp->second);
+	free(env_list->value);
+	char_tmp = ft_strjoin(env_list->first, "=");
+	env_list->value = ft_strjoin(char_tmp, env_list->second);
 	free(char_tmp);
 }
 
-void	ft_update_flag_0(t_env_list *tmp, char *line, char *commande)
+void	ft_update_flag_0(t_env_list *env_list, char *line, char *command)
 {
-	free(tmp->value);
-	free(tmp->second);
-	if (line)
-		tmp->second = ft_strdup(++line);
-	else
-		(tmp->second = NULL);
-	tmp->value = ft_strdup(commande);
+	free(env_list->value);
+	if (env_list->second)
+	{
+		free(env_list->second);
+		if (line)
+			env_list->second = ft_strdup(++line);
+		else
+			env_list->second = ft_strdup("");
+	}
+	else if (!env_list->second && line)
+			env_list->second = ft_strdup(++line);
+	env_list->value = ft_strdup(command);
 }
 
-void	ft_update_ensemble(int *flag, t_env_list *tmp, char *line,
-		char *commande)
+void	ft_update_ensemble(int *flag, t_env_list *env_list, char *line,
+		char *command)
 {
 	if (*flag == 1)
-		ft_update_flag_1(tmp, line);
+		ft_update_flag_1(env_list, line);
 	else
-		ft_update_flag_0(tmp, line, commande);
+		ft_update_flag_0(env_list, line, command);
 }
 
-char	*ft_init_variable_name(char *commande, int *flag, char *line)
+char	*ft_init_variable_name(char *command, int *flag, char *line)
 {
 	char	*variable_name;
 
 	if (!line)
-		variable_name = ft_strdup(commande);
+		variable_name = ft_strdup(command);
 	else
 	{
-		if (commande[line - commande - 1] == '+')
+		if (command[line - command - 1] == '+')
 			*flag = 1;
 		if (*flag == 1)
-			variable_name = ft_substr(commande, 0, (line - commande - 1));
+			variable_name = ft_substr(command, 0, (line - command - 1));
 		else
-			variable_name = ft_substr(commande, 0, (line - commande));
+			variable_name = ft_substr(command, 0, (line - command));
 	}
 	return (variable_name);
 }
 
-int	ft_maj_export(t_env_list *env, char *commande, int *flag)
+int	ft_maj_export(t_env_list *env, char *command, int *flag)
 {
 	char		*line;
 	char		*variable_name;
-	t_env_list	*tmp;
-	int			is_in;
+	t_env_list	*env_list;
 
-
-	is_in = 0;
-	while (tmp)
-		if (ft_strcmp(tmp->first, variable_name) == 0)
-			is_in = 1;
-	tmp = env;
-	line = ft_strchr(commande, '=');
-	variable_name = ft_init_variable_name(commande, flag, line);
-	if (ft_export_error(variable_name, commande) == 1)
+	env_list = env;
+	line = ft_strchr(command, '=');
+	variable_name = ft_init_variable_name(command, flag, line);
+	if (ft_export_error(variable_name, command) == 1)
 		return (free(variable_name), 1);
-	while (tmp)
+	while (env_list)
 	{
-		if (ft_strcmp(tmp->first, variable_name) == 0)
+		if (ft_strcmp(env_list->first, variable_name) == 0)
 		{
-			ft_update_ensemble(flag, tmp, line, commande);
+			ft_update_ensemble(flag, env_list, line, command);
 			return (free(variable_name), 1);
 		}
-		tmp = tmp->next;
+		env_list = env_list->next;
 	}
 	return (free(variable_name), 0);
 }
 
-void	ft_export(t_env_list *env, char **commande)
+void	ft_export(t_env_list *env, char **command)
 {
 	int	i;
 	int	flag;
 
 	flag = 0;
 	i = 1;
-	while (commande[i] != NULL)
+	while (command[i] != NULL)
 	{
-		if (commande[i] && ft_maj_export(env, commande[i], &flag) == 0)
-			ft_lstadd_back(&env, ft_lstnew(commande[i], flag));
+		if (command[i] && ft_maj_export(env, command[i], &flag) == 0)
+			ft_lstadd_back(&env, ft_lstnew(command[i], flag));
 		i++;
 	}
 }

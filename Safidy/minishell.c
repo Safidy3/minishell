@@ -178,84 +178,121 @@ char	*ft_getenv(char *env_var, t_all *all)
 	return (res);
 }
 
-static size_t	get_env_len(const char *s, t_all *all)
+char	*get_env_name(char *s)
 {
-	size_t	total_len;
-	char	var_name[MAX_VAR_LEN];
+	char	*var_name;
 	size_t	i;
+	size_t	len;
+
+	if (*s != '$')
+		return (NULL);
+	s++;
+	i = -1;
+	len = 0;
+	while (s[len] && (ft_isalnum(s[len]) || s[len] == '_') && len < 255)
+		len++;
+	var_name = (char *)malloc(sizeof(char) * (len + 1));
+	if (!var_name)
+		return (NULL);
+	var_name[len] = '\0';
+	while (s[++i] && i < len)
+		var_name[i] = s[i];
+	return (var_name);
+}
+
+char	*get_env_value(char *var_name, t_all *all)
+{
 	char	*var_value;
 
-	total_len = 0;
-	while (*s)
+	var_value = NULL;
+	if (var_name)
+		var_value = ft_getenv(var_name, all);
+	return (var_value);
+}
+
+char *copy_char(char *dest, char c)
+{
+	char	*res;
+	int		len;
+
+	if (!dest)
+		return (NULL);
+	len = ft_strlen(dest);
+	res = malloc(sizeof(char) * (len + 2));
+	if (!res)
+		return (NULL);
+	ft_strlcpy(res, dest, len + 1);
+	res[len] = c;
+	res[len + 1] = '\0';
+	return (free(dest), res);
+}
+
+void append_env_value(char **dst, const char **s, t_all *all)
+{
+	char	*env_name;
+	char	*env_val;
+	char	*temp;
+
+	if (**s == '$' && ft_isalnum(*(*s + 1)))
 	{
-		if (*s == '$')
+		env_name = get_env_name((char *)*s);
+		env_val = get_env_value(env_name, all);
+		if (env_val)
 		{
-			s++;
-			i = 0;
-			while (*s && (ft_isalnum(*s) || *s == '_') && i < MAX_VAR_LEN - 1)
-				var_name[i++] = *s++;
-			var_name[i] = '\0';
-			var_value = ft_getenv(var_name, all);
-			if (var_value)
-			{
-				total_len += ft_strlen(var_value);
-				free(var_value);
-			}
-			s--;
+			temp = *dst;
+			*dst = ft_strjoin(*dst, env_val);
+			free(temp);
+			free(env_val);
 		}
-		else
-			total_len++;
-		s++;
+		*s += ft_strlen(env_name) + 1;
+		ft_free(env_name);
 	}
-	return (total_len);
 }
 
-static void	copy_env_var(const char **s, char **dst, t_all *all)
+void append_quoted_text(char **dst, const char **s, char quote, t_all *all)
 {
-	char	var_name[MAX_VAR_LEN];
-	char	*var_value;
-	size_t	i;
-
-	(*s)++;
-	i = 0;
-	while (**s && (ft_isalnum(**s) || **s == '_') && i < 255)
-		var_name[i++] = *(*s)++;
-	var_name[i] = '\0';
-	var_value = ft_getenv(var_name, all);
-	if (var_value)
+	*dst = copy_char(*dst, *(*s)++);
+	while (**s && **s != quote)
 	{
-		ft_strlcpy(*dst, var_value, ft_strlen(var_value) + 1);
-		*dst += ft_strlen(var_value);
-		free(var_value);
+		if (**s == '$' && quote == '\"' && ft_isalnum(*(*s + 1)))
+			append_env_value(dst, s, all);
+		else
+			*dst = copy_char(*dst, *(*s)++);
 	}
-	(*s)--;
+	if (**s == quote)
+		*dst = copy_char(*dst, *(*s)++);
 }
 
-char	*replace_env_vars(const char *s, t_all *all)
+char *replace_env_vars(const char *s, t_all *all)
 {
-	char	*result;
 	char	*dst;
-	int		in_quote;
+	char	*temp;
 
-	if (!s)
+	dst = ft_strdup("");
+	if (!dst)
 		return (NULL);
-	result = malloc(sizeof(char) * (get_env_len(s, all) + 1));
-	if (!result)
-		return (NULL);
-	dst = result;
-	in_quote = 0;
 	while (*s)
 	{
 		if (*s == '\'')
-			in_quote = !in_quote;
-		if (*s == '$' && !in_quote)
-			copy_env_var(&s, &dst, all);
+			append_quoted_text(&dst, &s, '\'', all);
+		else if (*s == '\"')
+			append_quoted_text(&dst, &s, '\"', all);
+		else if (*s == '$')
+			append_env_value(&dst, &s, all);
+		else if (*s == '~'
+				&& (!*(s + 1) || ft_isspace(*(s + 1)) || *(s + 1) == '/')
+				&& (!*(s - 1) || ft_isspace(*(s - 1)))
+			)
+		{
+			temp = dst;
+			dst = ft_strjoin(dst, ft_getenv("HOME", all));
+			free(temp);
+			s++;
+		}
 		else
-			*dst++ = *s;
-		s++;
+			dst = copy_char(dst, *s++);
 	}
-	*dst = '\0';
-	return (result);
+	return (dst);
 }
 
 /******************* Exec Error ******************/
@@ -283,16 +320,16 @@ void	exec_error(char *bin_path, t_all *all, char *msg)
 	exit(EXIT_FAILURE);
 }
 
-void	command_not_found(t_list *command_arr, char *bin_path, t_all *all, char **command)
+int command_not_found(t_list *command_list, char **command)
 {
-	if (!command_arr->next)
+	if (!command_list->next)
 	{
-		ft_putstr_fd("bash : ", 2);
+		ft_putstr_fd("bash: line 1: ", 2);
 		ft_putstr_fd(command[0], 2);
-		ft_putstr_fd(" : command not found...\n", 2);
+		ft_putstr_fd(": command not found\n", 2);
 	}
 	free(command);
-	exec_error(bin_path, all, NULL);
+	return (127);
 }
 
 int	get_exit_stat(pid_t pids[MAX_COMMANDS], int command_count)
@@ -535,9 +572,10 @@ char	**get_new_command(char **command, t_all *all)
 	while (command[++i])
 		if (command[i][0] != '>' && command[i][0] != '<')
 			count++;
-	new_command = (char **)calloc(sizeof(char *), count + 1);
+	new_command = (char **)malloc(sizeof(char *) * (count + 1));
 	if (!new_command)
 		exec_error(NULL, all, "malloc error\n");
+	new_command[count] = NULL;
 	i = -1;
 	while (command[++i])
 		if (command[i][0] != '>' && command[i][0] != '<')
@@ -567,43 +605,11 @@ void	dup_out(int fd[2], t_all *all, char *bin_path, int closeall)
 
 /******************* Exec non-builtings ******************/
 
-void	exec_child(t_list *command_arr, int prev_fd[2],
-			int current_fd[2], t_all *all)
-{
-	t_redirect	**redirections;
-	char		**command;
-	char		*bin_path;
-
-	redirections = get_all_redirections((char **)command_arr->content, all);
-	manage_redirections(redirections, all);
-	command = get_new_command((char **)command_arr->content, all);
-	if (!command)
-		exec_error(NULL, all, "get_new_command failed\n");
-
-	bin_path = get_bin_path(command[0]);
-	if (!bin_path)
-		command_not_found(command_arr, bin_path, all, command);
-	if (prev_fd[0] != -1)
-		dup_in(prev_fd, all, bin_path, 0);
-	// if (command_arr->next || (!command_arr->next && all->heredoc_command == 1))
-	// {
-	// 	printf("tafiditra\n");
-	// 	dup_out(current_fd, all, bin_path, 1);
-	// }
-	if (command_arr->next || (!command_arr->next && all->heredoc_command == 1))
-	{
-		printf("tafiditra\n");
-		dup_out(current_fd, all, bin_path, 1);
-	}
-	execve(bin_path, command, all->env_arr);
-	exec_error(bin_path, all, "execve failed\n");
-}
-
-void	exec_parent(t_list *command_arr, int prev_fd[2], int current_fd[2])
+void	exec_parent(t_list *command_list, int prev_fd[2], int current_fd[2])
 {
 	if (prev_fd[0] != -1)
 		close(prev_fd[0]);
-	if (command_arr->next)
+	if (command_list->next)
 	{
 		close(current_fd[1]);
 		prev_fd[0] = current_fd[0];
@@ -612,37 +618,53 @@ void	exec_parent(t_list *command_arr, int prev_fd[2], int current_fd[2])
 
 /******************* Exec builtings ******************/
 
-int	is_builtins(t_list *command)
+int	is_builtins(char *command)
 {
-	char	**executable;
-
-	executable = get_new_command((char **)command->content, NULL);
-	if (!ft_strncmp(executable[0], "export", ft_strlen("export"))
-		|| !ft_strncmp(executable[0], "unset", ft_strlen("unset"))
-		|| !ft_strncmp(executable[0], "env", ft_strlen("env"))
-		|| !ft_strncmp(executable[0], "echo", ft_strlen("echo"))
-		|| !ft_strncmp(executable[0], "cd", ft_strlen("cd"))
-		|| !ft_strncmp(executable[0], "pwd", ft_strlen("pwd"))
-		|| !ft_strncmp(executable[0], "exit", ft_strlen("exit")))
-		return (free(executable), 1);
-	return (free(executable), 0);
+	if (!ft_strncmp(command, "export", ft_strlen("export"))
+		|| !ft_strncmp(command, "unset", ft_strlen("unset"))
+		|| !ft_strncmp(command, "env", ft_strlen("env"))
+		|| !ft_strncmp(command, "echo", ft_strlen("echo"))
+		|| !ft_strncmp(command, "cd", ft_strlen("cd"))
+		|| !ft_strncmp(command, "pwd", ft_strlen("pwd"))
+		|| !ft_strncmp(command, "exit", ft_strlen("exit")))
+		return (1);
+	return (0);
 }
 
-void ft_echo(char **tokens)
+int	is_echo_flag(char *flag)
+{
+	if (*flag != '-')
+		return (0);
+	flag++;
+	while (*flag)
+	{
+		if (*flag != 'n')
+			return (0);
+		flag++;
+	}
+	return (1);
+}
+
+int	ft_echo(char **tokens)
 {
 	int	token_count;
 	int	start_index;
-	int skip_newline;
+	int	skip_newline;
+	int	i;
 
 	token_count = array_len(tokens);
 	start_index = 0;
 	skip_newline = 0;
+	i = 0;
 	if (token_count > 0 && strcmp(tokens[0], "echo") == 0)
 	{
-		if (token_count > 1 && strcmp(tokens[1], "-n") == 0)
+		if (token_count > 1)
 		{
-			skip_newline = 1;
-			start_index = 1;
+			while (is_echo_flag(tokens[++i]))
+			{
+				start_index++;
+				skip_newline = 1;
+			}
 		}
 		while (++start_index < token_count)
 		{
@@ -655,6 +677,7 @@ void ft_echo(char **tokens)
 	}
 	else
 		printf("Command not recognized or invalid input.\n");
+	return (0);
 }
 
 void	restore_og_std(int std_backup[2], t_all *all)
@@ -667,7 +690,7 @@ void	restore_og_std(int std_backup[2], t_all *all)
 	close(std_backup[1]);
 }
 
-void	builtin_execution(char **command, t_all *all)
+int	builtin_execution(char **command, t_all *all)
 {
 	int	exit_status;
 
@@ -683,7 +706,7 @@ void	builtin_execution(char **command, t_all *all)
 	else if (!ft_strncmp(command[0], "env", ft_strlen("env")))
 		ft_print_env(all->env_list);
 	else if (!ft_strncmp(command[0], "echo", ft_strlen("echo")))
-		ft_echo(command);
+		exit_status = ft_echo(command);
 	else if (!ft_strncmp(command[0], "cd", ft_strlen("cd")))
 		ft_cd(command[1], all);
 	else if (!ft_strncmp(command[0], "pwd", ft_strlen("pwd")))
@@ -697,13 +720,14 @@ void	builtin_execution(char **command, t_all *all)
 		free(all);
 		exit(exit_status);
 	}
+	return (exit_status);
 }
 
-void	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_all *all)
+int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_all *all)
 {
 	char        **command;
-	t_redirect  **redirections;
 	int         std_backup[2];
+	int			exit_stat;
 
 	std_backup[0] = dup(STDIN_FILENO);
 	std_backup[1] = dup(STDOUT_FILENO);
@@ -714,9 +738,7 @@ void	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_al
 	if (command_list->next && current_fd[1] != -1)
 		dup_out(current_fd, all, NULL, 0);
 	command = (char **)command_list->content;
-	redirections = get_all_redirections(command, all);
-	manage_redirections(redirections, all);
-	builtin_execution(command, all);
+	exit_stat = builtin_execution(command, all);
 	restore_og_std(std_backup, all);
 	if (prev_fd[0] != -1)
 		close(prev_fd[0]);
@@ -725,46 +747,95 @@ void	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_al
 		close(current_fd[1]);
 		prev_fd[0] = current_fd[0];
 	}
+	return (exit_stat);
 }
 
 /******************* EXEC ******************/
 
+/*
+	ls -la | grep Nov | cat | wc -l
+*/
+
 void	exec_commands(t_all *all)
 {
-	t_list	*command;
+	t_list	*command_list;
 	pid_t	pids[MAX_COMMANDS];
+	int		exit_stats[MAX_COMMANDS];
 	int		prev_fd[2];
 	int		current_fd[2];
 	int		command_count;
 
+
+	t_redirect	**redirections;
+	char		**command;
+	char		*bin_path;
+
 	command_count = 0;
 	prev_fd[0] = -1;
 	prev_fd[1] = -1;
-	command = all->command_list;
-	while (command)
+	
+	command_list = all->command_list;
+	command_count = ft_lstsize(all->command_list);
+
+	command_count = 0;
+	command_list = all->command_list;
+	while (command_list)
 	{
-		if (command->next && pipe(current_fd) == -1)
+		if (command_list->next && pipe(current_fd) == -1)
 			exec_error(NULL, all, "pipe creation failed\n");
-		if (is_builtins(command))
-			exec_builtins(command, prev_fd, current_fd, all);
+
+		redirections = get_all_redirections((char **)command_list->content, all);
+		manage_redirections(redirections, all);
+		command = get_new_command((char **)command_list->content, all);
+		if (!command)
+			exec_error(NULL, all, "get_new_command failed\n");
+		if (is_builtins(command[0]))
+		{
+			free(command);
+			exit_stats[command_count] = exec_builtins(command_list, prev_fd, current_fd, all);
+		}
 		else
 		{
-			pids[command_count] = fork();
-			if (pids[command_count] == 0)
-				exec_child(command, prev_fd, current_fd, all);
-			else if (pids[command_count++] > 0)
-				exec_parent(command, prev_fd, current_fd);
+			bin_path = get_bin_path(command[0]);
+			if (!bin_path)
+				exit_stats[command_count] = command_not_found(command_list, command);
 			else
-				exec_error(NULL, all, "fork failed\n");
+			{
+				pids[command_count] = fork();
+				if (pids[command_count] == 0)
+				{
+					if (prev_fd[0] != -1)
+						dup_in(prev_fd, all, bin_path, 0);
+					if (command_list->next)
+						dup_out(current_fd, all, bin_path, 1);
+					execve(bin_path, command, all->env_arr);
+					exec_error(bin_path, all, "execve failed\n");
+				}
+				else if (pids[command_count] > 0)
+				{
+					int	status;
+					waitpid(pids[command_count], &status, 0);
+					exit_stats[command_count] = WEXITSTATUS(status);
+					exec_parent(command_list, prev_fd, current_fd);
+					ft_free(bin_path);
+					free(command);
+				}
+				else
+					exec_error(NULL, all, "fork failed\n");
+			}
 		}
-		command = command->next;
+		command_list = command_list->next;
+		command_count++;
 	}
 	if (prev_fd[0] != -1)
 		close(prev_fd[0]);
-	all->exit_status = get_exit_stat(pids, command_count);
+
+	int i = 0;
+	while (i < command_count)
+		all->exit_status = exit_stats[i++];
 }
 
-/******************* main ******************/
+/******************* command validity ******************/
 
 void	command_error(t_all *all)
 {
@@ -799,66 +870,74 @@ int	is_valid_command(char * command)
 	return (1);
 }
 
-int	valid_command(char *command)
+int	valid_command(char *command, t_all *all)
 {
-	int		is_empty;
-
-	is_empty = 0;
 	if (ft_strlen(command) == 0)
 		return (0);
 	if (!is_valid_command(command))
 	{
+		all->exit_status = 2;
 		free(command);
 		return (0);
 	}
 	return (1);
 }
 
-int	main(int argc, char **argv, char **envp)
-{
-	char	**commands;
-	char	*line;
-	t_all	*all;
 
-	(void) argc;
-	(void) argv;
-	all = (t_all *)malloc(sizeof(t_all));
-	if (!all)
-		return (0);
-	all->exit_status = 0;
-	all->command_list = NULL;
-	all->env_list = NULL;
-	all->heredoc_command = 0;
-	int_lst_env(&all->env_list, envp);
-	all->env_arr = list_to_array(all->env_list);
-	while (1)
-	{
-		line = readline(">: ");
-		if (*line)
-			add_history(line);
-		line = replace_env_vars(line, all);
-		commands = ft_split_esc(all, line, '|');
-		// print_split(commands);
-		// printf("heredoc = '%d'\n", all->heredoc_command);
-		if (valid_command(line))
-		{
-			ft_free(line);
-			init_list(&all->command_list, commands);
-			exec_commands(all);
-			free_list(all->command_list);
-			// if (all->heredoc_command == 1)
-			// 	manage_heredoc_command(all);
-		}
-		all->heredoc_command = 0;
-	}
-	return (free_all_struct(all),  0);
-}
+
+/******************* main ******************/
+
+// int	main(int argc, char **argv, char **envp)
+// {
+// 	char	**commands;
+// 	char	*line;
+// 	t_all	*all;
+
+// 	(void) argc;
+// 	(void) argv;
+// 	all = (t_all *)malloc(sizeof(t_all));
+// 	if (!all)
+// 		return (0);
+// 	all->exit_status = 0;
+// 	all->command_list = NULL;
+// 	all->env_list = NULL;
+// 	all->heredoc_command = 0;
+// 	int_lst_env(&all->env_list, envp);
+// 	all->env_arr = list_to_array(all->env_list);
+// 	while (1)
+// 	{
+// 		line = readline(">: ");
+// 		if (*line)
+// 			add_history(line);
+// 		line = replace_env_vars(line, all);
+// 		// printf("line : %s\n", line);
+		
+// 		commands = ft_split_esc(all, line, '|');
+// 		// printf("commands :\n");
+// 		// print_split(commands);
+// 		if (valid_command(line, all))
+// 		{
+// 			ft_free(line);
+// 			init_list(&all->command_list, commands);
+
+// 			// printf("command_list :\n\n");
+// 			// print_command_list(all->command_list);
+// 			// printf("\n\n");
+
+// 			exec_commands(all);
+// 			free_list(all->command_list);
+// 			// printf("\nexit_status : %d\n\n", all->exit_status);
+// 		}
+// 		all->heredoc_command = 0;
+// 	}
+// 	return (free_all_struct(all),  0);
+// }
 
 /* signal : ctrl-C, ctrl-D, ctrl-\ */
 // shellevel
 // ls | (heredoc command) -> ft_split_esc(line, '|') -> all->heredoc_command
-// export VAR && export VAR
 
+// export VAR && export VAR
 // cat << (heredoc)
 // export list=ls ; $list
 // loop and readline
@@ -875,3 +954,48 @@ int	main(int argc, char **argv, char **envp)
 // e"c"h"o" "hello world"
 // ls -la '|' grep Okt
 // grep "Okt" | awk '{print | $g}'
+
+
+
+/***********************  tester  **************************/
+
+int	ft_launch_minishell(char *line, char **envp)
+{
+	char	**commands;
+	t_all	*all;
+
+	all = (t_all *)malloc(sizeof(t_all));
+	if (!all)
+		return (0);
+	all->exit_status = 0;
+	all->command_list = NULL;
+	all->env_list = NULL;
+	all->heredoc_command = 0;
+	int_lst_env(&all->env_list, envp);
+	all->env_arr = list_to_array(all->env_list);
+	if (*line)
+		add_history(line);
+	line = replace_env_vars(line, all);
+	commands = ft_split_esc(all, line, '|');
+	if (valid_command(line, all))
+	{
+		ft_free(line);
+		init_list(&all->command_list, commands);
+		exec_commands(all);
+		free_list(all->command_list);
+	}
+	all->heredoc_command = 0;
+	return (all->exit_status);
+	// return (free_all_struct(all),  all->exit_status);
+}
+
+int	main(int argc, char **argv, char **envp)
+{
+	(void) argc;
+	(void) argv;
+	if (argc >= 3 && !ft_strncmp(argv[1], "-c", 3))
+	{
+		int exit_status = ft_launch_minishell(argv[2], envp);
+		exit(exit_status);
+	}
+}
