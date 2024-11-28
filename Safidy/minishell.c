@@ -190,24 +190,18 @@ char	*get_env_name(char *s)
 	s++;
 	i = -1;
 	len = 0;
-	printf("varnameOG = %s\n", s);
 	while (s[++i] && ft_isdigit(s[i]))
 		;
 	j = --i;
-	printf("varnameJ = %s\n", &s[j + 1]);
-	while (s[++i] && !ft_isspace(s[i]))
+	while (s[++i] && ft_isalnum(s[i]))
 		len++;
-	printf("s = %s, len = %zu\n", &s[j + 1], len);
 	var_name = (char *)malloc(sizeof(char) * (len + 1));
 	if (!var_name)
 		return (NULL);
 	var_name[len] = '\0';
 	i = -1;
 	while (s[++j] && ++i < len)
-	{
-		var_name[++i] = s[j];
-		printf("%zu : %c = %c\n", i, var_name[i], s[j]);
-	}
+		var_name[i] = s[j];
 	return (var_name);
 }
 
@@ -238,7 +232,7 @@ char *copy_char(char *dest, char c)
 	return (free(dest), res);
 }
 
-void append_env_value(char **dst, const char **s, t_all *all)
+void append_env_value(char **dst, char **s, t_all *all)
 {
 	char	*env_name;
 	char	*env_val;
@@ -247,7 +241,7 @@ void append_env_value(char **dst, const char **s, t_all *all)
 
 	if (**s == '$' && ft_isalnum(*(*s + 1)))
 	{
-		env_name = get_env_name((char *)*s);
+		env_name = get_env_name(*s);
 		env_val = get_env_value(env_name, all);
 		if (env_val)
 		{
@@ -256,7 +250,8 @@ void append_env_value(char **dst, const char **s, t_all *all)
 			free(temp);
 			free(env_val);
 		}
-		*s += ft_strlen(env_name) + 1;
+		while (++(*s) && ft_isalnum(**s))
+			;
 		ft_free(env_name);
 	}
 	else if (**s == '$' && *(*s + 1) == '?'
@@ -271,7 +266,7 @@ void append_env_value(char **dst, const char **s, t_all *all)
 	}
 }
 
-void	append_quoted_text(char **dst, const char **s, char quote, t_all *all)
+void	append_quoted_text(char **dst, char **s, char quote, t_all *all)
 {
 	*dst = copy_char(*dst, *(*s)++);
 	while (**s && **s != quote)
@@ -285,7 +280,7 @@ void	append_quoted_text(char **dst, const char **s, char quote, t_all *all)
 		*dst = copy_char(*dst, *(*s)++);
 }
 
-char *replace_env_vars(const char *s, t_all *all)
+char *replace_env_vars(char *s, t_all *all)
 {
 	char	*dst;
 	char	*temp;
@@ -529,7 +524,16 @@ char	*read_join_heredoc(char *buffer, char *delimiter)
 	return (buffer);
 }
 
-void	handle_heredoc_redirection(char *delimiter)
+void	handle_heredoc_redirection(int fd)
+{
+	if (dup2(fd, STDIN_FILENO) == -1)
+	{
+		perror("dup2");
+		close(fd);
+		return ;
+	}
+}
+void	get_heredoc(char *delimiter, int *fd)
 {
 	char *buffer = NULL;
 
@@ -544,12 +548,7 @@ void	handle_heredoc_redirection(char *delimiter)
 	{
 		write(pipe_fds[1], buffer, strlen(buffer));
 		close(pipe_fds[1]);
-		if (dup2(pipe_fds[0], STDIN_FILENO) == -1)
-		{
-			perror("dup2");
-			close(pipe_fds[0]);
-			return ;
-		}
+		*fd = dup(pipe_fds[0]);
 		close(pipe_fds[0]);
 		free(buffer);
 	}
@@ -565,13 +564,19 @@ void	manage_redirections(t_redirect **redirections, t_all *all)
 		return ;
 	while (redirections[++i])
 	{
+		if (redirections[i]->type == HEREDOC)
+			get_heredoc(redirections[i]->filename, &redirections[i]->fd);
+	}
+	i = -1;
+	while (redirections[++i])
+	{
 		fd = -1;
 		if (redirections[i]->type == TRUNCATE || redirections[i]->type == APPEND)
 			fd = handle_output_redirection(redirections[i], all);
 		else if (redirections[i]->type == INPUT)
 			fd = handle_input_redirection(redirections[i], all);
 		else if (redirections[i]->type == HEREDOC)
-			handle_heredoc_redirection(redirections[i]->filename);
+			handle_heredoc_redirection(redirections[i]->fd);
 		if (fd != -1)
 			close(fd);
 		ft_free(redirections[i]->filename);
@@ -593,10 +598,9 @@ char	**get_new_command(char **command, t_all *all)
 	while (command[++i])
 		if (command[i][0] != '>' && command[i][0] != '<')
 			count++;
-	new_command = (char **)malloc(sizeof(char *) * (count + 1));
+	new_command = (char **)calloc(sizeof(char *), count + 1);
 	if (!new_command)
 		exec_error(NULL, all, "malloc error\n");
-	new_command[count] = NULL;
 	i = -1;
 	while (command[++i])
 		if (command[i][0] != '>' && command[i][0] != '<')
@@ -902,82 +906,54 @@ int	valid_command(char *command, t_all *all)
 	return (1);
 }
 
+/******************* Signal ******************/
+
+
+// volatile int flag;
+
+// void	handle_ctrl_c(int sig, siginfo_t *ok, void *param)
+// {
+// 	if (ok->si_pid != 0 && sig == SIGINT)
+// 	{
+// 		printf("\n");
+// 		rl_replace_line("", 0);
+// 		rl_on_new_line();
+// 		rl_redisplay();
+// 	}
+//     flag = SIGINT;
+// 	param++;
+// }
+
+// void	put_signal_handlig(int i)
+// {
+// 	struct sigaction	a;
+
+// 	ft_bzero(&a, sizeof(sigaction));
+// 	if (i == 0)
+// 		a.sa_handler = SIG_IGN;
+// 	else if (i == 1)
+// 		a.sa_sigaction = handle_ctrl_c;
+// 	sigemptyset(&a.sa_mask);
+// 	a.sa_flags = SA_SIGINFO;
+// 	if (sigaction(SIGINT, &a, NULL) < 0)
+// 	{
+// 		return ;
+// 	}
+// 	signal(SIGQUIT, SIG_IGN);
+// }
+
 
 
 /******************* main ******************/
 
-int	main(int argc, char **argv, char **envp)
-{
-	char	**commands;
-	char	*line;
-	t_all	*all;
-
-	(void) argc;
-	(void) argv;
-	all = (t_all *)malloc(sizeof(t_all));
-	if (!all)
-		return (0);
-	all->exit_status = 0;
-	all->command_list = NULL;
-	all->env_list = NULL;
-	all->heredoc_command = 0;
-	int_lst_env(&all->env_list, envp);
-	all->env_arr = list_to_array(all->env_list);
-	
-	// while (1)
-	// {
-	// 	line = readline(">: ");
-	// 	if (*line)
-	// 		add_history(line);
-	// 	line = replace_env_vars(line, all);
-	// 	// printf("line : %s\n", line);
-		
-	// 	commands = ft_split_esc(all, line, '|');
-	// 	// printf("commands :\n");
-	// 	// print_split(commands);
-	// 	if (valid_command(line, all))
-	// 	{
-	// 		ft_free(line);
-	// 		init_list(&all->command_list, commands);
-
-	// 		// printf("command_list :\n\n");
-	// 		// print_command_list(all->command_list);
-	// 		// printf("\n\n");
-
-	// 		exec_commands(all);
-	// 		free_list(all->command_list);
-	// 		// printf("\nexit_status : %d\n\n", all->exit_status);
-	// 	}
-	// 	all->heredoc_command = 0;
-	// }
-
-	line = "echo $14788USER85fgs";
-	add_history(line);
-	line = replace_env_vars(line, all);
-	commands = ft_split_esc(all, line, '|');
-	if (valid_command(line, all))
-	{
-		ft_free(line);
-		init_list(&all->command_list, commands);
-		exec_commands(all);
-		free_list(all->command_list);
-	}
-
-	return (0);
-	return (free_all_struct(all),  0);
-}
-
-/* signal : ctrl-C, ctrl-D, ctrl-\ */
-// shellevel
-// ls | (heredoc command) -> ft_split_esc(line, '|') -> all->heredoc_command
-
-/***********************  tester  **************************/
-
-// int	ft_launch_minishell(char *line, char **envp)
+// int	main(int argc, char **argv, char **envp)
 // {
 // 	char	**commands;
+// 	char	*line;
 // 	t_all	*all;
 
+// 	(void) argc;
+// 	(void) argv;
 // 	all = (t_all *)malloc(sizeof(t_all));
 // 	if (!all)
 // 		return (0);
@@ -987,29 +963,103 @@ int	main(int argc, char **argv, char **envp)
 // 	all->heredoc_command = 0;
 // 	int_lst_env(&all->env_list, envp);
 // 	all->env_arr = list_to_array(all->env_list);
-// 	if (*line)
-// 		add_history(line);
-// 	line = replace_env_vars(line, all);
-// 	commands = ft_split_esc(all, line, '|');
-// 	if (valid_command(line, all))
+	
+// 	while (1)
 // 	{
-// 		ft_free(line);
-// 		init_list(&all->command_list, commands);
-// 		exec_commands(all);
-// 		free_list(all->command_list);
+// 		// put_signal_handlig(1);
+// 		// if (flag == SIGINT)
+// 		// {
+// 		// 	printf("\n");
+// 		// 	flag = 0;
+// 		// }
+// 		line = readline(">: ");
+// 		if(!line)
+// 		{
+// 			write(1,"exit\n",5);
+// 			exit(all->exit_status);
+// 		}
+// 		if (*line)
+// 			add_history(line);
+// 		line = replace_env_vars(line, all);
+// 		// printf("line : %s\n", line);
+
+// 		commands = ft_split_esc(all, line, '|');
+// 		// printf("commands :\n");
+// 		// print_split(commands);
+// 		if (valid_command(line, all))
+// 		{
+// 			ft_free(line);
+// 			init_list(&all->command_list, commands);
+
+// 			// printf("command_list :\n\n");
+// 			// print_command_list(all->command_list);
+// 			// printf("\n\n");
+
+// 			exec_commands(all);
+// 			free_list(all->command_list);
+// 			// printf("\nexit_status : %d\n\n", all->exit_status);
+// 		}
+// 		all->heredoc_command = 0;
 // 	}
-// 	all->heredoc_command = 0;
-// 	return (all->exit_status);
-// 	// return (free_all_struct(all),  all->exit_status);
+
+// 	// line = "echo $USER$12USER$USER=4$USER12";
+// 	// add_history(line);
+// 	// line = replace_env_vars(line, all);
+// 	// commands = ft_split_esc(all, line, '|');
+// 	// if (valid_command(line, all))
+// 	// {
+// 	// 	ft_free(line);
+// 	// 	init_list(&all->command_list, commands);
+// 	// 	exec_commands(all);
+// 	// 	free_list(all->command_list);
+// 	// }
+
+// 	return (0);
 // }
 
-// int	main(int argc, char **argv, char **envp)
-// {
-// 	(void) argc;
-// 	(void) argv;
-// 	if (argc >= 3 && !ft_strncmp(argv[1], "-c", 3))
-// 	{
-// 		int exit_status = ft_launch_minishell(argv[2], envp);
-// 		exit(exit_status);
-// 	}
-// }
+/* signal : ctrl-C, ctrl-D, ctrl-\ */
+// shellevel
+// ls | (heredoc command) -> ft_split_esc(line, '|') -> all->heredoc_command
+
+/***********************  tester  **************************/
+
+int	ft_launch_minishell(char *line, char **envp)
+{
+	char	**commands;
+	t_all	*all;
+
+	all = (t_all *)malloc(sizeof(t_all));
+	if (!all)
+		return (0);
+	all->exit_status = 0;
+	all->command_list = NULL;
+	all->env_list = NULL;
+	all->heredoc_command = 0;
+	int_lst_env(&all->env_list, envp);
+	all->env_arr = list_to_array(all->env_list);
+	if (*line)
+		add_history(line);
+	line = replace_env_vars(line, all);
+	commands = ft_split_esc(all, line, '|');
+	if (valid_command(line, all))
+	{
+		ft_free(line);
+		init_list(&all->command_list, commands);
+		exec_commands(all);
+		free_list(all->command_list);
+	}
+	all->heredoc_command = 0;
+	return (all->exit_status);
+	// return (free_all_struct(all),  all->exit_status);
+}
+
+int	main(int argc, char **argv, char **envp)
+{
+	(void) argc;
+	(void) argv;
+	if (argc >= 3 && !ft_strncmp(argv[1], "-c", 3))
+	{
+		int exit_status = ft_launch_minishell(argv[2], envp);
+		exit(exit_status);
+	}
+}

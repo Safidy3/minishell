@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/11/23 14:17:55 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/28 16:18:39 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,11 +22,14 @@
 # include <sys/wait.h>
 # include <fcntl.h>
 # include <stdbool.h>
+# include <signal.h>
 
 # include "libft/libft.h"
 # include "gnl/get_next_line.h"
 
 # include <string.h>
+
+extern volatile int flag;
 
 # define MAX_COMMANDS 100
 # define MAX_VAR_LEN 256
@@ -64,6 +67,7 @@ typedef struct	s_redirect
 {
 	char		*filename;
 	int			type;
+	int			fd;
 }				t_redirect;
 
 char			**ft_split_esc_2(char *s, char c);
@@ -112,7 +116,7 @@ void			ft_cd(char *path, t_all *all);
 
 /************************************** */
 
-char			*replace_env_vars(const char *s, t_all *all);
+char			*replace_env_vars(char *s, t_all *all);
 void			exec_commands(t_all *all);
 void			init_list(t_list **commands_list, char **arr_commands);
 char			**ft_split_esc(t_all *all, const char *s, char c);

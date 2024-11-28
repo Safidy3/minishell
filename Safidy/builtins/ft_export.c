@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 10:02:40 by larakoto          #+#    #+#             */
-/*   Updated: 2024/11/23 14:27:11 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/28 15:18:06 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,13 +18,12 @@ int	ft_strcmp(const char *s1, const char *s2)
 {
 	size_t	i;
 
-	i = 0;
-	while (s1[i] != '\0' && s2[i] != '\0')
-	{
+	i = -1;
+	if (ft_strlen(s1) != ft_strlen(s2))
+		return(1);
+	while (s1[++i] != '\0' && s2[i] != '\0')
 		if (s1[i] != s2[i])
 			return ((unsigned char) s1[i] - (unsigned char) s2[i]);
-		i++;
-	}
 	return (0);
 }
 
