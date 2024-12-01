@@ -188,20 +188,20 @@ char	*get_env_name(char *s)
 	if (*s != '$')
 		return (NULL);
 	s++;
-	i = -1;
-	len = 0;
-	while (s[++i] && ft_isdigit(s[i]))
+	i = 0;
+	len = -1;
+	while (s[++len] && ft_isdigit(s[len]))
 		;
-	j = --i;
-	while (s[++i] && ft_isalnum(s[i]))
-		len++;
+	j = --len;
+	while (s[++len] && ft_isalnum(s[len]))
+		i++;
 	var_name = (char *)malloc(sizeof(char) * (len + 1));
 	if (!var_name)
 		return (NULL);
 	var_name[len] = '\0';
 	i = -1;
-	while (s[++j] && ++i < len)
-		var_name[i] = s[j];
+	while (s[++i] && i < len)
+		var_name[i] = s[i];
 	return (var_name);
 }
 
@@ -249,6 +249,12 @@ void append_env_value(char **dst, char **s, t_all *all)
 			*dst = ft_strjoin(*dst, env_val);
 			free(temp);
 			free(env_val);
+		}
+		else if (ft_isdigit(*(*s + 1)))
+		{
+			temp = *dst;
+			*dst = ft_strjoin(*dst, &env_name[1]);
+			free(temp);
 		}
 		while (++(*s) && ft_isalnum(**s))
 			;
@@ -734,7 +740,7 @@ int	builtin_execution(char **command, t_all *all)
 	else if (!ft_strncmp(command[0], "echo", ft_strlen("echo")))
 		exit_status = ft_echo(command);
 	else if (!ft_strncmp(command[0], "cd", ft_strlen("cd")))
-		ft_cd(command[1], all);
+		exit_status = ft_cd(command[1], all);
 	else if (!ft_strncmp(command[0], "pwd", ft_strlen("pwd")))
 		ft_pwd();
 	else if (!ft_strncmp(command[0], "exit", ft_strlen("exit")))
@@ -964,55 +970,59 @@ int	valid_command(char *command, t_all *all)
 // 	int_lst_env(&all->env_list, envp);
 // 	all->env_arr = list_to_array(all->env_list);
 	
-// 	while (1)
-// 	{
-// 		// put_signal_handlig(1);
-// 		// if (flag == SIGINT)
-// 		// {
-// 		// 	printf("\n");
-// 		// 	flag = 0;
-// 		// }
-// 		line = readline(">: ");
-// 		if(!line)
-// 		{
-// 			write(1,"exit\n",5);
-// 			exit(all->exit_status);
-// 		}
-// 		if (*line)
-// 			add_history(line);
-// 		line = replace_env_vars(line, all);
-// 		// printf("line : %s\n", line);
-
-// 		commands = ft_split_esc(all, line, '|');
-// 		// printf("commands :\n");
-// 		// print_split(commands);
-// 		if (valid_command(line, all))
-// 		{
-// 			ft_free(line);
-// 			init_list(&all->command_list, commands);
-
-// 			// printf("command_list :\n\n");
-// 			// print_command_list(all->command_list);
-// 			// printf("\n\n");
-
-// 			exec_commands(all);
-// 			free_list(all->command_list);
-// 			// printf("\nexit_status : %d\n\n", all->exit_status);
-// 		}
-// 		all->heredoc_command = 0;
-// 	}
-
-// 	// line = "echo $USER$12USER$USER=4$USER12";
-// 	// add_history(line);
-// 	// line = replace_env_vars(line, all);
-// 	// commands = ft_split_esc(all, line, '|');
-// 	// if (valid_command(line, all))
+// 	// while (1)
 // 	// {
-// 	// 	ft_free(line);
-// 	// 	init_list(&all->command_list, commands);
-// 	// 	exec_commands(all);
-// 	// 	free_list(all->command_list);
+// 	// 	// put_signal_handlig(1);
+// 	// 	// if (flag == SIGINT)
+// 	// 	// {
+// 	// 	// 	printf("\n");
+// 	// 	// 	flag = 0;
+// 	// 	// }
+// 	// 	line = readline(">: ");
+// 	// 	if(!line)
+// 	// 	{
+// 	// 		write(1,"exit\n",5);
+// 	// 		exit(all->exit_status);
+// 	// 	}
+// 	// 	if (*line)
+// 	// 		add_history(line);
+// 	// 	line = replace_env_vars(line, all);
+// 	// 	// printf("line : %s\n", line);
+
+// 	// 	commands = ft_split_esc(all, line, '|');
+// 	// 	// printf("commands :\n");
+// 	// 	// print_split(commands);
+// 	// 	if (valid_command(line, all))
+// 	// 	{
+// 	// 		ft_free(line);
+// 	// 		init_list(&all->command_list, commands);
+
+// 	// 		// printf("command_list :\n\n");
+// 	// 		// print_command_list(all->command_list);
+// 	// 		// printf("\n\n");
+
+// 	// 		exec_commands(all);
+// 	// 		free_list(all->command_list);
+// 	// 		// printf("\nexit_status : %d\n\n", all->exit_status);
+// 	// 	}
+// 	// 	all->heredoc_command = 0;
 // 	// }
+// 	line = "cd /SADFAF";
+// 	// printf("%s\n", line);
+// 	add_history(line);
+// 	line = replace_env_vars(line, all);
+// 	// printf("%s\n", line);
+
+// 	commands = ft_split_esc(all, line, '|');
+// 	if (valid_command(line, all))
+// 	{
+// 		ft_free(line);
+// 		init_list(&all->command_list, commands);
+// 		// printf("%d\n", ft_lstsize(all->command_list));
+// 		exec_commands(all);
+// 		// printf("exit stat = %d\n", all->exit_status);
+// 		free_list(all->command_list);
+// 	}
 
 // 	return (0);
 // }

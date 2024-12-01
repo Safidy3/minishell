@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/12 15:57:34 by larakoto          #+#    #+#             */
-/*   Updated: 2024/11/16 17:49:13 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/29 15:20:14 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ char	*manage_home_path(char *path, t_all *all)
 	t_env_list	*env;
 
 	env = all->env_list;
-	if (!ft_strcmp(path, "~") || !path)
+	if (!path || !ft_strcmp(path, "~"))
 	{
 		while (env)
 		{
@@ -37,21 +37,26 @@ char	*manage_home_path(char *path, t_all *all)
 	return (path);
 }
 
-void	ft_cd(char *path, t_all *all)
+int	ft_cd(char *path, t_all *all)
 {
 	t_env_list	*env;
 	char		*o_path;
 	char		*n_path;
 
 	path = manage_home_path(path, all);
-	o_path = getcwd(NULL,0);
+	o_path = getcwd(NULL, 0);
 	if (!o_path)
-		return (perror("getcwd"));
-	if (chdir(path) != 0)
-		return (free(o_path), perror(path));
+		return (perror("getcwd"), 2);
+	// if (access(path, F_OK) != 0)
+	// 	return (free(o_path), perror("No such file or directory"), 1);
+	if (chdir(path) == -1)
+	{
+		// printf("tafiditra");
+		return (free(o_path), perror("No such file or directory"), 1);
+	}
 	n_path = getcwd(NULL,0);
 	if (!n_path)
-		return (perror("getcwd"));
+		return (perror("getcwd"), 2);
 	env = all->env_list;
 	while (env)
 	{
@@ -61,4 +66,5 @@ void	ft_cd(char *path, t_all *all)
 			env->second = o_path;
 		env = env->next;
 	}
+	return (0);
 }

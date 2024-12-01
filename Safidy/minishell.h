@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/11/28 16:18:39 by safandri         ###   ########.fr       */
+/*   Updated: 2024/11/29 14:57:29 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,7 +112,7 @@ void			ft_unset(t_env_list **env, char **commande);
 /************************************** */
 
 void			ft_pwd();
-void			ft_cd(char *path, t_all *all);
+int				ft_cd(char *path, t_all *all);
 
 /************************************** */
 
