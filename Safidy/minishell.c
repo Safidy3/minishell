@@ -1007,7 +1007,7 @@ int	valid_command(char *command, t_all *all)
 // 	// 	}
 // 	// 	all->heredoc_command = 0;
 // 	// }
-// 	line = "cd /SADFAF";
+// 	line = "echo hello world";
 // 	// printf("%s\n", line);
 // 	add_history(line);
 // 	line = replace_env_vars(line, all);
