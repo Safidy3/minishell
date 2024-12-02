@@ -141,8 +141,6 @@ if [ "$RUN" == "1" ]; then
 		printf "${GREENB}You have activated ${YELLOW}[--valgrind]${GREENB} flag, care it's only work with a Linux architecture.\n"
 		sleep 2
 	fi
-	echo -n > tofix/tofix_tests.txt
-	echo -n > tmp/tmp
 	# Main process checking each line and compare minishell executable + bash results
 	if [ "$RUN" == "1" ]; then
 		cat $FILE_TO_READ | while read line
@@ -171,14 +169,11 @@ if [ "$RUN" == "1" ]; then
 							else
 								printf "${GREEN}$i: $line\n"
 							fi
-							echo $line >> tmp/valid
 					else
 						if [ "$BASH_EXIT" == "$MINISHELL_EXIT" ]; then
 							printf "${RED}$i:        [$line]\nbash     : [$BASH_RESULT]${GREEN}[$BASH_EXIT]${RED}\nminishell: [$MINISHELL_RESULT]${GREEN}[$MINISHELL_EXIT]\n"
-							echo $line >> tofix/tofix_tests.txt
 						else
 							printf "${RED}$i:        [$line]\nbash     : [$BASH_RESULT][$BASH_EXIT]\nminishell: [$MINISHELL_RESULT][$MINISHELL_EXIT]\n"
-							echo $line >> tofix/tofix_tests.txt
 						fi
 					fi
 				else
@@ -188,21 +183,15 @@ if [ "$RUN" == "1" ]; then
 						else
 							printf "${GREEN}$i: $line\n"
 						fi
-						echo $line >> tmp/valid
 					else
 						printf "${RED}$i: [$line]\n"
-						echo $line >> tofix/tofix_tests.txt
 					fi
 				fi
 				i=$((i + 1))
-				echo $i >> tmp/total
 				sleep $SPEED
 			
 			done
 		
-		printf "\n${GREEN}Conclusion : $(cat tmp/valid | wc -l | xargs)/$(cat tmp/total | wc -l | xargs) tests passed.\n"
-		printf "$(cat tofix/tofix_tests.txt | wc -l | xargs) wrong tests were added in \"${YELLOW}./tofix/tofix_tests.txt${GREEN}\".\n"
-		rm -rf tmp/valid tmp/total
 		fi
 fi
 rm -f tmp/file1 tmp/file2 tmp/errors_makefile

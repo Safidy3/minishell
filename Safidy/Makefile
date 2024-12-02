@@ -43,7 +43,6 @@ norm:
 
 debug: all
 	@valgrind --suppressions=readline.supp --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(NAME)
-	@$(clean)
 
 .PHONY: all clean fclean re
 

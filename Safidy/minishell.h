@@ -102,7 +102,7 @@ void			ft_update_flag_0(t_env_list *tmp, char *line, char *commande);
 void			ft_update_ensemble(int *flag, t_env_list *tmp, char *line, char *commande);
 char			*ft_init_variable_name(char *commande, int *flag, char *line);
 int				ft_maj_export(t_env_list *env, char *commande, int *flag);
-void			ft_export(t_env_list *env, char **commade);
+int				ft_export(t_env_list *env, char **commade);
 
 /************************************** */
 

@@ -47,13 +47,8 @@ int	ft_cd(char *path, t_all *all)
 	o_path = getcwd(NULL, 0);
 	if (!o_path)
 		return (perror("getcwd"), 2);
-	// if (access(path, F_OK) != 0)
-	// 	return (free(o_path), perror("No such file or directory"), 1);
 	if (chdir(path) == -1)
-	{
-		// printf("tafiditra");
-		return (free(o_path), perror("No such file or directory"), 1);
-	}
+		return (free(o_path), perror(path), 1);
 	n_path = getcwd(NULL,0);
 	if (!n_path)
 		return (perror("getcwd"), 2);

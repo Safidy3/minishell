@@ -183,7 +183,6 @@ char	*get_env_name(char *s)
 	char	*var_name;
 	size_t	len;
 	size_t	i;
-	size_t	j;
 
 	if (*s != '$')
 		return (NULL);
@@ -192,7 +191,6 @@ char	*get_env_name(char *s)
 	len = -1;
 	while (s[++len] && ft_isdigit(s[len]))
 		;
-	j = --len;
 	while (s[++len] && ft_isalnum(s[len]))
 		i++;
 	var_name = (char *)malloc(sizeof(char) * (len + 1));
@@ -539,6 +537,7 @@ void	handle_heredoc_redirection(int fd)
 		return ;
 	}
 }
+
 void	get_heredoc(char *delimiter, int *fd)
 {
 	char *buffer = NULL;
@@ -731,7 +730,7 @@ int	builtin_execution(char **command, t_all *all)
 		if (array_len(command) == 1)
 			ft_print_export(all->env_list);
 		else
-			ft_export(all->env_list, command);
+			exit_status = ft_export(all->env_list, command);
 	}
 	else if (!ft_strncmp(command[0], "unset", ft_strlen("unset")))
 		ft_unset(&all->env_list, command);
@@ -758,20 +757,23 @@ int	builtin_execution(char **command, t_all *all)
 int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_all *all)
 {
 	char        **command;
-	int         std_backup[2];
 	int			exit_stat;
 
+	int         std_backup[2];
 	std_backup[0] = dup(STDIN_FILENO);
 	std_backup[1] = dup(STDOUT_FILENO);
 	if (std_backup[0] == -1 || std_backup[1] == -1)
 		exec_error(NULL, all, "dup backup failed\n");
+
 	if (prev_fd[0] != -1)
 		dup_in(prev_fd, all, NULL, 0);
 	if (command_list->next && current_fd[1] != -1)
 		dup_out(current_fd, all, NULL, 0);
+
 	command = (char **)command_list->content;
 	exit_stat = builtin_execution(command, all);
 	restore_og_std(std_backup, all);
+
 	if (prev_fd[0] != -1)
 		close(prev_fd[0]);
 	if (command_list->next && current_fd[1] != -1)
@@ -818,40 +820,57 @@ void	exec_commands(t_all *all)
 		command = get_new_command((char **)command_list->content, all);
 		if (!command)
 			exec_error(NULL, all, "get_new_command failed\n");
-		if (is_builtins(command[0]))
+		
+		bin_path = get_bin_path(command[0]);
+		if (!bin_path && !is_builtins(command[0]))
+			exit_stats[command_count] = command_not_found(command_list, command);
+		if (ft_strcmp(command[0], "exit") == 0)
 		{
+			int exit_status = all->exit_status;
+			free_list(all->command_list);
+			free_split(all->env_arr);
+			ft_free_env_list(all->env_list);
+			free(all);
 			free(command);
-			exit_stats[command_count] = exec_builtins(command_list, prev_fd, current_fd, all);
+			exit(exit_status);
 		}
 		else
 		{
-			bin_path = get_bin_path(command[0]);
-			if (!bin_path)
-				exit_stats[command_count] = command_not_found(command_list, command);
-			else
+			pids[command_count] = fork();
+			if (pids[command_count] == 0)
 			{
-				pids[command_count] = fork();
-				if (pids[command_count] == 0)
-				{
-					if (prev_fd[0] != -1)
-						dup_in(prev_fd, all, bin_path, 0);
-					if (command_list->next)
-						dup_out(current_fd, all, bin_path, 1);
+				if (prev_fd[0] != -1)
+					dup_in(prev_fd, all, bin_path, 0);
+				if (command_list->next)
+					dup_out(current_fd, all, bin_path, 1);
+				if (bin_path)
 					execve(bin_path, command, all->env_arr);
-					exec_error(bin_path, all, "execve failed\n");
-				}
-				else if (pids[command_count] > 0)
+				else if (is_builtins(command[0]))
 				{
-					int	status;
-					waitpid(pids[command_count], &status, 0);
-					exit_stats[command_count] = WEXITSTATUS(status);
-					exec_parent(command_list, prev_fd, current_fd);
-					ft_free(bin_path);
+					exit_stats[command_count] = builtin_execution(command, all);
+					free_all_struct(all);
 					free(command);
+					exit(exit_stats[command_count]);
 				}
-				else
-					exec_error(NULL, all, "fork failed\n");
+				exec_error(bin_path, all, "execve failed\n");
 			}
+			else if (pids[command_count] > 0)
+			{
+				if (prev_fd[0] != -1)
+					close(prev_fd[0]);
+				if (command_list->next)
+				{
+					close(current_fd[1]);
+					prev_fd[0] = current_fd[0];
+				}
+				int	status;
+				waitpid(pids[command_count], &status, 0);
+				exit_stats[command_count] = WEXITSTATUS(status);
+				ft_free(bin_path);
+				free(command);
+			}
+			else
+				exec_error(NULL, all, "fork failed\n");
 		}
 		command_list = command_list->next;
 		command_count++;
@@ -863,6 +882,8 @@ void	exec_commands(t_all *all)
 	while (i < command_count)
 		all->exit_status = exit_stats[i++];
 }
+
+
 
 /******************* command validity ******************/
 
@@ -969,49 +990,71 @@ int	valid_command(char *command, t_all *all)
 // 	all->heredoc_command = 0;
 // 	int_lst_env(&all->env_list, envp);
 // 	all->env_arr = list_to_array(all->env_list);
-	
-// 	// while (1)
-// 	// {
-// 	// 	// put_signal_handlig(1);
-// 	// 	// if (flag == SIGINT)
-// 	// 	// {
-// 	// 	// 	printf("\n");
-// 	// 	// 	flag = 0;
-// 	// 	// }
-// 	// 	line = readline(">: ");
-// 	// 	if(!line)
-// 	// 	{
-// 	// 		write(1,"exit\n",5);
-// 	// 		exit(all->exit_status);
-// 	// 	}
-// 	// 	if (*line)
-// 	// 		add_history(line);
-// 	// 	line = replace_env_vars(line, all);
-// 	// 	// printf("line : %s\n", line);
 
-// 	// 	commands = ft_split_esc(all, line, '|');
-// 	// 	// printf("commands :\n");
-// 	// 	// print_split(commands);
-// 	// 	if (valid_command(line, all))
-// 	// 	{
-// 	// 		ft_free(line);
-// 	// 		init_list(&all->command_list, commands);
+// 	while (1)
+// 	{
+// 		// put_signal_handlig(1);
+// 		// if (flag == SIGINT)
+// 		// {
+// 		// 	printf("\n");
+// 		// 	flag = 0;
+// 		// }
+// 		line = readline(">: ");
+// 		if(!line)
+// 		{
+// 			write(1,"exit\n",5);
+// 			exit(all->exit_status);
+// 		}
+// 		if (*line)
+// 			add_history(line);
+// 		line = replace_env_vars(line, all);
+// 		// printf("line : %s\n", line);
 
-// 	// 		// printf("command_list :\n\n");
-// 	// 		// print_command_list(all->command_list);
-// 	// 		// printf("\n\n");
+// 		commands = ft_split_esc(all, line, '|');
+// 		// printf("commands :\n");
+// 		// print_split(commands);
+// 		if (valid_command(line, all))
+// 		{
+// 			ft_free(line);
+// 			init_list(&all->command_list, commands);
 
-// 	// 		exec_commands(all);
-// 	// 		free_list(all->command_list);
-// 	// 		// printf("\nexit_status : %d\n\n", all->exit_status);
-// 	// 	}
-// 	// 	all->heredoc_command = 0;
-// 	// }
-// 	line = "echo hello world";
-// 	// printf("%s\n", line);
-// 	add_history(line);
+// 			// printf("command_list :\n\n");
+// 			// print_command_list(all->command_list);
+// 			// printf("\n\n");
+
+// 			exec_commands(all);
+// 			free_list(all->command_list);
+// 			// printf("\nexit_status : %d\n\n", all->exit_status);
+// 		}
+// 		all->heredoc_command = 0;
+// 	}
+
+// 	return (0);
+// }
+
+
+
+
+// int	main(int argc, char **argv, char **envp)
+// {
+// 	char	**commands;
+// 	char	*line;
+// 	t_all	*all;
+
+// 	(void) argc;
+// 	(void) argv;
+// 	all = (t_all *)malloc(sizeof(t_all));
+// 	if (!all)
+// 		return (0);
+// 	all->exit_status = 0;
+// 	all->command_list = NULL;
+// 	all->env_list = NULL;
+// 	all->heredoc_command = 0;
+// 	int_lst_env(&all->env_list, envp);
+// 	all->env_arr = list_to_array(all->env_list);
+
+// 	line = "export TES!T=123";
 // 	line = replace_env_vars(line, all);
-// 	// printf("%s\n", line);
 
 // 	commands = ft_split_esc(all, line, '|');
 // 	if (valid_command(line, all))
@@ -1023,13 +1066,12 @@ int	valid_command(char *command, t_all *all)
 // 		// printf("exit stat = %d\n", all->exit_status);
 // 		free_list(all->command_list);
 // 	}
-
 // 	return (0);
 // }
 
-/* signal : ctrl-C, ctrl-D, ctrl-\ */
-// shellevel
-// ls | (heredoc command) -> ft_split_esc(line, '|') -> all->heredoc_command
+
+
+
 
 /***********************  tester  **************************/
 

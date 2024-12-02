@@ -45,8 +45,7 @@ int	ft_check_after_first_caracter(char *variable_name, char *command)
 	i = 0;
 	while (variable_name[i])
 	{
-		if (!ft_isalpha(variable_name[i]) && !ft_isdigit(variable_name[i])
-			&& variable_name[i] != '_')
+		if (!ft_isalpha(variable_name[i]) && !ft_isdigit(variable_name[i]) && variable_name[i] != '_')
 		{
 			ft_print_export_error(command);
 			return (1);
@@ -60,8 +59,7 @@ int	ft_export_error(char *variable_name, char *command)
 {
 	if (variable_name)
 	{
-		if (variable_name[0] == '\0' || (!ft_isalpha(variable_name[0])
-				&& variable_name[0] != '_'))
+		if (variable_name[0] == '\0' || (!ft_isalpha(variable_name[0]) && variable_name[0] != '_'))
 		{
 			ft_print_export_error(command);
 			return (1);
@@ -104,9 +102,9 @@ void	ft_print_export(t_env_list *env)
 		else
 		{
 			if (tmp->second == NULL)
-				printf("declare\t-x %s\n", tmp->first);
+				printf("declare -x %s\n", tmp->first);
 			else
-				printf("declare\t-x %s=\"%s\"\n", tmp->first, tmp->second);
+				printf("declare -x %s=\"%s\"\n", tmp->first, tmp->second);
 			tmp = tmp->next;
 		}
 		i++;
@@ -194,7 +192,7 @@ int	ft_maj_export(t_env_list *env, char *command, int *flag)
 	return (free(variable_name), 0);
 }
 
-void	ft_export(t_env_list *env, char **command)
+int	ft_export(t_env_list *env, char **command)
 {
 	int	i;
 	int	flag;
@@ -203,8 +201,14 @@ void	ft_export(t_env_list *env, char **command)
 	i = 1;
 	while (command[i] != NULL)
 	{
-		if (command[i] && ft_maj_export(env, command[i], &flag) == 0)
-			ft_lstadd_back(&env, ft_lstnew(command[i], flag));
+		if (command[i])
+		{
+			if (ft_maj_export(env, command[i], &flag) == 0)
+				ft_lstadd_back(&env, ft_lstnew(command[i], flag));
+			else
+				return (1);
+		}
 		i++;
 	}
+	return (0);
 }
