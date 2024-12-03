@@ -37,18 +37,18 @@ void	ft_free(char *s)
 	}
 }
 
-void	free_split_1(void *s)
+void	free_split_1(char *s)
 {
-	if ((char *) s)
-		ft_free((char *) s);
+	if (s)
+		ft_free(s);
 }
 
-void	print_s(void *s)
+void	print_s(char *s)
 {
-	printf("%s\n", (char *) s);
+	printf("%s\n", s);
 }
 
-void	split_iterate(void **array, void (*f)(void *))
+void	split_iterate(char **array, void (*f)(char *))
 {
 	int	i;
 
@@ -59,7 +59,7 @@ void	split_iterate(void **array, void (*f)(void *))
 
 void	free_split(char **array)
 {
-	split_iterate((void **) array, free_split_1);
+	split_iterate(array, free_split_1);
 	free(array);
 }
 
@@ -77,38 +77,39 @@ int	array_len(char **array)
 
 void	print_split(char **array)
 {
-	split_iterate((void **) array, print_s);
+	split_iterate(array, print_s);
 }
 
 /******************* list iteration ******************/
 
 void	print_list(void *s)
 {
-	split_iterate((void *) s, print_s);
+	split_iterate(s, print_s);
 }
 
-void	print_command_list(t_list *commands)
+void	print_command_list(t_cmd_list *commands)
 {
 	while (commands)
 	{
-		split_iterate((void *) commands->content, print_s);
+		split_iterate(commands->cmd_arr, print_s);
 		commands = commands->next;
 	}
 }
 
-void	free_list_content(void *s)
+void	free_list_content(char **s)
 {
 	if (!s)
 		return ;
 	split_iterate(s, free_split_1);
-	ft_free(s);
+	if (s)
+		free(s);
 }
 
-void	free_list(t_list *s)
+void	free_list(t_cmd_list *s)
 {
-	t_list	*temp;
+	t_cmd_list	*temp;
 
-	ft_lstiter(s, free_list_content);
+	ft_lst_cmd_iter(s, free_list_content);
 	while (s)
 	{
 		temp = s->next;
@@ -128,30 +129,31 @@ void	free_all_struct(t_all *all)
 
 /******************* init list ******************/
 
-void	list_init_error(t_list *commands_list, char **arr_commands)
+void	list_init_error(t_cmd_list *commands_list, char **arr_commands)
 {
-	split_iterate((void **) arr_commands, free_split_1);
+	split_iterate(arr_commands, free_split_1);
 	free(arr_commands);
 	free_list(commands_list);
 	printf("Allocation error \033[0m: faild to allocate memory\n");
 	exit(EXIT_FAILURE);
 }
 
-void	init_list(t_list **commands_list, char **arr_commands)
+void	init_list(t_cmd_list **commands_list, char **arr_commands)
 {
-	t_list	*new_list;
-	int		i;
+	t_cmd_list	*new_list;
+	int			i;
 
 	i = -1;
 	while (arr_commands[++i])
 	{
-		new_list = ft_newlst((void *) ft_split_esc_2(arr_commands[i], ' '));
+		new_list = ft_lst_new_cmd(ft_split_esc_2(arr_commands[i], ' '));
 		if (!new_list)
 			list_init_error(*commands_list, arr_commands);
+		new_list->in_quote = ft_split_arg_type(arr_commands[i], ' ');
 		if (i == 0)
 			*commands_list = new_list;
 		else
-			ft_add_back_lst(commands_list, new_list);
+			ft_lst_add_back_cmd(commands_list, new_list);
 		free(arr_commands[i]);
 	}
 	free(arr_commands);
@@ -340,7 +342,7 @@ void	exec_error(char *bin_path, t_all *all, char *msg)
 	exit(EXIT_FAILURE);
 }
 
-int command_not_found(t_list *command_list, char **command)
+int command_not_found(t_cmd_list *command_list, char **command)
 {
 	if (!command_list->next)
 	{
@@ -436,17 +438,21 @@ char	*get_redirection_file_name(char *command)
 	return (redirection_file);
 }
 
-t_redirect    **get_all_redirections(char **command, t_all *all)
+t_redirect    **get_all_redirections(t_cmd_list *cmd, t_all *all)
 {
 	t_redirect	**redirection_files;
+	char 		**command;
+	int			*command_type;
 	int			count;
 	int			i;
 	int			j;
 
+	command = cmd->cmd_arr;
+	command_type = cmd->in_quote;
 	count = 0;
 	i = -1;
 	while (command[++i])
-		if (command[i][0] == '>' || command[i][0] == '<')
+		if ((command[i][0] == '>' || command[i][0] == '<') && command_type[i] == 0)
 			count++;
 	if (count == 0)
 		return (NULL);
@@ -457,7 +463,7 @@ t_redirect    **get_all_redirections(char **command, t_all *all)
 	j = -1;
 	while (command[++i])
 	{
-		if (command[i][0] == '>' || command[i][0] == '<')
+		if ((command[i][0] == '>' || command[i][0] == '<') && command_type[i] == 0)
 		{
 			redirection_files[++j] = (t_redirect *)malloc(sizeof(t_redirect));
 			if (!redirection_files[j])
@@ -593,6 +599,7 @@ void	manage_redirections(t_redirect **redirections, t_all *all)
 char	**get_new_command(char **command, t_all *all)
 {
 	char	**new_command;
+	int		*command_type;
 	int		count;
 	int		i;
 	int		j;
@@ -600,15 +607,18 @@ char	**get_new_command(char **command, t_all *all)
 	count = 0;
 	i = -1;
 	j = -1;
+	command_type = all->command_list->in_quote;
 	while (command[++i])
-		if (command[i][0] != '>' && command[i][0] != '<')
+		// if ((command[i][0] != '>' && command[i][0] != '<'))
+		if ((command[i][0] != '>' && command[i][0] != '<') && command_type[i] == 1)
 			count++;
 	new_command = (char **)calloc(sizeof(char *), count + 1);
 	if (!new_command)
 		exec_error(NULL, all, "malloc error\n");
 	i = -1;
 	while (command[++i])
-		if (command[i][0] != '>' && command[i][0] != '<')
+		// if ((command[i][0] != '>' && command[i][0] != '<'))
+		if ((command[i][0] != '>' && command[i][0] != '<') && command_type[i] == 1)
 			new_command[++j] = command[i];
 	return (new_command);
 }
@@ -635,7 +645,7 @@ void	dup_out(int fd[2], t_all *all, char *bin_path, int closeall)
 
 /******************* Exec non-builtings ******************/
 
-void	exec_parent(t_list *command_list, int prev_fd[2], int current_fd[2])
+void	exec_parent(t_cmd_list *command_list, int prev_fd[2], int current_fd[2])
 {
 	if (prev_fd[0] != -1)
 		close(prev_fd[0]);
@@ -681,6 +691,9 @@ int	ft_echo(char **tokens)
 	int	start_index;
 	int	skip_newline;
 	int	i;
+
+	printf("token :\n");
+	print_split(tokens);
 
 	token_count = array_len(tokens);
 	start_index = 0;
@@ -754,7 +767,7 @@ int	builtin_execution(char **command, t_all *all)
 	return (exit_status);
 }
 
-int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_all *all)
+int	exec_builtins(t_cmd_list *command_list, int prev_fd[2], int current_fd[2], t_all *all)
 {
 	char        **command;
 	int			exit_stat;
@@ -770,7 +783,7 @@ int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_all
 	if (command_list->next && current_fd[1] != -1)
 		dup_out(current_fd, all, NULL, 0);
 
-	command = (char **)command_list->content;
+	command = command_list->cmd_arr;
 	exit_stat = builtin_execution(command, all);
 	restore_og_std(std_backup, all);
 
@@ -790,7 +803,7 @@ int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_all
 
 void	exec_commands(t_all *all)
 {
-	t_list	*command_list;
+	t_cmd_list	*command_list;
 	pid_t	pids[MAX_COMMANDS];
 	int		exit_stats[MAX_COMMANDS];
 	int		prev_fd[2];
@@ -806,21 +819,25 @@ void	exec_commands(t_all *all)
 	prev_fd[1] = -1;
 
 	command_list = all->command_list;
-	command_count = ft_lstsize(all->command_list);
+	command_count = ft_lst_cmd_size(all->command_list);
 
 	command_count = 0;
 	command_list = all->command_list;
+
+
 	while (command_list)
 	{
 		if (command_list->next && pipe(current_fd) == -1)
 			exec_error(NULL, all, "pipe creation failed\n");
 
-		redirections = get_all_redirections((char **)command_list->content, all);
+		redirections = get_all_redirections(command_list, all);
 		manage_redirections(redirections, all);
-		command = get_new_command((char **)command_list->content, all);
+
+		command = get_new_command(command_list->cmd_arr, all);
 		if (!command)
 			exec_error(NULL, all, "get_new_command failed\n");
-		
+		printf("command_list :\n");
+		print_split(command);
 		bin_path = get_bin_path(command[0]);
 		if (!bin_path && !is_builtins(command[0]))
 			exit_stats[command_count] = command_not_found(command_list, command);
@@ -843,15 +860,15 @@ void	exec_commands(t_all *all)
 					dup_in(prev_fd, all, bin_path, 0);
 				if (command_list->next)
 					dup_out(current_fd, all, bin_path, 1);
-				if (bin_path)
-					execve(bin_path, command, all->env_arr);
-				else if (is_builtins(command[0]))
+				if (is_builtins(command[0]))
 				{
 					exit_stats[command_count] = builtin_execution(command, all);
 					free_all_struct(all);
 					free(command);
 					exit(exit_stats[command_count]);
 				}
+				else if (bin_path)
+					execve(bin_path, command, all->env_arr);
 				exec_error(bin_path, all, "execve failed\n");
 			}
 			else if (pids[command_count] > 0)
@@ -969,68 +986,66 @@ int	valid_command(char *command, t_all *all)
 // 	signal(SIGQUIT, SIG_IGN);
 // }
 
-
-
 /******************* main ******************/
 
-// int	main(int argc, char **argv, char **envp)
-// {
-// 	char	**commands;
-// 	char	*line;
-// 	t_all	*all;
+int	main(int argc, char **argv, char **envp)
+{
+	char	**commands;
+	char	*line;
+	t_all	*all;
 
-// 	(void) argc;
-// 	(void) argv;
-// 	all = (t_all *)malloc(sizeof(t_all));
-// 	if (!all)
-// 		return (0);
-// 	all->exit_status = 0;
-// 	all->command_list = NULL;
-// 	all->env_list = NULL;
-// 	all->heredoc_command = 0;
-// 	int_lst_env(&all->env_list, envp);
-// 	all->env_arr = list_to_array(all->env_list);
+	(void) argc;
+	(void) argv;
+	all = (t_all *)malloc(sizeof(t_all));
+	if (!all)
+		return (0);
+	all->exit_status = 0;
+	all->command_list = NULL;
+	all->env_list = NULL;
+	all->heredoc_command = 0;
+	int_lst_env(&all->env_list, envp);
+	all->env_arr = list_to_array(all->env_list);
 
-// 	while (1)
-// 	{
-// 		// put_signal_handlig(1);
-// 		// if (flag == SIGINT)
-// 		// {
-// 		// 	printf("\n");
-// 		// 	flag = 0;
-// 		// }
-// 		line = readline(">: ");
-// 		if(!line)
-// 		{
-// 			write(1,"exit\n",5);
-// 			exit(all->exit_status);
-// 		}
-// 		if (*line)
-// 			add_history(line);
-// 		line = replace_env_vars(line, all);
-// 		// printf("line : %s\n", line);
+	while (1)
+	{
+		// put_signal_handlig(1);
+		// if (flag == SIGINT)
+		// {
+		// 	printf("\n");
+		// 	flag = 0;
+		// }
+		line = readline(">: ");
+		if(!line)
+		{
+			write(1,"exit\n",5);
+			exit(all->exit_status);
+		}
+		if (*line)
+			add_history(line);
+		line = replace_env_vars(line, all);
+		// printf("line : %s\n", line);
 
-// 		commands = ft_split_esc(all, line, '|');
-// 		// printf("commands :\n");
-// 		// print_split(commands);
-// 		if (valid_command(line, all))
-// 		{
-// 			ft_free(line);
-// 			init_list(&all->command_list, commands);
+		commands = ft_split_esc(all, line, '|');
+		// printf("commands :\n");
+		// print_split(commands);
 
-// 			// printf("command_list :\n\n");
-// 			// print_command_list(all->command_list);
-// 			// printf("\n\n");
+		// if (valid_command(line, all))
+		// {
+			ft_free(line);
+			init_list(&all->command_list, commands);
 
-// 			exec_commands(all);
-// 			free_list(all->command_list);
-// 			// printf("\nexit_status : %d\n\n", all->exit_status);
-// 		}
-// 		all->heredoc_command = 0;
-// 	}
 
-// 	return (0);
-// }
+			// print_command_list(all->command_list);
+			// printf("\n\n");
+
+			exec_commands(all);
+			free_list(all->command_list);
+			// printf("exit_status : %d\n\n", all->exit_status);
+		// }
+		all->heredoc_command = 0;
+	}
+	return (0);
+}
 
 
 
@@ -1061,7 +1076,7 @@ int	valid_command(char *command, t_all *all)
 // 	{
 // 		ft_free(line);
 // 		init_list(&all->command_list, commands);
-// 		// printf("%d\n", ft_lstsize(all->command_list));
+// 		// printf("%d\n", ft_lst_cmd_size(all->command_list));
 // 		exec_commands(all);
 // 		// printf("exit stat = %d\n", all->exit_status);
 // 		free_list(all->command_list);
@@ -1075,43 +1090,43 @@ int	valid_command(char *command, t_all *all)
 
 /***********************  tester  **************************/
 
-int	ft_launch_minishell(char *line, char **envp)
-{
-	char	**commands;
-	t_all	*all;
+// int	ft_launch_minishell(char *line, char **envp)
+// {
+// 	char	**commands;
+// 	t_all	*all;
 
-	all = (t_all *)malloc(sizeof(t_all));
-	if (!all)
-		return (0);
-	all->exit_status = 0;
-	all->command_list = NULL;
-	all->env_list = NULL;
-	all->heredoc_command = 0;
-	int_lst_env(&all->env_list, envp);
-	all->env_arr = list_to_array(all->env_list);
-	if (*line)
-		add_history(line);
-	line = replace_env_vars(line, all);
-	commands = ft_split_esc(all, line, '|');
-	if (valid_command(line, all))
-	{
-		ft_free(line);
-		init_list(&all->command_list, commands);
-		exec_commands(all);
-		free_list(all->command_list);
-	}
-	all->heredoc_command = 0;
-	return (all->exit_status);
-	// return (free_all_struct(all),  all->exit_status);
-}
+// 	all = (t_all *)malloc(sizeof(t_all));
+// 	if (!all)
+// 		return (0);
+// 	all->exit_status = 0;
+// 	all->command_list = NULL;
+// 	all->env_list = NULL;
+// 	all->heredoc_command = 0;
+// 	int_lst_env(&all->env_list, envp);
+// 	all->env_arr = list_to_array(all->env_list);
+// 	if (*line)
+// 		add_history(line);
+// 	line = replace_env_vars(line, all);
+// 	commands = ft_split_esc(all, line, '|');
+// 	if (valid_command(line, all))
+// 	{
+// 		ft_free(line);
+// 		init_list(&all->command_list, commands);
+// 		exec_commands(all);
+// 		free_list(all->command_list);
+// 	}
+// 	all->heredoc_command = 0;
+// 	return (all->exit_status);
+// 	// return (free_all_struct(all),  all->exit_status);
+// }
 
-int	main(int argc, char **argv, char **envp)
-{
-	(void) argc;
-	(void) argv;
-	if (argc >= 3 && !ft_strncmp(argv[1], "-c", 3))
-	{
-		int exit_status = ft_launch_minishell(argv[2], envp);
-		exit(exit_status);
-	}
-}
+// int	main(int argc, char **argv, char **envp)
+// {
+// 	(void) argc;
+// 	(void) argv;
+// 	if (argc >= 3 && !ft_strncmp(argv[1], "-c", 3))
+// 	{
+// 		int exit_status = ft_launch_minishell(argv[2], envp);
+// 		exit(exit_status);
+// 	}
+// }

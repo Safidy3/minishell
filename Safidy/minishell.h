@@ -39,6 +39,13 @@ extern volatile int flag;
 # define INPUT 3
 # define HEREDOC 4
 
+typedef struct s_cmd_list
+{
+	char				**cmd_arr;
+	int					*in_quote;
+	struct s_cmd_list	*next;
+}						t_cmd_list;
+
 typedef struct	s_env_list
 {
 	char		*value;
@@ -50,12 +57,12 @@ typedef struct	s_env_list
 
 typedef struct	s_all
 {
-	int			exit_status;
-	t_list		*command_list;
-	char		**env_arr;
-	int			heredoc_command;
-	t_env_list	*env_list;
-}				t_all;
+	int				exit_status;
+	t_cmd_list		*command_list;
+	char			**env_arr;
+	int				heredoc_command;
+	t_env_list		*env_list;
+}					t_all;
 
 /*
 	1:'>' truncate output
@@ -70,7 +77,20 @@ typedef struct	s_redirect
 	int			fd;
 }				t_redirect;
 
+/************************************** */
+
+
+t_cmd_list		*ft_lst_new_cmd(char **cmd_arr);
+void			ft_lst_cmd_iter(t_cmd_list *lst, void (*f)(char **));
+void			ft_lst_cmd_clear(t_cmd_list **lst, void (*del)(char **));
+void			ft_lst_cmd_delone(t_cmd_list *lst, void (*del)(char **));
+void			ft_lst_add_back_cmd(t_cmd_list **lst, t_cmd_list *new);
+int				ft_lst_cmd_size(t_cmd_list *lst);
+
+/************************************** */
+
 char			**ft_split_esc_2(char *s, char c);
+int				*ft_split_arg_type(char *s, char c);
 
 /************************************** */
 
@@ -118,7 +138,7 @@ int				ft_cd(char *path, t_all *all);
 
 char			*replace_env_vars(char *s, t_all *all);
 void			exec_commands(t_all *all);
-void			init_list(t_list **commands_list, char **arr_commands);
+void			init_list(t_cmd_list **commands_list, char **arr_commands);
 char			**ft_split_esc(t_all *all, const char *s, char c);
 
 #endif

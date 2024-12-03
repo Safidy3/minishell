@@ -21,8 +21,9 @@ static int	is_special_char(char c)
 
 static char	*ft_escap_spliter(char *s, char c)
 {
-	while (*s == c)
-		s++;
+	if (*s == c)
+		while (*s && *s == c)
+			s++;
 	return (s);
 }
 
@@ -31,7 +32,7 @@ static char	*ft_escape_quote(char *s)
 	char	quote;
 
 	quote = *s++;
-	while (*s && *s != quote)
+	while (s && *s && *s != quote)
 		s++;
 	if (*s)
 		s++;
@@ -40,6 +41,8 @@ static char	*ft_escape_quote(char *s)
 
 static char	*ft_escape_special_char(char *s)
 {
+	char	quote;
+
 	if (is_special_char(*s))
 	{
 		s++;
@@ -47,6 +50,12 @@ static char	*ft_escape_special_char(char *s)
 			s++;
 		while (ft_isspace(*s))
 			s++;
+		if (*s == '\'' || *s == '\"')
+		{
+			quote = *s++;
+			while (*s && *s != quote)
+				s++;			
+		}
 		while (*s && !ft_isspace(*s) && !is_special_char(*s))
 			s++;
 	}
@@ -173,23 +182,94 @@ char	**ft_split_esc_2(char *s, char c)
 
 	i = -1;
 	words = ft_count_words(s, c);
+	// printf("words = %ld\n", words);
 	tab = (char **)calloc(sizeof(char *), (words + 1));
 	if (!tab || words == 0 || !s)
 		return (NULL);
 	while (++i < words)
 	{
+		// printf(">%s\n", s);
 		s = ft_escap_spliter(s, c);
 		word_len = ft_count_words_len(s, c);
 		tab[i] = (char *)calloc(sizeof(char), (word_len + 1));
 		if (!tab[i])
 			return (ft_free_exit(tab));
-		// if (word_len == 0)
-		// {
-		// 	tab[i][0] = ' ';
-		// 	s++;
-		// }
-		// else
 		s = cpy_to_arr(s, tab[i], word_len);
+	}
+	return (tab);
+}
+
+/************************* arg type array ************************** */
+
+static int	arg_skip_quote(char *s, int *word_len, int *i)
+{
+	char	quote;
+	int		in_quote;
+
+	in_quote = 0;
+	if (s[*i] == '\'' || s[*i] == '"')
+	{
+		quote = s[(*i)++];
+		while (s[*i] && s[*i] != quote)
+		{
+			if (is_special_char(s[*i]))
+				return (1);
+			(*i)++;
+		}
+		if (s[*i])
+			(*i)++;
+		*word_len -= 2;
+	}
+	return (in_quote);
+}
+
+static int	ft_check_in_quote(char *s, char c)
+{
+	int		word_len;
+	int		i;
+	int		in_quote;
+
+	word_len = 0;
+	i = 0;
+	in_quote = 0;
+	if (s[i] && s[i] != c)
+	{
+		while (s[i] && s[i] != c)
+		{
+			if (is_special_char(s[i]) && in_quote == 0)
+				return (0);
+			if (s[i] == '\'' || s[i] == '"')
+				in_quote = arg_skip_quote(s, &word_len, &i);
+			if (in_quote == 1)
+				return (1);
+			i++;
+		}
+	}
+	return (in_quote);
+}
+
+int	*ft_split_arg_type(char *s, char c)
+{
+	int		*tab;
+	size_t	words;
+	size_t	word_len;
+	size_t	i;
+	int		in_quote;
+
+	i = -1;
+	words = ft_count_words(s, c);
+	tab = (int *)calloc(sizeof(int), words);
+	if (!tab || words == 0 || !s)
+		return (NULL);
+	while (++i < words)
+	{
+		in_quote = 0;
+		s = ft_escap_spliter(s, c);
+		word_len = ft_count_words_len(s, c);
+		in_quote = ft_check_in_quote(s, c);
+		// printf("in_quote = %d\n", in_quote);
+		tab[i] = in_quote;
+		s += word_len;
 	}
 	return (tab);
 }
