@@ -18,7 +18,7 @@ static char	*set_last_pipe(const char *s, int *last_was_pipe)
 	return ((char *)++s);
 }
 
-static size_t ft_count_words(t_all *all, const char *s, char c)
+static size_t ft_count_words(const char *s, char c)
 {
 	size_t	count;
 	int		last_was_pipe;
@@ -42,8 +42,6 @@ static size_t ft_count_words(t_all *all, const char *s, char c)
 		else if (*s == c)
 			s = set_last_pipe(s, &last_was_pipe);
 	}
-	if (last_was_pipe)
-		all->heredoc_command = 1;
 	return (count);
 }
 
@@ -85,7 +83,7 @@ static void	*ft_free_exit(char **tab)
 	return (NULL);
 }
 
-char	**ft_split_esc(t_all *all, const char *s, char c)
+char	**ft_split_esc(const char *s, char c)
 {
 	char	**tab;
 	size_t	words;
@@ -93,7 +91,7 @@ char	**ft_split_esc(t_all *all, const char *s, char c)
 	size_t	i;
 
 	i = -1;
-	words = ft_count_words(all, s, c);
+	words = ft_count_words(s, c);
 	tab = (char **)calloc(sizeof(char *), (words + 1));
 	if (!tab || words == 0)
 		return (NULL);

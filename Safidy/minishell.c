@@ -258,7 +258,8 @@ void append_env_value(char **dst, char **s, t_all *all)
 			;
 		ft_free(env_name);
 	}
-	else if (**s == '$' && *(*s + 1) == '?' && (ft_isspace(*(*s + 1)) || !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
+	// else if (**s == '$' && *(*s + 1) == '?' && (ft_isspace(*(*s + 1)) || !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
+	else if (**s == '$' && *(*s + 1) == '?')
 	{
 		exit_stat = ft_itoa(all->exit_status);
 		temp = *dst;
@@ -610,7 +611,6 @@ int manage_redirections(t_redirect **redirections, t_all *all)
 	return (0);
 }
 
-
 char	**get_new_command(char **command, t_all *all)
 {
 	char	**new_command;
@@ -845,7 +845,10 @@ int exec_commands(t_all *all)
 
 		bin_path = get_bin_path(command[0]);
 		if (!bin_path && !is_builtins(command[0]))
+		{
 			exit_stats[command_count] = command_not_found(command_list, command);
+			return (1);
+		}
 		if (ft_strcmp(command[0], "exit") == 0)
 		{
 			ft_putendl_fd(command[0], 2);
@@ -1044,7 +1047,7 @@ int main(int argc, char **argv, char **envp)
 
 		// printf("line : %s\n", line);
 
-		commands = ft_split_esc(all, line, '|');
+		commands = ft_split_esc(line, '|');
 
 		// printf("commands :\n");
 		// print_split(commands);
@@ -1087,11 +1090,10 @@ int main(int argc, char **argv, char **envp)
 // 	all->exit_status = 0;
 // 	all->command_list = NULL;
 // 	all->env_list = NULL;
-// 	all->heredoc_command = 0;
 // 	int_lst_env(&all->env_list, envp);
 // 	all->env_arr = list_to_array(all->env_list);
 
-// 	line = "export TES!T=123";
+// 	line = "echo $?HOME";
 // 	line = replace_env_vars(line, all);
 
 // 	commands = ft_split_esc(all, line, '|');
@@ -1124,7 +1126,6 @@ int main(int argc, char **argv, char **envp)
 // 	all->exit_status = 0;
 // 	all->command_list = NULL;
 // 	all->env_list = NULL;
-// 	all->heredoc_command = 0;
 // 	int_lst_env(&all->env_list, envp);
 // 	all->env_arr = list_to_array(all->env_list);
 // 	if (*line)
@@ -1138,7 +1139,6 @@ int main(int argc, char **argv, char **envp)
 // 		exec_commands(all);
 // 		free_list(all->command_list);
 // 	}
-// 	all->heredoc_command = 0;
 // 	return (all->exit_status);
 // 	// return (free_all_struct(all),  all->exit_status);
 // }

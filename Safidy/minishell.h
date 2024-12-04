@@ -72,6 +72,11 @@ typedef struct	s_redirect
 
 char			**ft_split_esc_2(char *s, char c);
 
+/******************** UTILS ****************** */
+
+void	free_split(char **array);
+void	print_split(char **array);
+
 /************************************** */
 
 void			ft_swap_string(char **s1, char **s2);
@@ -119,7 +124,7 @@ int				ft_cd(char *path, t_all *all);
 char			*replace_env_vars(char *s, t_all *all);
 int				exec_commands(t_all *all);
 void			init_list(t_list **commands_list, char **arr_commands);
-char			**ft_split_esc(t_all *all, const char *s, char c);
+char			**ft_split_esc(const char *s, char c);
 
 /**************************************/
 void put_signal_handlig(int i);

@@ -197,6 +197,8 @@ int	ft_export(t_env_list *env, char **command)
 	int	i;
 	int	flag;
 
+	printf("export commands :\n");
+	print_split(command);
 	flag = 0;
 	i = 1;
 	while (command[i] != NULL)
