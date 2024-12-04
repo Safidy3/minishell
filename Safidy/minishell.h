@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/11/29 14:57:29 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/03 14:26:28 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ typedef struct	s_all
 	int			exit_status;
 	t_list		*command_list;
 	char		**env_arr;
-	int			heredoc_command;
+	int			fd_og[2];
 	t_env_list	*env_list;
 }				t_all;
 
@@ -117,8 +117,11 @@ int				ft_cd(char *path, t_all *all);
 /************************************** */
 
 char			*replace_env_vars(char *s, t_all *all);
-void			exec_commands(t_all *all);
+int				exec_commands(t_all *all);
 void			init_list(t_list **commands_list, char **arr_commands);
 char			**ft_split_esc(t_all *all, const char *s, char c);
+
+/**************************************/
+void put_signal_handlig(int i);
 
 #endif
