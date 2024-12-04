@@ -85,7 +85,7 @@ t_env_list	*ft_dup_env(t_env_list **env)
 	return (dup_env);
 }
 
-void	ft_print_export(t_env_list *env)
+int	ft_print_export(t_env_list *env)
 {
 	t_env_list	*tmp;
 	t_env_list	*env_export;
@@ -110,6 +110,7 @@ void	ft_print_export(t_env_list *env)
 		i++;
 	}
 	ft_free_env_list(env_export);
+	return (0);
 }
 
 void	ft_update_flag_1(t_env_list *env_list, char *line)
@@ -192,21 +193,23 @@ int	ft_maj_export(t_env_list *env, char *command, int *flag)
 	return (free(variable_name), 0);
 }
 
-int	ft_export(t_env_list *env, char **command)
+int	ft_export(t_env_list **env, char **command)
 {
-	int	i;
-	int	flag;
+	int		i;
+	int		flag;
+	t_env_list	*new;
 
-	printf("export commands :\n");
-	print_split(command);
 	flag = 0;
 	i = 1;
 	while (command[i] != NULL)
 	{
 		if (command[i])
 		{
-			if (ft_maj_export(env, command[i], &flag) == 0)
-				ft_lstadd_back(&env, ft_lstnew(command[i], flag));
+			if (ft_maj_export(*env, command[i], &flag) == 0)
+			{
+				new = ft_lstnew(command[i], flag);
+				ft_lstadd_back(env, new);
+			}
 			else
 				return (1);
 		}

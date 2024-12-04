@@ -12,12 +12,13 @@
 
 #include "../minishell.h"
 
-void ft_pwd()
+int ft_pwd()
 {
 	char *s;
 	s = getcwd(NULL, 0);
 	printf("%s\n",s);
 	free(s);
+	return (0);
 }
 
 char	*manage_home_path(char *path, t_all *all)

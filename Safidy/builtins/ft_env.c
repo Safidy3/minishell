@@ -164,7 +164,7 @@ char	**list_to_array(t_env_list *env)
 	return (dir);
 }
 
-void	ft_print_env(t_env_list *env)
+int	ft_print_env(t_env_list *env)
 {
 	t_env_list	*tmp;
 
@@ -175,4 +175,5 @@ void	ft_print_env(t_env_list *env)
 			printf("%s=%s\n", tmp->first, tmp->second);
 		tmp = tmp->next;
 	}
+	return (0);
 }

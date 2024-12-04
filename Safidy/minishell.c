@@ -749,20 +749,20 @@ int	builtin_execution(char **command, t_all *all)
 	if (!ft_strncmp(command[0], "export", ft_strlen("export")))
 	{
 		if (array_len(command) == 1)
-			ft_print_export(all->env_list);
+			exit_status = ft_print_export(all->env_list);
 		else
-			exit_status = ft_export(all->env_list, command);
+			exit_status = ft_export(&all->env_list, command);
 	}
 	else if (!ft_strncmp(command[0], "unset", ft_strlen("unset")))
-		ft_unset(&all->env_list, command);
+		exit_status = ft_unset(&all->env_list, command);
 	else if (!ft_strncmp(command[0], "env", ft_strlen("env")))
-		ft_print_env(all->env_list);
+		exit_status = ft_print_env(all->env_list);
 	else if (!ft_strncmp(command[0], "echo", ft_strlen("echo")))
 		exit_status = ft_echo(command);
 	else if (!ft_strncmp(command[0], "cd", ft_strlen("cd")))
 		exit_status = ft_cd(command[1], all);
 	else if (!ft_strncmp(command[0], "pwd", ft_strlen("pwd")))
-		ft_pwd();
+		exit_status = ft_pwd();
 	else if (!ft_strncmp(command[0], "exit", ft_strlen("exit")))
 	{
 		exit_status = all->exit_status;
@@ -779,8 +779,8 @@ int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_all
 {
 	char        **command;
 	int			exit_stat;
-
 	int         std_backup[2];
+
 	std_backup[0] = dup(STDIN_FILENO);
 	std_backup[1] = dup(STDOUT_FILENO);
 	if (std_backup[0] == -1 || std_backup[1] == -1)
@@ -859,6 +859,13 @@ int exec_commands(t_all *all)
 			free(all);
 			free(command);
 			exit(exit_status);
+		}
+		if (!ft_strcmp(command[0], "env") ||!ft_strcmp(command[0], "export") || !ft_strcmp(command[0], "unset"))
+		{
+			if (bin_path)
+				free(bin_path);
+			exit_stats[command_count] = exec_builtins(command_list, prev_fd, current_fd, all);
+			free(command);
 		}
 		else
 		{
@@ -967,7 +974,6 @@ volatile int flag;
 
 void handle_ctrl_c_heredoc(int sig, siginfo_t *ok, void *param)
 {
-
 	if (ok->si_pid != 0 && sig == SIGINT)
 	{
 		flag = SIGINT;

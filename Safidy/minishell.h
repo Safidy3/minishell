@@ -76,6 +76,7 @@ char			**ft_split_esc_2(char *s, char c);
 
 void	free_split(char **array);
 void	print_split(char **array);
+char	*ft_getenv(char *env_var, t_all *all);
 
 /************************************** */
 
@@ -92,7 +93,7 @@ void			ft_free_env_list(t_env_list *env);
 void			int_lst_env(t_env_list **list,char **envp);
 char			**list_to_array(t_env_list *env);
 char			*ft_getenv(char *env_var, t_all *all);
-void			ft_print_env(t_env_list *env);
+int				ft_print_env(t_env_list *env);
 
 /************************************** */
 
@@ -101,22 +102,22 @@ void			ft_print_export_error(char *commande);
 int				ft_check_after_first_caracter(char *variable_name, char *commande);
 int				ft_export_error(char *variable_name, char *commande);
 t_env_list		*ft_dup_env(t_env_list **env);
-void			ft_print_export(t_env_list *env);
+int				ft_print_export(t_env_list *env);
 void			ft_update_flag_1(t_env_list *tmp, char *line);
 void			ft_update_flag_0(t_env_list *tmp, char *line, char *commande);
 void			ft_update_ensemble(int *flag, t_env_list *tmp, char *line, char *commande);
 char			*ft_init_variable_name(char *commande, int *flag, char *line);
 int				ft_maj_export(t_env_list *env, char *commande, int *flag);
-int				ft_export(t_env_list *env, char **commade);
+int				ft_export(t_env_list **env, char **commade);
 
 /************************************** */
 
 void			ft_free_tmp(t_env_list *tmp);
-void			ft_unset(t_env_list **env, char **commande);
+int				ft_unset(t_env_list **env, char **commande);
 
 /************************************** */
 
-void			ft_pwd();
+int				ft_pwd();
 int				ft_cd(char *path, t_all *all);
 
 /************************************** */

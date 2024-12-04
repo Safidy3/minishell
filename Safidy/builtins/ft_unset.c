@@ -20,7 +20,7 @@ void	ft_free_tmp(t_env_list *tmp)
 	free(tmp);
 }
 
-void	ft_unset(t_env_list **env, char **commande)
+int	ft_unset(t_env_list **env, char **commande)
 {
 	t_env_list	*tmp;
 	t_env_list	*prev;
@@ -47,4 +47,5 @@ void	ft_unset(t_env_list **env, char **commande)
 		}
 		i++;
 	}
+	return (0);
 }
