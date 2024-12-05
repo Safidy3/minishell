@@ -524,10 +524,19 @@ char *read_join_heredoc(char *buffer, char *delimiter, t_all *all)
 	tmp2 = NULL;
 	tmp = NULL;
 	input = NULL;
+	if (!buffer)
+		buffer = ft_strdup("");
 	while (1)
 	{
 		put_signal_handlig(2);
 		input = readline("heredoc> ");
+		if (!input)
+		{
+			write(2,"bash: warning: here-document (",30);
+			write(2,delimiter,ft_strlen(delimiter));
+			write(2,")\n",2);
+			break;
+		}
 		if (flag == SIGINT && !input)
 		{
 			put_signal_handlig(1);
@@ -540,13 +549,13 @@ char *read_join_heredoc(char *buffer, char *delimiter, t_all *all)
 		}
 		if (strcmp(input, delimiter) == 0)
 		{
+			if (!buffer)
+				buffer = ft_strdup("");
 			free(input);
 			break;
 		}
 		tmp = ft_strjoin(input, "\n");
 		free(input);
-		if (!buffer)
-			buffer = ft_strdup("");
 		tmp2 = buffer;
 		buffer = ft_strjoin(buffer, tmp);
 		free(tmp2);
@@ -974,56 +983,54 @@ void	command_error(t_all *all)
 	exit(EXIT_FAILURE);
 }
 
-int	is_valid_command(char * command)
+int	is_valid_command(char *command)
 {
 	int	i;
+	int flag_redirection = 0;
+	int flag_iteration = 0;
 
-	i = -1;
-	while (command[++i])
+	i = 0;
+	while (command[i] && ft_isspace(command[i]))
+		i++;
+	if ((int)ft_strlen(command) == i)
+		return(0);
+	i = 0;
+	while (command[i])
 	{
 		if (ft_isspace(command[i]))
+		{
+			flag_iteration = 1;
 			i++;
-
-		if (command[i] == '>' || command[i] == '<')
+		}
+		if (command[i] == '|' || command[i] == '>' || command[i] == '<')
 		{
-			if (ft_strncmp(&command[i], ">>>", 3) == 0
-				|| ft_strncmp(&command[i], "<<<", 3) == 0
-			)
+			if ((command[i] == '>' && command[i + 1] == '>' ) || ( command[i] == '<' && command[i + 1] == '<') )
+			{
+				flag_iteration = 1;
+				i = i + 2;
+			}
+			if (flag_redirection == 0 )
+			{
+				flag_redirection = 1;
+			}
+			else
 			{
 				ft_putstr_fd("bash: syntax error\n", 1);
-				return (0);
-			}
+				// return(0);
+			}	
 		}
-
-		if (command[i] == '|')
-		{
-			if (command[i + 1] == '|'
-				|| command[i + 1] == '>'
-				|| command[i + 1] == '<'
-			)
-			{
-				ft_putstr_fd("bash: syntax error\n", 1);
-				return (0);
-			}
-		}
-		if (command[i] == '|')
-		{
-			if (command[i + 1] == '|'
-				|| command[i + 1] == '>'
-				|| command[i + 1] == '<'
-			)
-			{
-				ft_putstr_fd("bash: syntax error\n", 1);
-				return (0);
-			}
-		}
-		i++;
-		// else
-		// 	while (command[i] && command[i] != '|')
-		// 		i++;
-		// if (!command[i])
-		// 	break;
+		if (flag_iteration == 1)
+		
+			flag_iteration = 0;
+		else
+			i++;
 	}
+	if (flag_redirection)
+	{
+		ft_putstr_fd("bash: syntax error\n", 1);
+		// return (0);
+	}
+	
 	return (1);
 }
 
@@ -1116,7 +1123,7 @@ int main(int argc, char **argv, char **envp)
 		line = readline(">: ");
 		if (!line)
 		{
-			write(1, "read line error\n", 16);
+			write(2,"exit\n",5);
 			exit(all->exit_status);
 		}
 		if (*line)
