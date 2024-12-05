@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pwd_cd.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/12 15:57:34 by larakoto          #+#    #+#             */
-/*   Updated: 2024/11/29 15:20:14 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/05 11:37:36 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,16 +38,28 @@ char	*manage_home_path(char *path, t_all *all)
 	return (path);
 }
 
-int	ft_cd(char *path, t_all *all)
+int	ft_cd(char **t_path, t_all *all)
 {
 	t_env_list	*env;
 	char		*o_path;
 	char		*n_path;
+	char		*path;
 
-	path = manage_home_path(path, all);
+	if (array_len(t_path) > 2)
+	{
+		ft_putstr_fd(" too many arguments\n", 2);
+		return (1);
+	}
+	path = manage_home_path(t_path[1], all);
 	o_path = getcwd(NULL, 0);
 	if (!o_path)
 		return (perror("getcwd"), 2);
+	
+	if (ft_strcmp(o_path, t_path[1]) == 0)
+	{
+		free(o_path);
+		return (0);
+	}
 	if (chdir(path) == -1)
 		return (free(o_path), perror(path), 1);
 	n_path = getcwd(NULL,0);

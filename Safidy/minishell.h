@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/03 14:26:28 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/05 11:24:44 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,7 @@ char			**ft_split_esc_2(char *s, char c);
 void	free_split(char **array);
 void	print_split(char **array);
 char	*ft_getenv(char *env_var, t_all *all);
+int		array_len(char **array);
 
 /************************************** */
 
@@ -118,7 +119,7 @@ int				ft_unset(t_env_list **env, char **commande);
 /************************************** */
 
 int				ft_pwd();
-int				ft_cd(char *path, t_all *all);
+int				ft_cd(char **path, t_all *all);
 
 /************************************** */
 

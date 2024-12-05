@@ -805,7 +805,7 @@ int	builtin_execution(char **command, t_all *all)
 	else if (!ft_strncmp(command[0], "echo", ft_strlen("echo")))
 		exit_status = ft_echo(command);
 	else if (!ft_strncmp(command[0], "cd", ft_strlen("cd")))
-		exit_status = ft_cd(command[1], all);
+		exit_status = ft_cd(command, all);
 	else if (!ft_strncmp(command[0], "pwd", ft_strlen("pwd")))
 		exit_status = ft_pwd();
 	else if (!ft_strncmp(command[0], "exit", ft_strlen("exit")))
@@ -981,21 +981,48 @@ int	is_valid_command(char * command)
 	i = -1;
 	while (command[++i])
 	{
-		while (ft_isspace(command[i]))
+		if (ft_isspace(command[i]))
 			i++;
-		if (command[i] == '|' || command[i] == '\0'
-			|| ft_strncmp(&command[i], ">>>", 3) == 0
-			|| ft_strncmp(&command[i], "<<<", 3) == 0
-			|| ft_strncmp(&command[i], "&&&", 3) == 0)
+
+		if (command[i] == '>' || command[i] == '<')
 		{
-			ft_putstr_fd("bash: syntax error\n", 1);
-			return (0);
+			if (ft_strncmp(&command[i], ">>>", 3) == 0
+				|| ft_strncmp(&command[i], "<<<", 3) == 0
+			)
+			{
+				ft_putstr_fd("bash: syntax error\n", 1);
+				return (0);
+			}
 		}
-		else
-			while (command[i] && command[i] != '|')
-				i++;
-		if (!command[i])
-			break;
+
+		if (command[i] == '|')
+		{
+			if (command[i + 1] == '|'
+				|| command[i + 1] == '>'
+				|| command[i + 1] == '<'
+			)
+			{
+				ft_putstr_fd("bash: syntax error\n", 1);
+				return (0);
+			}
+		}
+		if (command[i] == '|')
+		{
+			if (command[i + 1] == '|'
+				|| command[i + 1] == '>'
+				|| command[i + 1] == '<'
+			)
+			{
+				ft_putstr_fd("bash: syntax error\n", 1);
+				return (0);
+			}
+		}
+		i++;
+		// else
+		// 	while (command[i] && command[i] != '|')
+		// 		i++;
+		// if (!command[i])
+		// 	break;
 	}
 	return (1);
 }
