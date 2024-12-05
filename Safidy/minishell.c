@@ -731,6 +731,51 @@ int	ft_echo(char **tokens)
 	return (0);
 }
 
+int	ft_exit(t_all *all, char **command)
+{
+	int exit_status;
+	(void) command;
+	int i;
+	int not_digit;
+
+	i = 0;
+	not_digit = 0;
+	exit_status = all->exit_status;
+	if (array_len(command) != 1)
+	{
+		if (command[1][i] == '-' || command[1][i] == '+')
+			i++;
+		while (command[1][i])
+		{
+			if (!ft_isdigit(command[1][i]))
+			{
+				// ft_putstr_fd("bash: exit: " , 1);
+				// ft_putstr_fd("command[1][i]: " , 1);
+				ft_putstr_fd(" numeric argument required\n" , 2);
+				not_digit = 1;
+				break;
+			}
+			i++;
+		}
+		if (not_digit)
+			exit_status = 2;
+		else
+			exit_status = ft_atoi(command[1]);
+		if (array_len(command) > 2)
+		{
+			ft_putstr_fd(" too many arguments\n", 2);
+			exit_status = 1;
+		}
+	}
+	free_list(all->command_list);
+	free_split(all->env_arr);
+	ft_free_env_list(all->env_list);
+	free(all);
+	// printf("exit_status = %d\n",exit_status);
+	exit(exit_status);
+	return (0);
+}
+
 void	restore_og_std(int std_backup[2], t_all *all)
 {
 	if (dup2(std_backup[0], STDIN_FILENO) == -1)
@@ -764,14 +809,7 @@ int	builtin_execution(char **command, t_all *all)
 	else if (!ft_strncmp(command[0], "pwd", ft_strlen("pwd")))
 		exit_status = ft_pwd();
 	else if (!ft_strncmp(command[0], "exit", ft_strlen("exit")))
-	{
-		exit_status = all->exit_status;
-		free_list(all->command_list);
-		free_split(all->env_arr);
-		ft_free_env_list(all->env_list);
-		free(all);
-		exit(exit_status);
-	}
+		ft_exit(all, command);
 	return (exit_status);
 }
 
@@ -814,6 +852,7 @@ int exec_commands(t_all *all)
 	t_list *command_list;
 	pid_t pids[MAX_COMMANDS];
 	int exit_stats[MAX_COMMANDS];
+	int cmd_type[MAX_COMMANDS];
 	int prev_fd[2];
 	int current_fd[2];
 	int command_count;
@@ -825,6 +864,11 @@ int exec_commands(t_all *all)
 	command_count = 0;
 	prev_fd[0] = -1;
 	prev_fd[1] = -1;
+
+
+	int i = -1;
+	while (++i < MAX_COMMANDS)
+		cmd_type[i] = 0;
 
 	command_list = all->command_list;
 	command_count = ft_lstsize(all->command_list);
@@ -843,29 +887,23 @@ int exec_commands(t_all *all)
 		if (!command)
 			exec_error(NULL, all, "get_new_command failed\n");
 
+		// printf("command_list :\n\n");
+		// print_split(command);
+		// printf("\n\n");
+
 		bin_path = get_bin_path(command[0]);
 		if (!bin_path && !is_builtins(command[0]))
 		{
-			exit_stats[command_count] = command_not_found(command_list, command);
+			all->exit_status = command_not_found(command_list, command);
 			return (1);
 		}
-		if (ft_strcmp(command[0], "exit") == 0)
-		{
-			ft_putendl_fd(command[0], 2);
-			int exit_status = all->exit_status;
-			free_list(all->command_list);
-			free_split(all->env_arr);
-			ft_free_env_list(all->env_list);
-			free(all);
-			free(command);
-			exit(exit_status);
-		}
-		if (!ft_strcmp(command[0], "env") ||!ft_strcmp(command[0], "export") || !ft_strcmp(command[0], "unset"))
+		if (!ft_strcmp(command[0], "exit") || !ft_strcmp(command[0], "env") ||!ft_strcmp(command[0], "export") || !ft_strcmp(command[0], "unset"))
 		{
 			if (bin_path)
 				free(bin_path);
-			exit_stats[command_count] = exec_builtins(command_list, prev_fd, current_fd, all);
 			free(command);
+			cmd_type[command_count] = 1;
+			exit_stats[command_count] = exec_builtins(command_list, prev_fd, current_fd, all);
 		}
 		else
 		{
@@ -899,9 +937,7 @@ int exec_commands(t_all *all)
 
 				dup2(all->fd_og[0], STDIN_FILENO);
 				dup2(all->fd_og[1], STDOUT_FILENO);
-				int status;
-				waitpid(pids[command_count], &status, 0);
-				exit_stats[command_count] = WEXITSTATUS(status);
+				// int status;
 				ft_free(bin_path);
 				free(command);
 			}
@@ -914,9 +950,18 @@ int exec_commands(t_all *all)
 	if (prev_fd[0] != -1)
 		close(prev_fd[0]);
 
-	int i = 0;
-	while (i < command_count)
-		all->exit_status = exit_stats[i++];
+	i = -1;
+	while (++i < command_count)
+	{
+		int status = 0;
+		if (cmd_type[i] == 1)
+			all->exit_status = exit_stats[i];
+		else if (cmd_type[i] == 0)
+		{
+			waitpid(pids[i], &status, 0);
+			all->exit_status = WEXITSTATUS(status);
+		}
+	}
 	return (0);
 }
 
@@ -1072,6 +1117,7 @@ int main(int argc, char **argv, char **envp)
 				free_list(all->command_list);
 				continue;
 			}
+
 			free_list(all->command_list);
 			// printf("\nexit_status : %d\n\n", all->exit_status);
 		}

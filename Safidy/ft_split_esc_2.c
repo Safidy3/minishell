@@ -47,6 +47,8 @@ static char	*ft_escape_special_char(char *s)
 			s++;
 		while (ft_isspace(*s))
 			s++;
+		if (*s && (*s == '\'' || *s == '"'))
+			s = ft_escape_quote(s);
 		while (*s && !ft_isspace(*s) && !is_special_char(*s))
 			s++;
 	}
