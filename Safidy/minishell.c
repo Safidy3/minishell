@@ -317,12 +317,16 @@ char *replace_env_vars(char *s, t_all *all)
 
 /******************* Exec Error ******************/
 
-void	fd_error(char *bin_path, t_all *all)
+void	fd_error(char *file_path)
 {
-	perror("fd error ");
-	ft_free(bin_path);
-	free_all_struct(all);
-	exit(EXIT_FAILURE);
+	// perror("fd error ");
+	// ft_free(bin_path);
+	// free_all_struct(all);
+	// exit(EXIT_FAILURE);
+	// ft_putstr_fd("bash: ", 2);
+	// ft_putstr_fd(file_path, 2);
+	// ft_putstr_fd(": No such file or directory;\n", 2);
+	perror(file_path);
 }
 
 void	exec_error(char *bin_path, t_all *all, char *msg)
@@ -397,6 +401,7 @@ char	*get_bin_path(char *command, t_all *all)
 	if (!path)
 		return (NULL);
 	bin_paths = ft_split(path, ':');
+	free(path);
 	if (!bin_paths)
 		return (NULL);
 	i = array_len(bin_paths);
@@ -491,7 +496,7 @@ static int handle_output_redirection(t_redirect *redirect, t_all *all)
 	else
 		fd = open(redirect->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
 	if (fd == -1)
-		fd_error(NULL, all);
+		fd_error(redirect->filename);
 	if (dup2(fd, STDOUT_FILENO) == -1)
 		exec_error(NULL, all, "dup2 failed\n");
 	return (fd);
@@ -515,7 +520,7 @@ static int	handle_input_redirection(t_redirect *redirect, t_all *all)
 
 	fd = open(redirect->filename, O_RDONLY);
 	if (fd == -1)
-		fd_error(NULL, all);
+		fd_error(redirect->filename);
 	if (dup2(fd, STDIN_FILENO) == -1)
 		exec_error(NULL, all, "dup2 failed\n");
 	return (fd);
@@ -624,7 +629,7 @@ int manage_redirections(t_redirect **redirections, t_all *all)
 		free(redirections[i]);
 	}
 	free(redirections);
-	return (0);
+	return (fd);
 }
 
 char	**get_new_command(char **command, t_all *all)
@@ -863,6 +868,13 @@ int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_all
 
 /* ls -la | grep Nov | cat | wc -l */
 
+void	close_dir(DIR *dir, char *path)
+{
+	ft_putstr_fd(path, 2);
+	if(dir != NULL)
+		closedir(dir);
+}
+
 int exec_commands(t_all *all)
 {
 	t_list *command_list;
@@ -897,11 +909,56 @@ int exec_commands(t_all *all)
 			exec_error(NULL, all, "pipe creation failed\n");
 
 		redirections = get_all_redirections((char **)command_list->content, all);
-		if (manage_redirections(redirections, all))
+		int redir_val = manage_redirections(redirections, all);
+		if (redir_val)
 			return (-1);
+		else if (redir_val == -1)
+			continue ;
 		command = get_new_command((char **)command_list->content, all);
 		if (!command)
 			exec_error(NULL, all, "get_new_command failed\n");
+		else
+		{
+			DIR *dir;
+			if (ft_strchr(command[0], '/'))
+			{
+				dir = opendir(command[0]);
+				if (dir || errno == EACCES)
+				{
+					close_dir(dir, command[0]);
+					all->exit_status = 126;
+
+					// error(": Is a directory\n", shell, envp, 126);
+				}
+				if (access(command[0], F_OK | X_OK) == -1)
+				{
+					if (errno == ENOENT)
+					{
+						close_dir(dir, command[0]);
+						ft_putendl_fd(": No such file or directory", 2);
+						all->exit_status = 127;
+						return (0);
+						// error(": No such file or directory\n", shell, envp, 127);
+					}
+					else if (errno == EACCES)
+					{
+						close_dir(dir, command[0]);
+						ft_putendl_fd(": Permission denied", 2);
+						all->exit_status = 126;
+						return (0);
+						// error(": Permission denied\n", shell, envp, 126);
+					}
+					else if (errno == ENOTDIR)
+					{
+						close_dir(dir, command[0]);
+						ft_putendl_fd(": Not a directory", 2);
+						all->exit_status = 126;
+						return (0);
+						// error(": Not a directory\n", shell, envp, 126);
+					}
+				}
+			}
+		}
 		bin_path = get_bin_path(command[0], all);
 		if (!bin_path && !is_builtins(command[0]))
 		{
@@ -1028,18 +1085,19 @@ int	is_valid_command(char *command)
 
 int	valid_command(char *command, t_all *all)
 {
+	(void)all;
 	if (!ft_strcmp(command, ":"))
 		return (0);
 	if (ft_strlen(command) == 0)
 		return (0);
 	if (ft_isallspace(command))
 		return(0);
-	if (!is_valid_command(command))
-	{
-		all->exit_status = 2;
-		free(command);
-		return (0);
-	}
+	// if (!is_valid_command(command))
+	// {
+	// 	all->exit_status = 2;
+	// 	free(command);
+	// 	return (0);
+	// }
 	return (1);
 }
 
@@ -1125,15 +1183,14 @@ int main(int argc, char **argv, char **envp)
 		line = replace_env_vars(line, all);
 
 		// printf("line : %s\n", line);
-
-			commands = ft_split_esc(line, '|');
-
-			// printf("commands :\n");
-			// print_split(commands);
+		commands = ft_split_esc(line, '|');
+		// printf("commands :\n");
+		// print_split(commands);
 
 		if (valid_command(line, all))
 		{
 			ft_free(line);
+
 			init_list(&all->command_list, commands);
 
 			// printf("command_list :\n\n");
