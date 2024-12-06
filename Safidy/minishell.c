@@ -381,21 +381,28 @@ char	*join_bin_path(char *commands_list, char *bin_path)
 	return (free(temp), res);
 }
 
-char	*get_bin_path(char *commands_list)
+char	*get_bin_path(char *command, t_all *all)
 {
 	char	**bin_paths;
 	char	*bin_path;
 	char	*result;
+	char	*path;
 	int		i;
 
+
+	if (access(command, F_OK | X_OK) == 0)
+		return (ft_strdup(command));
 	result = NULL;
-	bin_paths = ft_split(getenv("PATH"), ':');
+	path = ft_getenv("PATH", all);
+	if (!path)
+		return (NULL);
+	bin_paths = ft_split(path, ':');
 	if (!bin_paths)
 		return (NULL);
 	i = array_len(bin_paths);
 	while (--i >= 0)
 	{
-		bin_path = join_bin_path(commands_list, bin_paths[i]);
+		bin_path = join_bin_path(command, bin_paths[i]);
 		if (bin_path && access(bin_path, F_OK | X_OK) == 0)
 		{
 			if (result)
@@ -895,18 +902,13 @@ int exec_commands(t_all *all)
 		command = get_new_command((char **)command_list->content, all);
 		if (!command)
 			exec_error(NULL, all, "get_new_command failed\n");
-
-		// printf("command_list :\n\n");
-		// print_split(command);
-		// printf("\n\n");
-
-		bin_path = get_bin_path(command[0]);
+		bin_path = get_bin_path(command[0], all);
 		if (!bin_path && !is_builtins(command[0]))
 		{
 			all->exit_status = command_not_found(command_list, command);
 			return (1);
 		}
-		if (!ft_strcmp(command[0], "exit") || !ft_strcmp(command[0], "env") ||!ft_strcmp(command[0], "export") || !ft_strcmp(command[0], "unset"))
+		if (is_builtins(command[0]))
 		{
 			if (bin_path)
 				free(bin_path);
@@ -923,15 +925,7 @@ int exec_commands(t_all *all)
 					dup_in(prev_fd, all, bin_path, 0);
 				if (command_list->next)
 					dup_out(current_fd, all, bin_path, 1);
-				if (bin_path)
-					execve(bin_path, command, all->env_arr);
-				else if (is_builtins(command[0]))
-				{
-					exit_stats[command_count] = builtin_execution(command, all);
-					free_all_struct(all);
-					free(command);
-					exit(exit_stats[command_count]);
-				}
+				execve(bin_path, command, all->env_arr);
 				exec_error(bin_path, all, "execve failed\n");
 			}
 			else if (pids[command_count] > 0)
@@ -943,10 +937,8 @@ int exec_commands(t_all *all)
 					close(current_fd[1]);
 					prev_fd[0] = current_fd[0];
 				}
-
 				dup2(all->fd_og[0], STDIN_FILENO);
 				dup2(all->fd_og[1], STDOUT_FILENO);
-				// int status;
 				ft_free(bin_path);
 				free(command);
 			}
@@ -988,7 +980,7 @@ int	is_valid_command(char *command)
 	int	i;
 	int flag_redirection = 0;
 	int flag_iteration = 0;
-
+	
 	i = 0;
 	while (command[i] && ft_isspace(command[i]))
 		i++;
@@ -1036,8 +1028,12 @@ int	is_valid_command(char *command)
 
 int	valid_command(char *command, t_all *all)
 {
+	if (!ft_strcmp(command, ":"))
+		return (0);
 	if (ft_strlen(command) == 0)
 		return (0);
+	if (ft_isallspace(command))
+		return(0);
 	if (!is_valid_command(command))
 	{
 		all->exit_status = 2;
@@ -1090,9 +1086,7 @@ void put_signal_handlig(int i)
 	sigemptyset(&a.sa_mask);
 	a.sa_flags = SA_SIGINFO;
 	if (sigaction(SIGINT, &a, NULL) < 0)
-	{
 		return;
-	}
 	signal(SIGQUIT, SIG_IGN);
 }
 
@@ -1132,10 +1126,10 @@ int main(int argc, char **argv, char **envp)
 
 		// printf("line : %s\n", line);
 
-		commands = ft_split_esc(line, '|');
+			commands = ft_split_esc(line, '|');
 
-		// printf("commands :\n");
-		// print_split(commands);
+			// printf("commands :\n");
+			// print_split(commands);
 
 		if (valid_command(line, all))
 		{
