@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/06 17:48:06 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/07 14:53:29 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,30 @@ void	free_split(char **array);
 void	print_split(char **array);
 char	*ft_getenv(char *env_var, t_all *all);
 int		array_len(char **array);
+void	ft_free(char *s);
+void	print_s(void *s);
+void	free_split_1(void *s);
+void	split_iterate(void **array, void (*f)(void *));
+
+void	free_list(t_list *s);
+void	free_all_struct(t_all *all);
+
+
+
+
+
+
+
+/************************************** */
+
+int	valid_command(char *command, t_all *all);
+
+int	is_valid_command(char *command);
+
+
+
+
+
 
 /************************************** */
 
@@ -91,14 +115,14 @@ t_env_list		*ft_lstlast(t_env_list *lst);
 void			ft_lstadd_back(t_env_list **lst, t_env_list *new_element);
 void			ft_free_env_list(t_env_list *env);
 
-/************************************** */
+/***************** ENV ********************* */
 
 void			int_lst_env(t_env_list **list,char **envp);
 char			**list_to_array(t_env_list *env);
 char			*ft_getenv(char *env_var, t_all *all);
 int				ft_print_env(t_env_list *env);
 
-/************************************** */
+/******************** EXPORT ****************** */
 
 int				ft_strcmp(const char *s1, const char *s2);
 void			ft_print_export_error(char *commande);
@@ -112,25 +136,69 @@ void			ft_update_ensemble(int *flag, t_env_list *tmp, char *line, char *commande
 char			*ft_init_variable_name(char *commande, int *flag, char *line);
 int				ft_maj_export(t_env_list *env, char *commande, int *flag);
 int				ft_export(t_env_list **env, char **commade);
-
-/************************************** */
-
 void			ft_free_tmp(t_env_list *tmp);
 int				ft_unset(t_env_list **env, char **commande);
 
 /************************************** */
+char *ft_getenv(char *env_var, t_all *all);
+
+
+/****************** BUILTINS ******************** */
 
 int				ft_pwd();
 int				ft_cd(char **path, t_all *all);
+int				ft_echo(char **tokens);
+int	ft_exit(t_all *all, char **command);
 
-/************************************** */
+/****************** EXEC BUILTINS ******************** */
+int	is_builtins(char *command);
+int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2], t_all *all);
+int	builtin_execution(char **command, t_all *all);
+
+/******************* EXEC ******************* */
 
 char			*replace_env_vars(char *s, t_all *all);
 int				exec_commands(t_all *all);
 void			init_list(t_list **commands_list, char **arr_commands);
 char			**ft_split_esc(const char *s, char c);
+int	get_exit_stat(pid_t pids[MAX_COMMANDS], int command_count);
+
+/****************** BIN PATH ********************/
+
+char	*join_bin_path(char *commands_list, char *bin_path);
+char	*get_bin_path(char *command, t_all *all);
+
+/****************** REDIR ********************/
+
+char	*get_redirection_file_name(char *command);
+t_redirect    **get_all_redirections(char **command, t_all *all);
+int handle_output_redirection(t_redirect *redirect, t_all *all);
+int manage_redirections(t_redirect **redirections, t_all *all);
+void	dup_out(int fd[2], t_all *all, char *bin_path, int closeall);
+void	dup_in(int fd[2], t_all *all, char *bin_path, int closeall);
+
+/****************** HEREDOC ********************/
+
+int get_heredoc(char *delimiter, int *fd, t_all *all);
+
+int	handle_input_redirection(t_redirect *redirect, t_all *all);
+
+
+/****************** EXEC ERROR ********************/
+
+
+void	exec_error(char *bin_path, t_all *all, char *msg);
+int command_not_found(t_list *command_list, char **command);
+void	fd_error(char *file_path);
+void handle_heredoc_redirection(int fd);
 
 /**************************************/
+
 void put_signal_handlig(int i);
+void handle_ctrl_c_heredoc(int sig, siginfo_t *ok, void *param);
+void handle_ctrl_c(int sig, siginfo_t *ok, void *param);
+
+/**************************************/
+
 
 #endif
