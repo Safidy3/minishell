@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/10 13:25:26 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/10 15:21:27 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,6 +104,8 @@ void	get_all_exit_stat(t_all *all, int command_count, t_cmd_utils *c_utils)
 		else if (c_utils->cmd_type[i] == 0)
 		{
 			waitpid(c_utils->pids[i], &status, 0);
+			// if (WIFSIGNALED(status))
+			// 	printf("Quit (core dumped)\n");
 			all->exit_status = WEXITSTATUS(status);
 		}
 	}
@@ -114,6 +116,7 @@ void	exec_child(t_all *all, t_cmd_utils *c_utils,
 {
 	char	**command;
 	char	*bin_path;
+	int		exit_stat;
 
 	bin_path = c_utils->bin_path;
 	command = c_utils->cmd;
@@ -122,13 +125,18 @@ void	exec_child(t_all *all, t_cmd_utils *c_utils,
 	if (command_list->next)
 		dup_out(all->current_fd, 1);
 	if (bin_path)
+	{
+		free(c_utils);
 		execve(bin_path, command, all->env_arr);
+	}
 	else if (is_builtins(command[0]))
 	{
-		c_utils->exit_stats[command_count] = builtin_execution(command, all);
+		exit_stat = builtin_execution(command, all);
+		c_utils->exit_stats[command_count] = exit_stat;
 		free_all_struct(all);
+		free(c_utils);
 		free(command);
-		exit(c_utils->exit_stats[command_count]);
+		exit(exit_stat);
 	}
 }
 
@@ -180,6 +188,7 @@ void	command_execution(t_all *all, t_cmd_utils *c_utils,
 		c_utils->pids[command_count] = fork();
 		if (c_utils->pids[command_count] == 0)
 		{
+			signal(SIGQUIT, SIG_DFL);
 			exec_child(all, c_utils, command_list, command_count);
 			exec_error(c_utils->bin_path, all, "execve failed\n");
 		}
@@ -223,10 +232,10 @@ int	exec_commands(t_all *all)
 	t_cmd_utils	*c_utils;
 	int			command_count;
 	int			i;
-	int	redir_val;
+	int			redir_val;
 
-	c_utils = (t_cmd_utils *)malloc(sizeof(t_cmd_utils));
 	i = -1;
+	c_utils = (t_cmd_utils *)malloc(sizeof(t_cmd_utils));
 	while (++i < MAX_COMMANDS)
 		c_utils->cmd_type[i] = 0;
 	command_list = all->command_list;
@@ -237,10 +246,10 @@ int	exec_commands(t_all *all)
 			exec_error(NULL, all, "pipe creation failed\n");
 		c_utils->cmd = get_new_command(command_list, all);
 		if (ft_strchr(c_utils->cmd[0], '/') && is_dir(c_utils->cmd[0], all))
-			return (0);
+			return (free(c_utils), 0);
 		redir_val = manage_redirections(command_list, all);
 		if (redir_val == 1)
-			return (-1);
+			return (free(c_utils), -1);
 		else if (redir_val == -1)
 		{
 			free(c_utils->cmd);
@@ -254,14 +263,14 @@ int	exec_commands(t_all *all)
 		if (!c_utils->bin_path && !is_builtins(c_utils->cmd[0]))
 		{
 			all->exit_status = command_not_found(command_list, c_utils->cmd);
-			return (1);
+			return (free(c_utils), 1);
 		}
 		command_execution(all, c_utils, command_list, command_count);
 		command_list = command_list->next;
 		command_count++;
 	}
 	get_all_exit_stat(all, command_count, c_utils);
-	return (0);
+	return (free(c_utils), 0);
 }
 
 
