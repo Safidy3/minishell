@@ -12,12 +12,12 @@
 
 #include "minishell.h"
 
-volatile int flag;
+volatile int	flag;
 
-void handle_ctrl_c_heredoc(int sig, siginfo_t *ok, void *param)
+void	handle_ctrl_c_heredoc(int sig, siginfo_t *ok, void *param)
 {
-	int pipefd[2];
-	
+	int	pipefd[2];
+
 	if (ok->si_pid != 0 && sig == SIGINT)
 	{
 		pipe(pipefd);
@@ -30,9 +30,10 @@ void handle_ctrl_c_heredoc(int sig, siginfo_t *ok, void *param)
 	flag = SIGINT;
 	param++;
 }
-void put_signal_handlig(int i)
+
+void	put_signal_handlig(int i)
 {
-	struct sigaction a;
+	struct sigaction	a;
 
 	ft_bzero(&a, sizeof(sigaction));
 	if (i == 0)
@@ -42,8 +43,6 @@ void put_signal_handlig(int i)
 	sigemptyset(&a.sa_mask);
 	a.sa_flags = SA_SIGINFO;
 	if (sigaction(SIGINT, &a, NULL) < 0)
-	{
-		return;
-	}
+		return ;
 	signal(SIGQUIT, SIG_IGN);
 }

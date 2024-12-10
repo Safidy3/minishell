@@ -30,8 +30,6 @@ int	ft_exit(t_all *all, char **command)
 		{
 			if (!ft_isdigit(command[1][i]))
 			{
-				// ft_putstr_fd("bash: exit: " , 1);
-				// ft_putstr_fd("command[1][i]: " , 1);
 				ft_putstr_fd(" numeric argument required\n" , 2);
 				not_digit = 1;
 				break;
@@ -52,7 +50,7 @@ int	ft_exit(t_all *all, char **command)
 	free_split(all->env_arr);
 	ft_free_env_list(all->env_list);
 	free(all);
-	// printf("exit_status = %d\n",exit_status);
+	// write(2,"exit\n",5);
 	exit(exit_status);
 	return (0);
 }

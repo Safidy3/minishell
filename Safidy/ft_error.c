@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_error.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:26:11 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/07 15:00:04 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/10 10:01:56 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ void	exec_error(char *bin_path, t_all *all, char *msg)
 	exit(EXIT_FAILURE);
 }
 
-int command_not_found(t_list *command_list, char **command)
+int	command_not_found(t_list *command_list, char **command)
 {
 	if (!command_list->next)
 	{
@@ -43,4 +43,3 @@ int command_not_found(t_list *command_list, char **command)
 	free(command);
 	return (127);
 }
-

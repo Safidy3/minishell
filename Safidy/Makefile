@@ -1,10 +1,10 @@
 SRCS = minishell.c ft_split_esc_2.c ft_split_esc.c\
 		./builtins/ft_env.c ./builtins/ft_export.c ./builtins/ft_unset.c ./builtins/pwd_cd.c\
-		./gnl/get_next_line.c  ft_signals.c main.c\
-		ft_free.c ft_exec.c ft_redirect.c ft_exec_builtins.c ft_heredoc.c ft_error.c ./builtins/ft_exit.c ./builtins/ft_echo.c ft_bin_path.c ft_check_valid_commad.c
+		ft_signals.c main.c ft_free.c ft_exec.c ft_redirect.c ft_exec_builtins.c ft_heredoc.c ft_error.c\
+		./builtins/ft_exit.c ./builtins/ft_echo.c ft_bin_path.c ft_check_valid_commad.c
 
-FLAGS = -g -Wall -Werror -Wextra
 # FLAGS = -g
+FLAGS = -g -Wall -Werror -Wextra
 RELINE_FLAG = -lreadline
 
 
@@ -42,7 +42,7 @@ run: all
 norm:
 	norminette $(SRCS)
 
-debug: all
+debug: fclean all
 	@valgrind --suppressions=readline.supp --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(NAME)
 
 .PHONY: all clean fclean re

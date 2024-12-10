@@ -1,31 +1,5 @@
 #include "minishell.h"
 
-
-// ls -la | grep mini | awk '{print $9}' | head -n 1
-/*
-	color in C
-		printf("This is red text\033[0m\n");
-		30 – Black
-		31 – Red
-		32 – Green
-		33 – Yellow
-		34 – Blue
-		35 – Magenta
-		36 – Cyan
-		37 – White
-*/
-
-void	print_redir(t_redirect **redirections)
-{
-	int	i;
-
-	i = -1;
-	printf("redirections :\n");
-	while (redirections[++i])
-		printf("%s %d, ", redirections[i]->filename, redirections[i]->type);
-	printf("\n\n\n");
-}
-
 /******************* init list ******************/
 
 void	list_init_error(t_list *commands_list, char **arr_commands)
@@ -45,7 +19,8 @@ void	init_list(t_list **commands_list, char **arr_commands)
 	i = -1;
 	while (arr_commands[++i])
 	{
-		new_list = ft_newlst((void *) ft_split_esc_2(arr_commands[i], ' '));
+		new_list = ft_newlst((void *) ft_split_esc_2(arr_commands[i], ' '),
+				ft_split_arg_type(arr_commands[i], ' '));
 		if (!new_list)
 			list_init_error(*commands_list, arr_commands);
 		if (i == 0)
@@ -59,10 +34,10 @@ void	init_list(t_list **commands_list, char **arr_commands)
 
 /******************	env var ********************/
 
-char *ft_getenv(char *env_var, t_all *all)
+char	*ft_getenv(char *env_var, t_all *all)
 {
-	t_env_list *tmp;
-	char *res;
+	t_env_list	*tmp;
+	char		*res;
 
 	tmp = all->env_list;
 	res = NULL;
@@ -71,18 +46,18 @@ char *ft_getenv(char *env_var, t_all *all)
 		if (ft_strcmp(tmp->first, env_var) == 0)
 		{
 			res = ft_strdup(tmp->second);
-			break;
+			break ;
 		}
 		tmp = tmp->next;
 	}
 	return (res);
 }
 
-char *get_env_name(char *s)
+char	*get_env_name(char *s)
 {
-	char *var_name;
-	size_t len;
-	size_t i;
+	char	*var_name;
+	size_t	len;
+	size_t	i;
 
 	if (*s != '$')
 		return (NULL);
@@ -103,9 +78,9 @@ char *get_env_name(char *s)
 	return (var_name);
 }
 
-char *get_env_value(char *var_name, t_all *all)
+char	*get_env_value(char *var_name, t_all *all)
 {
-	char *var_value;
+	char	*var_value;
 
 	var_value = NULL;
 	if (var_name)
@@ -113,10 +88,10 @@ char *get_env_value(char *var_name, t_all *all)
 	return (var_value);
 }
 
-char *copy_char(char *dest, char c)
+char	*copy_char(char *dest, char c)
 {
-	char *res;
-	int len;
+	char	*res;
+	int		len;
 
 	if (!dest)
 		return (NULL);
@@ -130,35 +105,39 @@ char *copy_char(char *dest, char c)
 	return (free(dest), res);
 }
 
-void append_env_value(char **dst, char **s, t_all *all)
+void	manage_env_var(char **dst, char **s, t_all *all)
 {
-	char *env_name;
-	char *env_val;
-	char *temp;
-	char *exit_stat;
+	char	*env_name;
+	char	*env_val;
+	char	*temp;
+
+	env_name = get_env_name(*s);
+	env_val = get_env_value(env_name, all);
+	if (env_val)
+	{
+		temp = *dst;
+		*dst = ft_strjoin(*dst, env_val);
+		free(temp);
+		free(env_val);
+	}
+	else if (ft_isdigit(*(*s + 1)))
+	{
+		temp = *dst;
+		*dst = ft_strjoin(*dst, &env_name[1]);
+		free(temp);
+	}
+	while (++(*s) && ft_isalnum(**s))
+		;
+	ft_free(env_name);
+}
+
+void	append_env_value(char **dst, char **s, t_all *all)
+{
+	char	*temp;
+	char	*exit_stat;
 
 	if (**s == '$' && ft_isalnum(*(*s + 1)))
-	{
-		env_name = get_env_name(*s);
-		env_val = get_env_value(env_name, all);
-		if (env_val)
-		{
-			temp = *dst;
-			*dst = ft_strjoin(*dst, env_val);
-			free(temp);
-			free(env_val);
-		}
-		else if (ft_isdigit(*(*s + 1)))
-		{
-			temp = *dst;
-			*dst = ft_strjoin(*dst, &env_name[1]);
-			free(temp);
-		}
-		while (++(*s) && ft_isalnum(**s))
-			;
-		ft_free(env_name);
-	}
-	// else if (**s == '$' && *(*s + 1) == '?' && (ft_isspace(*(*s + 1)) || !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
+		manage_env_var(dst, s, all);
 	else if (**s == '$' && *(*s + 1) == '?')
 	{
 		exit_stat = ft_itoa(all->exit_status);
@@ -168,11 +147,12 @@ void append_env_value(char **dst, char **s, t_all *all)
 		free(exit_stat);
 		*s += 2;
 	}
-	else if (**s == '$' && (ft_isspace(*(*s + 1)) || !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
+	else if (**s == '$' && (ft_isspace(*(*s + 1))
+			|| !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
 		*dst = copy_char(*dst, *(*s)++);
 }
 
-void append_quoted_text(char **dst, char **s, char quote, t_all *all)
+void	append_quoted_text(char **dst, char **s, char quote, t_all *all)
 {
 	*dst = copy_char(*dst, *(*s)++);
 	while (**s && **s != quote)
@@ -186,14 +166,12 @@ void append_quoted_text(char **dst, char **s, char quote, t_all *all)
 		*dst = copy_char(*dst, *(*s)++);
 }
 
-char *replace_env_vars(char *s, t_all *all)
+char	*replace_env_vars(char *s, t_all *all)
 {
-	char *dst;
-	char *temp;
+	char	*dst;
+	char	*temp;
 
 	dst = ft_strdup("");
-	if (!dst)
-		return (NULL);
 	while (*s)
 	{
 		if (*s == '\'')
@@ -202,7 +180,8 @@ char *replace_env_vars(char *s, t_all *all)
 			append_quoted_text(&dst, &s, '\"', all);
 		else if (*s == '$')
 			append_env_value(&dst, &s, all);
-		else if (*s == '~' && (!*(s + 1) || ft_isspace(*(s + 1)) || *(s + 1) == '/') && (!*(s - 1) || ft_isspace(*(s - 1))))
+		else if (*s == '~' && (!*(s + 1) || ft_isspace(*(s + 1))
+				|| *(s + 1) == '/') && (!*(s - 1) || ft_isspace(*(s - 1))))
 		{
 			temp = dst;
 			dst = ft_strjoin(dst, ft_getenv("HOME", all));
@@ -229,7 +208,6 @@ int	get_exit_stat(pid_t pids[MAX_COMMANDS], int command_count)
 
 /******************* Exec BINARY PATH ******************/
 
-
 int	check_spetial_char(char **command)
 {
 	int	i;
@@ -241,27 +219,23 @@ int	check_spetial_char(char **command)
 	return (0);
 }
 
-
 /******************* Exec Pipe ******************/
 
-void	dup_in(int fd[2], t_all *all, char *bin_path, int closeall)
+void	dup_in(int fd[2], int closeall)
 {
-	if (dup2(fd[0], STDIN_FILENO) == -1)
-		exec_error(bin_path, all, "dup2 pipe\n");
+	dup2(fd[0], STDIN_FILENO);
 	close(fd[0]);
 	if (closeall != 0)
 		close(fd[1]);
 }
 
-void	dup_out(int fd[2], t_all *all, char *bin_path, int closeall)
+void	dup_out(int fd[2], int closeall)
 {
-	if (dup2(fd[1], STDOUT_FILENO) == -1)
-		exec_error(bin_path, all, "dup2 pipe\n");
+	dup2(fd[1], STDOUT_FILENO);
 	close(fd[1]);
 	if (closeall != 0)
 		close(fd[0]);
 }
-
 
 /******************* command validity ******************/
 
@@ -271,6 +245,7 @@ void	command_error(t_all *all)
 	free_all_struct(all);
 	exit(EXIT_FAILURE);
 }
+
 int	valid_command(char *command, t_all *all)
 {
 	if (ft_strlen(command) == 0)

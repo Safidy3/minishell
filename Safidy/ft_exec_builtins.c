@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exec_builtins.c                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/07 10:13:40 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/10 10:01:55 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,13 @@
 
 int	is_builtins(char *command)
 {
-	if (!ft_strncmp(command, "export", ft_strlen("export"))
-		|| !ft_strncmp(command, "unset", ft_strlen("unset"))
-		|| !ft_strncmp(command, "env", ft_strlen("env")) || !ft_strncmp(command,
-			"echo", ft_strlen("echo")) || !ft_strncmp(command, "cd",
-			ft_strlen("cd")) || !ft_strncmp(command, "pwd", ft_strlen("pwd"))
-		|| !ft_strncmp(command, "exit", ft_strlen("exit")))
+	if (!ft_strcmp(command, "export")
+		|| !ft_strcmp(command, "unset")
+		|| !ft_strcmp(command, "env")
+		|| !ft_strcmp(command, "echo")
+		|| !ft_strcmp(command, "cd")
+		|| !ft_strcmp(command, "pwd")
+		|| !ft_strcmp(command, "exit"))
 		return (1);
 	return (0);
 }
@@ -73,9 +74,9 @@ int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2],
 	if (std_backup[0] == -1 || std_backup[1] == -1)
 		exec_error(NULL, all, "dup backup failed\n");
 	if (prev_fd[0] != -1)
-		dup_in(prev_fd, all, NULL, 0);
+		dup_in(prev_fd, 0);
 	if (command_list->next && current_fd[1] != -1)
-		dup_out(current_fd, all, NULL, 0);
+		dup_out(current_fd, 0);
 	command = (char **)command_list->content;
 	exit_stat = builtin_execution(command, all);
 	restore_og_std(std_backup, all);

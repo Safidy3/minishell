@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_redirect.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/06 11:29:02 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/07 15:38:16 by larakoto         ###   ########.fr       */
+/*   Created: 2024/12/06 11:29:02 by safandri          #+#    #+#             */
+/*   Updated: 2024/12/10 09:46:07 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 /******************* Exec redirection file ******************/
 
-char	*get_redirection_file_name(char *command)
+char	*get_redir_name(char *command)
 {
 	char	*redirection_file;
 	int		i;
@@ -29,47 +29,63 @@ char	*get_redirection_file_name(char *command)
 	return (redirection_file);
 }
 
-t_redirect    **get_all_redirections(char **command, t_all *all)
+void	set_rd_name_type(t_redirect **redirection_files,
+	char **command, int *type, t_all *all)
 {
-	t_redirect	**redirection_files;
-	int			count;
 	int			i;
 	int			j;
 
+	i = -1;
+	j = -1;
+	while (command[++i])
+	{
+		if (type[i] == 1)
+		{
+			redirection_files[++j] = (t_redirect *)malloc(sizeof(t_redirect));
+			if (!redirection_files[j])
+				exec_error(NULL, all, "malloc error\n");
+			redirection_files[j]->filename = get_redir_name(command[i]);
+			if (command[i][0] == '>' && command[i][1] != '>' )
+				redirection_files[j]->type = TRUNCATE;
+			else if (command[i][0] == '>' && command[i][1] == '>' )
+				redirection_files[j]->type = APPEND;
+			else if (command[i][0] == '<' && command[i][1] != '<' )
+				redirection_files[j]->type = INPUT;
+			else if (command[i][0] == '<' && command[i][1] == '<' )
+				redirection_files[j]->type = HEREDOC;
+			if (!redirection_files[j]->filename)
+				exec_error(NULL, all, "get_redirections\n");
+		}
+	}
+}
+
+t_redirect	**get_all_redirections(t_list *command_list, t_all *all)
+{
+	t_redirect	**redirection_files;
+	char		**command;
+	int			*type;
+	int			count;
+	int			i;
+
+	command = (char **)command_list->content;
+	type = (int *)command_list->type;
 	count = 0;
 	i = -1;
 	while (command[++i])
-		if (command[i][0] == '>' || command[i][0] == '<')
+		if (type[i] == 1)
 			count++;
 	if (count == 0)
 		return (NULL);
 	redirection_files = (t_redirect **)calloc(sizeof(t_redirect *), count + 1);
 	if (!redirection_files)
 		exec_error(NULL, all, "malloc error\n");
-	i = -1;
-	j = -1;
-	while (command[++i])
-	{
-		if (command[i][0] == '>' || command[i][0] == '<')
-		{
-			redirection_files[++j] = (t_redirect *)malloc(sizeof(t_redirect));
-			if (!redirection_files[j])
-				exec_error(NULL, all, "malloc error\n");
-			redirection_files[j]->filename = get_redirection_file_name(command[i]);
-			if (command[i][0] == '>')
-				redirection_files[j]->type = (command[i][1] == '>') ? APPEND : TRUNCATE;
-			else
-				redirection_files[j]->type = (command[i][1] == '<') ? HEREDOC : INPUT;
-			if (!redirection_files[j]->filename)
-				exec_error(NULL, all, "get_redirections\n");
-		}
-	}
+	set_rd_name_type(redirection_files, command, type, all);
 	return (redirection_files);
 }
 
-int handle_output_redirection(t_redirect *redirect, t_all *all)
+int	handle_output_redirection(t_redirect *redirect, t_all *all)
 {
-	int fd;
+	int	fd;
 
 	fd = 0;
 	if (redirect->type == TRUNCATE)
@@ -95,39 +111,49 @@ int	handle_input_redirection(t_redirect *redirect, t_all *all)
 	return (fd);
 }
 
-int manage_redirections(t_redirect **redirections, t_all *all)
+int	get_redir_fd(t_redirect **redir, t_all *all)
 {
-	int fd;
-	int i;
+	int	fd;
+	int	i;
 
-	if (!redirections)
-		return (0);
 	i = -1;
-	while (redirections[++i])
-		if (redirections[i]->type == HEREDOC)
-			if (get_heredoc(redirections[i]->filename, &redirections[i]->fd, all))
-				return (1);
-	i = -1;
-	while (redirections[++i])
+	while (redir[++i])
 	{
 		fd = -1;
-		if (redirections[i]->type == TRUNCATE || redirections[i]->type == APPEND)
-			fd = handle_output_redirection(redirections[i], all);
-		else if (redirections[i]->type == INPUT)
-			fd = handle_input_redirection(redirections[i], all);
-		else if (redirections[i]->type == HEREDOC)
-			handle_heredoc_redirection(redirections[i]->fd);
+		if (redir[i]->type == TRUNCATE || redir[i]->type == APPEND)
+			fd = handle_output_redirection(redir[i], all);
+		else if (redir[i]->type == INPUT)
+			fd = handle_input_redirection(redir[i], all);
+		else if (redir[i]->type == HEREDOC)
+			fd = handle_heredoc_redirection(redir[i]->fd);
 		if (fd != -1)
 			close(fd);
-		ft_free(redirections[i]->filename);
-		free(redirections[i]);
+		ft_free(redir[i]->filename);
+		free(redir[i]);
 		if (fd == -1)
 		{
 			dup2(all->fd_og[0], STDIN_FILENO);
 			dup2(all->fd_og[1], STDOUT_FILENO);
-			break;
+			break ;
 		}
 	}
-	free(redirections);
 	return (fd);
+}
+
+int	manage_redirections(t_list *command_list, t_all *all)
+{
+	int			fd;
+	int			i;
+	t_redirect	**redir;
+
+	redir = get_all_redirections(command_list, all);
+	if (!redir)
+		return (0);
+	i = -1;
+	while (redir[++i])
+		if (redir[i]->type == HEREDOC)
+			if (get_heredoc(redir[i]->filename, &redir[i]->fd, all))
+				return (1);
+	fd = get_redir_fd(redir, all);
+	return (free(redir), fd);
 }

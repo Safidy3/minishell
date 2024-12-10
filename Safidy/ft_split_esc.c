@@ -3,7 +3,7 @@
 static char	*ft_escape_quote(const char *s)
 {
 	char	quote;
-	
+
 	quote = *s++;
 	while (*s && *s != quote)
 		s++;
@@ -18,7 +18,7 @@ static char	*set_last_pipe(const char *s, int *last_was_pipe)
 	return ((char *)++s);
 }
 
-static size_t ft_count_words(const char *s, char c)
+static size_t	ft_count_words(const char *s, char c)
 {
 	size_t	count;
 	int		last_was_pipe;
@@ -44,7 +44,6 @@ static size_t ft_count_words(const char *s, char c)
 	}
 	return (count);
 }
-
 
 static size_t	ft_count_words_len(const char *s, char c)
 {

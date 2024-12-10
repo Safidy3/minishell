@@ -49,14 +49,14 @@ int	ft_echo(char **tokens)
 		}
 		while (++start_index < token_count)
 		{
-			printf("%s", tokens[start_index]);
+			ft_putstr_fd(tokens[start_index], 1);
 			if (start_index < token_count - 1)
-				printf(" ");
+				ft_putstr_fd(" ", 1);
 		}
 		if (!skip_newline)
-			printf("\n");
+			ft_putstr_fd("\n", 1);
 	}
 	else
-		printf("Command not recognized or invalid input.\n");
+		ft_putstr_fd("Command not recognized or invalid input.\n", 1);
 	return (0);
 }

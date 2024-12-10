@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_check_valid_commad.c                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 11:47:46 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/07 12:16:02 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/10 10:43:43 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,6 @@ int	is_symbol(char c)
 		return (1);
 	return (0);
 }
-
-
 
 int	check_symbol(char *command, char c, int *i)
 {
@@ -65,6 +63,16 @@ int	is_valid_command(char *command)
 		return (0);
 	while (command[i])
 	{
+		if (command[i] == '\'' || command[i] == '\"')
+		{
+			char quote = command[i];
+			while (command[i] && command[i] != quote)
+				i++;
+			if (command[i] == quote)
+				i++;
+			if (command[i] == '\0')
+				return (1);			
+		}
 		if (ft_isspace(command[i]))
 		{
 			i++;

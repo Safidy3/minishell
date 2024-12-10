@@ -3,47 +3,65 @@
 /*                                                        :::      ::::::::   */
 /*   ft_heredoc.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:50:53 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/07 15:00:24 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/10 10:00:07 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void handle_heredoc_redirection(int fd)
+int	handle_heredoc_redirection(int fd)
 {
 	if (dup2(fd, STDIN_FILENO) == -1)
 	{
 		perror("dup2");
 		close(fd);
-		return;
+		return (-1);
 	}
+	return (10);
 }
 
-char *read_join_heredoc(char *buffer, char *delimiter, t_all *all)
+char	*join_result(char *buffer, char *input)
 {
-	char *input;
-	char *tmp;
-	char *tmp2;
-	(void)all;
+	char	*tmp;
+	char	*tmp2;
 
-	tmp2 = NULL;
 	tmp = NULL;
+	tmp2 = NULL;
+	tmp = ft_strjoin(input, "\n");
+	free(input);
+	tmp2 = buffer;
+	buffer = ft_strjoin(buffer, tmp);
+	return (free(tmp2), free(tmp), buffer);
+}
+
+int	herdoc_delimiter(char *input, char *delimiter)
+{
+	if (strcmp(input, delimiter) == 0)
+	{
+		free(input);
+		return (1);
+	}
+	return (0);
+}
+
+char	*read_join_heredoc(char *buffer, char *delimiter, t_all *all)
+{
+	char	*input;
+
 	input = NULL;
-	if (!buffer)
-		buffer = ft_strdup("");
 	while (1)
 	{
 		put_signal_handlig(2);
 		input = readline("heredoc> ");
 		if (!input && flag != SIGINT)
 		{
-			write(2,"bash: warning: here-document (",30);
-			write(2,delimiter,ft_strlen(delimiter));
-			write(2,")\n",2);
-			break;
+			write(2, "bash: warning: here-document (", 30);
+			write(2, delimiter, ft_strlen(delimiter));
+			write(2, ")\n", 2);
+			break ;
 		}
 		if (flag == SIGINT)
 		{
@@ -51,28 +69,19 @@ char *read_join_heredoc(char *buffer, char *delimiter, t_all *all)
 			flag = 0;
 			return (NULL);
 		}
-		if (strcmp(input, delimiter) == 0)
-		{
-			if (!buffer)
-				buffer = ft_strdup("");
-			free(input);
-			break;
-		}
-		tmp = ft_strjoin(input, "\n");
-		free(input);
-		tmp2 = buffer;
-		buffer = ft_strjoin(buffer, tmp);
-		free(tmp2);
-		free(tmp);
+		if (herdoc_delimiter(input, delimiter))
+			break ;
+		buffer = join_result(buffer, input);
 	}
 	return (buffer);
 }
 
-int get_heredoc(char *delimiter, int *fd, t_all *all)
+int	get_heredoc(char *delimiter, int *fd, t_all *all)
 {
-	char *buffer = NULL;
+	char	*buffer;
+	int		pipe_fds[2];
 
-	int pipe_fds[2];
+	buffer = ft_strdup("");
 	if (pipe(pipe_fds) == -1)
 	{
 		perror("pipe");
