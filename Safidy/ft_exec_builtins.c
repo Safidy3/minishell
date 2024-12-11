@@ -62,7 +62,7 @@ int	builtin_execution(char **command, t_all *all)
 	return (exit_status);
 }
 
-int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2],
+int	exec_builtins(t_list *command_list, int in_pipe[2], int out_pipe[2],
 		t_all *all)
 {
 	char	**command;
@@ -73,19 +73,19 @@ int	exec_builtins(t_list *command_list, int prev_fd[2], int current_fd[2],
 	std_backup[1] = dup(STDOUT_FILENO);
 	if (std_backup[0] == -1 || std_backup[1] == -1)
 		exec_error(NULL, all, "dup backup failed\n");
-	if (prev_fd[0] != -1)
-		dup_in(prev_fd, 0);
-	if (command_list->next && current_fd[1] != -1)
-		dup_out(current_fd, 0);
+	if (in_pipe[0] != -1)
+		dup_in(in_pipe, 0);
+	if (command_list->next && out_pipe[1] != -1)
+		dup_out(out_pipe, 0);
 	command = (char **)command_list->content;
 	exit_stat = builtin_execution(command, all);
 	restore_og_std(std_backup, all);
-	if (prev_fd[0] != -1)
-		close(prev_fd[0]);
-	if (command_list->next && current_fd[1] != -1)
+	if (in_pipe[0] != -1)
+		close(in_pipe[0]);
+	if (command_list->next && out_pipe[1] != -1)
 	{
-		close(current_fd[1]);
-		prev_fd[0] = current_fd[0];
+		close(out_pipe[1]);
+		in_pipe[0] = out_pipe[0];
 	}
 	return (exit_stat);
 }

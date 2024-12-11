@@ -21,8 +21,8 @@ void	init_all_struct(t_all *all, char **envp)
 	all->env_arr = list_to_array(all->env_list);
 	all->fd_og[0] = dup(STDIN_FILENO);
 	all->fd_og[1] = dup(STDOUT_FILENO);
-	all->prev_fd[0] = -1;
-	all->prev_fd[1] = -1;
+	all->in_pipe[0] = -1;
+	all->in_pipe[1] = -1;
 }
 
 void	pars_command(char *line, t_all *all)

@@ -54,8 +54,8 @@ typedef struct s_all
 	t_list		*command_list;
 	char		**env_arr;
 	int			fd_og[2];
-	int			prev_fd[2];
-	int			current_fd[2];
+	int			in_pipe[2];
+	int			out_pipe[2];
 	t_env_list	*env_list;
 }				t_all;
 
@@ -148,8 +148,8 @@ int				ft_exit(t_all *all, char **command);
 /****************** EXEC BUILTINS ******************** */
 
 int				is_builtins(char *command);
-int				exec_builtins(t_list *command_list, int prev_fd[2],
-					int current_fd[2], t_all *all);
+int				exec_builtins(t_list *command_list, int in_pipe[2],
+					int out_pipe[2], t_all *all);
 int				builtin_execution(char **command, t_all *all);
 
 /******************* EXEC ******************* */
