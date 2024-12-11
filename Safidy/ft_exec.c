@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/11 09:10:52 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/11 09:19:08 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -341,7 +341,6 @@ int exec_commands(t_all *all)
 			cmd_type[command_count] = 1;
 			exit_stats[command_count] = exec_builtins(command_list, prev_fd, current_fd, all);
 		}
-		
 		else
 		{
 			
@@ -404,8 +403,8 @@ int exec_commands(t_all *all)
 		else if (cmd_type[i] == 0)
 		{
 			waitpid(pids[i], &status, 0);
-			if (WIFSIGNALED(status))
-				printf("Quit (core dumped)\n");
+			// if (WIFSIGNALED(status))
+			// 	printf("Quit (core dumped)\n");
 			all->exit_status = WEXITSTATUS(status);
 		}
 	}
