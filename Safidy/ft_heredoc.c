@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:50:53 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/10 10:00:07 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/12 16:23:51 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,5 @@ int	get_heredoc(char *delimiter, int *fd, t_all *all)
 		free(buffer);
 		return (0);
 	}
-	else
-		return (1);
-	return (0);
+	return (1);
 }

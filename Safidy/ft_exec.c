@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/12 11:05:43 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/12 16:26:36 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -314,6 +314,20 @@ int exec_commands(t_all *all)
 		restore_std(all);
 		return (free(command), 0);
 	}
+	
+	t_redirect	**redir;
+	redir = get_all_redirections(command_list, all);
+	if (redir)
+	{
+		i = -1;
+		while (redir[++i])
+			if (redir[i]->type == HEREDOC)
+				if (get_heredoc(redir[i]->filename, &redir[i]->fd, all))
+					return (1);
+	}
+
+
+
 	/* exec misy pipe sy non_builtin */
 	while (command_list)
 	{
@@ -336,17 +350,20 @@ int exec_commands(t_all *all)
 				dup_in(in_pipe, 0);
 			if (command_list->next)
 				dup_out(out_pipe, 1);
-			int redir_val = manage_redirections(command_list, all);
-			if (redir_val == 1)
-				return (-1);
-			else if (redir_val == -1)
+			if (redir)
 			{
-				free(command);
-				exit_stats[command_count] = 1;
-				cmd_type[command_count] = 1;
-				command_list = command_list->next;
-				command_count++;
-				continue ;
+				int redir_val = manage_redirections(redir, all);
+				if (redir_val == 1)
+					return (-1);
+				else if (redir_val == -1)
+				{
+					free(command);
+					exit_stats[command_count] = 1;
+					cmd_type[command_count] = 1;
+					command_list = command_list->next;
+					command_count++;
+					continue ;
+				}
 			}
 			if (is_builtins(command[0]))
 			{
