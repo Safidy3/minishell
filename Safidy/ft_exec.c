@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/12 16:26:36 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/12 16:30:25 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -288,6 +288,7 @@ int exec_commands(t_all *all)
 	int in_pipe[2];
 	int out_pipe[2];
 	int command_count;
+	t_redirect	**redir;
 
 	char **command;
 	char *bin_path;
@@ -303,6 +304,7 @@ int exec_commands(t_all *all)
 	command_list = all->command_list;
 
 	/* exec builtins fotsiny */
+	
 	char *cmd = get_first_command(command_list);
 	if (is_builtins(cmd) && command_list->next == NULL)
 	{
@@ -315,16 +317,6 @@ int exec_commands(t_all *all)
 		return (free(command), 0);
 	}
 	
-	t_redirect	**redir;
-	redir = get_all_redirections(command_list, all);
-	if (redir)
-	{
-		i = -1;
-		while (redir[++i])
-			if (redir[i]->type == HEREDOC)
-				if (get_heredoc(redir[i]->filename, &redir[i]->fd, all))
-					return (1);
-	}
 
 
 
@@ -342,6 +334,16 @@ int exec_commands(t_all *all)
 			all->exit_status = command_not_found(command_list, command);
 			return (1);
 		}
+		redir = get_all_redirections(command_list, all);
+		if (redir)
+		{
+			i = -1;
+			while (redir[++i])
+				if (redir[i]->type == HEREDOC)
+					if (get_heredoc(redir[i]->filename, &redir[i]->fd, all))
+						return (1);
+		}
+
 		pids[command_count] = fork();
 		if (pids[command_count] == 0)
 		{
