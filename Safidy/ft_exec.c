@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/11 16:43:48 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/12 11:05:43 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,53 +199,6 @@ void	command_execution(t_all *all, t_cmd_utils *c_utils,
 	}
 }
 
-// int	exec_commands(t_all *all)
-// {
-// 	t_list		*command_list;
-// 	t_cmd_utils	*c_utils;
-// 	int			command_count;
-// 	int			i;
-// 	int			redir_val;
-
-// 	i = -1;
-// 	c_utils = (t_cmd_utils *)malloc(sizeof(t_cmd_utils));
-// 	while (++i < MAX_COMMANDS)
-// 		c_utils->cmd_type[i] = 0;
-// 	command_list = all->command_list;
-// 	command_count = 0;
-// 	while (command_list)
-// 	{
-// 		if (command_list->next && pipe(all->out_pipe) == -1)
-// 			exec_error(NULL, all, "pipe creation failed\n");
-// 		c_utils->cmd = get_new_command(command_list, all);
-// 		if (ft_strchr(c_utils->cmd[0], '/') && is_dir(c_utils->cmd[0], all))
-// 			return (free(c_utils), 0);
-// 		redir_val = manage_redirections(command_list, all);
-// 		if (redir_val == 1)
-// 			return (free(c_utils), -1);
-// 		else if (redir_val == -1)
-// 		{
-// 			free(c_utils->cmd);
-// 			c_utils->exit_stats[command_count] = 1;
-// 			c_utils->cmd_type[command_count] = 1;
-// 			command_list = command_list->next;
-// 			command_count++;
-// 			continue ;
-// 		}
-// 		c_utils->bin_path = get_bin_path(c_utils->cmd[0], all);
-// 		if (!c_utils->bin_path && !is_builtins(c_utils->cmd[0]))
-// 		{
-// 			all->exit_status = command_not_found(command_list, c_utils->cmd);
-// 			return (free(c_utils), 1);
-// 		}
-// 		command_execution(all, c_utils, command_list, command_count);
-// 		command_list = command_list->next;
-// 		command_count++;
-// 	}
-// 	get_all_exit_stat(all, command_count, c_utils);
-// 	return (free(c_utils), 0);
-// }
-
 char	*get_first_command(t_list *command_list)
 {
 	char	**command;
@@ -353,7 +306,6 @@ int exec_commands(t_all *all)
 	char *cmd = get_first_command(command_list);
 	if (is_builtins(cmd) && command_list->next == NULL)
 	{
-		// printf("builtin\n");
 		command = get_new_command(command_list, all);
 		if (ft_strchr(command[0], '/') && is_dir(command[0], all))
 			return (0);
@@ -410,9 +362,9 @@ int exec_commands(t_all *all)
 			free_list(all->command_list);
 			free_split(all->env_arr);
 			ft_free_env_list(all->env_list);
-			exit(all->exit_status);
+			int exit_stat = all->exit_status;
 			free(all);
-			// exec_error(bin_path, all, "execve failed\n");////
+			exit(exit_stat);
 		}
 		else if (pids[command_count] > 0)
 		{

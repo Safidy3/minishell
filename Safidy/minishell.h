@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/10 15:10:09 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/12 11:05:41 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,7 +172,7 @@ char			*get_bin_path(char *command, t_all *all);
 
 char			*get_redir_name(char *command);
 t_redirect		**get_all_redirections(t_list *command_list, t_all *all);
-int				handle_output_redirection(t_redirect *redirect, t_all *all);
+int				handle_output_redirection(t_redirect *redirect,  t_all *all, t_redirect **redir_head);
 int				manage_redirections(t_list *command_list, t_all *all);
 void			dup_in(int fd[2], int closeall);
 void			dup_out(int fd[2], int closeall);
@@ -180,13 +180,14 @@ void			dup_out(int fd[2], int closeall);
 /****************** HEREDOC ********************/
 
 int				get_heredoc(char *delimiter, int *fd, t_all *all);
-int				handle_input_redirection(t_redirect *redirect, t_all *all);
+int				handle_input_redirection(t_redirect *redirect, t_all *all, t_redirect **redir_head);
 
 /****************** EXEC ERROR ********************/
 
 void			exec_error(char *bin_path, t_all *all, char *msg);
 int				command_not_found(t_list *command_list, char **command);
-void			fd_error(char *file_path);
+void			fd_error(char *file_path, t_redirect **redir, t_all *all);
+void			clear_all_redir(t_redirect **redir);
 int				handle_heredoc_redirection(int fd);
 
 /**************************************/

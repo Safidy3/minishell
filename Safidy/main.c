@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 10:29:42 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/10 15:20:09 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/12 10:30:48 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,8 +80,6 @@ void	proccess_command(t_all *all)
 // 	proccess_command(all);
 // 	return (0);
 // }
-
-
 
 int main(int argc, char **argv, char **envp)
 {

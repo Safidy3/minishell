@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/10 09:46:07 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/12 11:05:35 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ t_redirect	**get_all_redirections(t_list *command_list, t_all *all)
 	return (redirection_files);
 }
 
-int	handle_output_redirection(t_redirect *redirect, t_all *all)
+int	handle_output_redirection(t_redirect *redirect,  t_all *all, t_redirect **redir_head)
 {
 	int	fd;
 
@@ -93,22 +93,35 @@ int	handle_output_redirection(t_redirect *redirect, t_all *all)
 	else
 		fd = open(redirect->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
 	if (fd == -1)
-		fd_error(redirect->filename);
+		fd_error(redirect->filename, redir_head, all);
 	if (fd != -1 && dup2(fd, STDOUT_FILENO) == -1)
 		exec_error(NULL, all, "dup2 failed\n");
 	return (fd);
 }
 
-int	handle_input_redirection(t_redirect *redirect, t_all *all)
+int	handle_input_redirection(t_redirect *redirect, t_all *all, t_redirect **redir_head)
 {
 	int	fd;
 
 	fd = open(redirect->filename, O_RDONLY);
 	if (fd == -1)
-		fd_error(redirect->filename);
+		fd_error(redirect->filename, redir_head, all);
 	if (fd != -1 && dup2(fd, STDIN_FILENO) == -1)
 		exec_error(NULL, all, "dup2 failed\n");
 	return (fd);
+}
+
+void	clear_all_redir(t_redirect **redir)
+{
+	int	i;
+
+	i = 0;
+	while (redir[++i])
+	{
+		ft_free(redir[i]->filename);
+		free(redir[i]);
+	}
+	free(redir);
 }
 
 int	get_redir_fd(t_redirect **redir, t_all *all)
@@ -121,9 +134,9 @@ int	get_redir_fd(t_redirect **redir, t_all *all)
 	{
 		fd = -1;
 		if (redir[i]->type == TRUNCATE || redir[i]->type == APPEND)
-			fd = handle_output_redirection(redir[i], all);
+			fd = handle_output_redirection(redir[i], all, redir);
 		else if (redir[i]->type == INPUT)
-			fd = handle_input_redirection(redir[i], all);
+			fd = handle_input_redirection(redir[i], all, redir);
 		else if (redir[i]->type == HEREDOC)
 			fd = handle_heredoc_redirection(redir[i]->fd);
 		if (fd != -1)

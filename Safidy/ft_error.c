@@ -6,15 +6,22 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:26:11 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/10 10:01:56 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/12 09:55:01 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void	fd_error(char *file_path)
+void	fd_error(char *file_path, t_redirect **redir, t_all *all)
 {
+	clear_all_redir(redir);
 	perror(file_path);
+	// ft_free(bin_path);
+	free_list(all->command_list);
+	free_split(all->env_arr);
+	ft_free_env_list(all->env_list);
+	free(all);
+	exit(EXIT_FAILURE);
 }
 
 void	exec_error(char *bin_path, t_all *all, char *msg)
