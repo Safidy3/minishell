@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 10:29:42 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/12 10:30:48 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/13 14:52:17 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,19 +67,9 @@ void	proccess_command(t_all *all)
 	}
 }
 
-// int	main(int argc, char **argv, char **envp)
-// {
-// 	t_all	*all;
 
-// 	(void)argc;
-// 	(void)argv;
-// 	all = (t_all *)malloc(sizeof(t_all));
-// 	if (!all)
-// 		return (0);
-// 	init_all_struct(all, envp);
-// 	proccess_command(all);
-// 	return (0);
-// }
+// refa tsisy commande an aloha de mi-segfault,Filaharan le commande ex cat << a << b Makfile
+// tkn cat Makfile
 
 int main(int argc, char **argv, char **envp)
 {
@@ -110,7 +100,14 @@ int main(int argc, char **argv, char **envp)
 			continue;
 		}
 		if (!line)
-			exit(all->exit_status);
+		{
+			printf("exit\n");
+			free_list(all->command_list);
+			free_split(all->env_arr);
+			ft_free_env_list(all->env_list);
+			free(all);
+			exit(0);
+		}
 		if (*line)
 			add_history(line);
 		line = replace_env_vars(line, all);
@@ -124,6 +121,8 @@ int main(int argc, char **argv, char **envp)
 				free_list(all->command_list);
 				continue;
 			}
+			if (all->exit_status == 131)
+				ft_putstr_fd("Quit (core dumped)\n", 2);
 			free_list(all->command_list);
 		}
 	}

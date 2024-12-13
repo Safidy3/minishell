@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exec.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/12 16:30:25 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/13 14:42:09 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,8 +104,8 @@ void	get_all_exit_stat(t_all *all, int command_count, t_cmd_utils *c_utils)
 		else if (c_utils->cmd_type[i] == 0)
 		{
 			waitpid(c_utils->pids[i], &status, 0);
-			// if (WIFSIGNALED(status))
-			// 	printf("Quit (core dumped)\n");
+			if (WIFSIGNALED(status))
+				printf("Quit (core dumped)\n");
 			all->exit_status = WEXITSTATUS(status);
 		}
 	}
@@ -416,9 +416,12 @@ int exec_commands(t_all *all)
 		else if (cmd_type[i] == 0)
 		{
 			waitpid(pids[i], &status, 0);
-			// if (WIFSIGNALED(status))
-			// 	printf("Quit (core dumped)\n");
-			all->exit_status = WEXITSTATUS(status);
+			if (WIFSIGNALED(status))
+			{
+				all->exit_status = 131;
+			}
+			else
+				all->exit_status = WEXITSTATUS(status);
 		}
 	}
 	return (0);
