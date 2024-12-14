@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/14 14:47:30 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/14 17:26:48 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,61 +225,37 @@ void	restore_std(t_all *all)
 int builtin_redirections(t_list *command_list, t_all *all)
 {
 	t_redirect	**redir;
-	int         fd_out;
+	int			fd;
 	int         i;
 
-	fd_out = -1;
 	redir = get_all_redirections(command_list, all);
 	if (!redir)
 		return (0);
 	i = -1;
 	while (redir[++i])
 	{
-		if (redir[i]->type == INPUT)
-		{
-			DIR	*dir;
-
-			dir = opendir(redir[i]->filename);
-			if (dir || errno == EACCES)
-			{
-				close_dir(dir, redir[i]->filename);
-				ft_putendl_fd(": Is a directory", 2);
-				all->exit_status = 126;
-				return (1);
-			}
-			if (is_dir(redir[i]->filename, all))
-				return (0);
-		}
+		fd = -1;
 		if (redir[i]->type == TRUNCATE || redir[i]->type == APPEND)
+			fd = handle_output_redirection(redir[i], all, redir);
+		else if (redir[i]->type == INPUT)
 		{
-			if (redir[i]->type == TRUNCATE)
-				fd_out = open(redir[i]->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-			else if (redir[i]->type == APPEND)
-				fd_out = open(redir[i]->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-			if (fd_out == -1)
-			{
-				perror("Error opening output file (truncate)");
-				continue;
-			}
-			if (dup2(fd_out, STDOUT_FILENO) == -1)
-			{
-				perror("Error redirecting stdout");
-				close(fd_out);
-			}
-			close(fd_out);
+			fd = open(redir[i]->filename, O_RDONLY);
+			if (fd == -1)
+				fd_error(redir[i]->filename, redir, all);
 		}
+		if (fd != -1)
+			close(fd);
 		ft_free(redir[i]->filename);
 		free(redir[i]);
+		if (fd == -1)
+		{
+			dup2(all->fd_og[0], STDIN_FILENO);
+			dup2(all->fd_og[1], STDOUT_FILENO);
+			break ;
+		}
 	}
-	return (free(redir), 1);
+	return (free(redir), fd);
 }
-
-
-// mande : echo hi >./outfiles/outfile01 | echo bye >./outfiles/outfile02
-// tsy mande : cat <missing | cat <"./test_files/infile"
-// todo : fix pipe
-
-/* TMP EXEC TALOA*/
 
 int exec_commands(t_all *all)
 {
@@ -321,9 +297,6 @@ int exec_commands(t_all *all)
 		restore_std(all);
 		return (free(command), 0);
 	}
-	
-
-
 
 	/* exec misy pipe sy non_builtin */
 	while (command_list)
@@ -440,9 +413,22 @@ int exec_commands(t_all *all)
 		else if (cmd_type[i] == 0)
 		{
 			waitpid(pids[i], &status, 0);
-			// if (WIFSIGNALED(status))
-			// 	printf("Quit (core dumped)\n");
-			all->exit_status = WEXITSTATUS(status);
+			if (WIFSIGNALED(status) || flag)
+			{
+				if (WTERMSIG(status) == SIGQUIT)
+				{
+					printf("Quit (core dumped)\n");
+					all->exit_status = 128 + WTERMSIG(status);
+				}
+				else
+				{
+					printf("\n");
+					all->exit_status = 128 + flag;
+				}
+				flag = 0;
+			}
+			else
+				all->exit_status = WEXITSTATUS(status);
 		}
 	}
 	return (0);

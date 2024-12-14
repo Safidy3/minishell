@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/14 14:48:19 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/14 15:33:14 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,7 +124,7 @@ void	free_all_redir(t_redirect **redir)
 	free(redir);
 }
 
-int	get_redir_fd(t_redirect **redir, t_all *all)
+int	manage_redirections(t_redirect	**redir, t_all *all)
 {
 	int	fd;
 	int	i;
@@ -150,23 +150,5 @@ int	get_redir_fd(t_redirect **redir, t_all *all)
 			break ;
 		}
 	}
-	return (fd);
-}
-
-int	manage_redirections(t_redirect	**redir, t_all *all)
-{
-	int			fd;
-	// t_redirect	**redir;
-
-	// redir = get_all_redirections(command_list, all);
-	// if (!redir)
-	// 	return (0);
-	// int			i;
-	// i = -1;
-	// while (redir[++i])
-	// 	if (redir[i]->type == HEREDOC)
-	// 		if (get_heredoc(redir[i]->filename, &redir[i]->fd, all))
-	// 			return (1);
-	fd = get_redir_fd(redir, all);
 	return (free(redir), fd);
 }

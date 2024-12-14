@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 10:29:42 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/12 10:30:48 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/14 17:24:56 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,20 +66,6 @@ void	proccess_command(t_all *all)
 		free_list(all->command_list);
 	}
 }
-
-// int	main(int argc, char **argv, char **envp)
-// {
-// 	t_all	*all;
-
-// 	(void)argc;
-// 	(void)argv;
-// 	all = (t_all *)malloc(sizeof(t_all));
-// 	if (!all)
-// 		return (0);
-// 	init_all_struct(all, envp);
-// 	proccess_command(all);
-// 	return (0);
-// }
 
 int main(int argc, char **argv, char **envp)
 {
