@@ -216,6 +216,8 @@ static int	arg_special_char(char *s)
 	i = 0;
 	if (is_special_char(s[i]))
 		i++;
+	if (s[i - 1] == s[i])
+		i++;
 	while (ft_isspace(s[i]))
 		i++;
 	while (s[i] && !ft_isspace(s[i]) && !is_special_char(s[i]))

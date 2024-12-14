@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/12 16:26:31 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/14 14:48:19 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,7 @@ int	handle_input_redirection(t_redirect *redirect, t_all *all, t_redirect **redi
 	return (fd);
 }
 
-void	clear_all_redir(t_redirect **redir)
+void	free_all_redir(t_redirect **redir)
 {
 	int	i;
 

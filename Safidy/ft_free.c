@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_free.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 10:35:42 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/06 11:20:52 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/14 14:00:04 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 /******************* split iteration ******************/
 
-void	ft_free(char *s)
+void	ft_free(void *s)
 {
 	if (s)
 	{

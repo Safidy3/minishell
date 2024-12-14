@@ -6,7 +6,7 @@
 /*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/13 14:41:56 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/06 14:15:55 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ int	ft_exit(t_all *all, char **command)
 	free_split(all->env_arr);
 	ft_free_env_list(all->env_list);
 	free(all);
+	// write(2,"exit\n",5);
 	exit(exit_status);
 	return (0);
 }

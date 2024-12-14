@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/12 16:20:55 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/14 11:54:28 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ void			free_split(char **array);
 void			print_split(char **array);
 char			*ft_getenv(char *env_var, t_all *all);
 int				array_len(char **array);
-void			ft_free(char *s);
+void			ft_free(void *s);
 void			print_s(void *s);
 void			free_split_1(void *s);
 void			split_iterate(void **array, void (*f)(void *));
@@ -190,7 +190,7 @@ int				handle_input_redirection(t_redirect *redirect, t_all *all, t_redirect **r
 void			exec_error(char *bin_path, t_all *all, char *msg);
 int				command_not_found(t_list *command_list, char **command);
 void			fd_error(char *file_path, t_redirect **redir, t_all *all);
-void			clear_all_redir(t_redirect **redir);
+void			free_all_redir(t_redirect **redir);
 int				handle_heredoc_redirection(int fd);
 
 /**************************************/

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exec.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/13 14:42:09 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/14 14:47:30 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ char	**get_new_command(t_list *command_list, t_all *all)
 	while (command[++i])
 		if (command_list->type[i] == 0)
 			count++;
+	if (count == 0)
+		return (NULL);
 	new_command = (char **)calloc(sizeof(char *), count + 1);
 	if (!new_command)
 		exec_error(NULL, all, "malloc error\n");
@@ -104,8 +106,8 @@ void	get_all_exit_stat(t_all *all, int command_count, t_cmd_utils *c_utils)
 		else if (c_utils->cmd_type[i] == 0)
 		{
 			waitpid(c_utils->pids[i], &status, 0);
-			if (WIFSIGNALED(status))
-				printf("Quit (core dumped)\n");
+			// if (WIFSIGNALED(status))
+			// 	printf("Quit (core dumped)\n");
 			all->exit_status = WEXITSTATUS(status);
 		}
 	}
@@ -293,6 +295,9 @@ int exec_commands(t_all *all)
 	char **command;
 	char *bin_path;
 
+	command = NULL;
+	bin_path = NULL;
+
 	command_count = 0;
 	in_pipe[0] = -1;
 	in_pipe[1] = -1;
@@ -326,22 +331,34 @@ int exec_commands(t_all *all)
 		if (command_list->next && pipe(out_pipe) == -1)
 			exec_error(NULL, all, "pipe creation failed\n");
 		command = get_new_command(command_list, all);
-		if (ft_strchr(command[0], '/') && is_dir(command[0], all))
-			return (0);
-		bin_path = get_bin_path(command[0], all);
-		if (!bin_path && !is_builtins(command[0]))
+
+		if (command)
+		{
+			if (ft_strchr(command[0], '/') && is_dir(command[0], all))
+				return (0);
+			bin_path = get_bin_path(command[0], all);
+		}
+
+		redir = get_all_redirections(command_list, all);
+		i = -1;
+		if (redir)
+			while (redir[++i])
+				if (redir[i]->type == HEREDOC && get_heredoc(redir[i]->filename, &redir[i]->fd, all))
+					return (1);
+
+		if (!bin_path && command && !is_builtins(command[0]))
 		{
 			all->exit_status = command_not_found(command_list, command);
 			return (1);
 		}
-		redir = get_all_redirections(command_list, all);
-		if (redir)
+		if (!bin_path && !command && redir)
 		{
-			i = -1;
-			while (redir[++i])
-				if (redir[i]->type == HEREDOC)
-					if (get_heredoc(redir[i]->filename, &redir[i]->fd, all))
-						return (1);
+			free_all_redir(redir);
+			cmd_type[command_count] = 1;
+			exit_stats[command_count] = 0;
+			command_list = command_list->next;
+			command_count++;
+			continue;
 		}
 
 		pids[command_count] = fork();
@@ -367,17 +384,19 @@ int exec_commands(t_all *all)
 					continue ;
 				}
 			}
-			if (is_builtins(command[0]))
+			if (command)
 			{
-				exit_stats[command_count] = builtin_execution(command, all);
-				free_all_struct(all);
-				free(command);
-				exit(exit_stats[command_count]);
+				if (is_builtins(command[0]))
+				{
+					exit_stats[command_count] = builtin_execution(command, all);
+					free_all_struct(all);
+					free(command);
+					exit(exit_stats[command_count]);
+				}
+				else if (bin_path)
+					execve(bin_path, command, all->env_arr);
 			}
-			else if (bin_path)
-				execve(bin_path, command, all->env_arr);
 			///modification
-			ft_free(bin_path);
 			free_list(all->command_list);
 			free_split(all->env_arr);
 			ft_free_env_list(all->env_list);
@@ -396,11 +415,16 @@ int exec_commands(t_all *all)
 			}
 			dup2(all->fd_og[0], STDIN_FILENO);
 			dup2(all->fd_og[1], STDOUT_FILENO);
-			ft_free(bin_path);
-			free(command);
+			if (command)
+			{
+				if (bin_path)
+					free(bin_path);
+				free(command);
+			}
 		}
 		else
 			exec_error(NULL, all, "fork failed\n");
+	
 		command_list = command_list->next;
 		command_count++;
 	}
@@ -416,125 +440,11 @@ int exec_commands(t_all *all)
 		else if (cmd_type[i] == 0)
 		{
 			waitpid(pids[i], &status, 0);
-			if (WIFSIGNALED(status))
-			{
-				all->exit_status = 131;
-			}
-			else
-				all->exit_status = WEXITSTATUS(status);
+			// if (WIFSIGNALED(status))
+			// 	printf("Quit (core dumped)\n");
+			all->exit_status = WEXITSTATUS(status);
 		}
 	}
 	return (0);
 }
 
-
-// tsy mande : cat <missing | cat <"./test_files/infile"
-// int exec_commands(t_all *all)
-// {
-// 	t_list *command_list;
-// 	pid_t pids[MAX_COMMANDS];
-// 	int exit_stats[MAX_COMMANDS];
-// 	int cmd_type[MAX_COMMANDS];
-// 	// int in_pipe[2];
-// 	// int out_pipe[2];
-
-// 	int i;
-// 	int command_count;
-// 	char **command;
-// 	char *bin_path;
-
-// 	all->in_pipe[0] = -1;
-// 	all->in_pipe[1] = -1;
-// 	all->out_pipe[0] = -1;
-// 	all->out_pipe[1] = -1;
-
-// 	i = -1;
-// 	while (++i < MAX_COMMANDS)
-// 		cmd_type[i] = 0;
-
-// 	command_count = 0;
-// 	command_list = all->command_list;
-// 	while (command_list)
-// 	{
-// 		command = get_new_command(command_list, all);
-// 		bin_path = get_bin_path(command[0], all);
-// 		if (command_list->next && pipe(all->out_pipe) == -1)
-// 		{
-//  			perror("Pipe creation failed");
-// 			exec_error(NULL, all, "pipe creation failed\n");
-// 		}
-// 		pids[command_count] = fork();
-// 		if (pids[command_count] == 0)
-// 		{
-// 			signal(SIGQUIT, SIG_DFL);
-// 			// Use in_pipe as input if it exists
-//             if (all->in_pipe[0] != -1)
-// 			{
-//                 dup2(all->in_pipe[0], STDIN_FILENO);
-//                 close(all->in_pipe[0]);
-//                 close(all->in_pipe[1]);
-//             }
-//             // Use out_pipe for output if there's a next command
-//             if (command_list->next)
-// 			{
-//                 close(all->out_pipe[0]);
-//                 dup2(all->out_pipe[1], STDOUT_FILENO);
-//                 close(all->out_pipe[1]);
-//             }
-// 			// manage_redirections(command_list, all);
-// 			if (is_builtins(command[0]))
-// 			{
-// 				exit_stats[command_count] = builtin_execution(command, all);
-// 				free_all_struct(all);
-// 				free(command);
-// 				exit(exit_stats[command_count]);
-// 			}
-// 			else if (bin_path)
-// 				execve(bin_path, command, all->env_arr);
-// 		}
-// 		else if (pids[command_count] > 0)
-// 		{
-// 			// Close input pipe if it was used
-// 			if (all->in_pipe[0] != -1)
-// 			{
-// 				close(all->in_pipe[0]);
-// 				close(all->in_pipe[1]);
-// 			}
-// 			// Move out_pipe to in_pipe if there's a next command
-// 			if (command_list->next)
-// 			{
-// 				// Close write end of out_pipe
-// 				close(all->out_pipe[1]);
-// 				// Store out_pipe as in_pipe for next iteration
-// 				all->in_pipe[0] = all->out_pipe[0];
-// 				all->in_pipe[1] = all->out_pipe[1];
-// 				// Reset out_pipe
-// 				all->out_pipe[0] = -1;
-// 				all->out_pipe[1] = -1;
-// 			}
-// 			dup2(all->fd_og[0], STDIN_FILENO);
-// 			dup2(all->fd_og[1], STDOUT_FILENO);
-// 			ft_free(bin_path);
-// 			free(command);
-// 		}
-// 		else
-// 			exec_error(NULL, all, "fork failed\n");
-// 		command_list = command_list->next;
-// 		command_count++;
-// 	}
-// 	if (all->in_pipe[0] != -1)
-// 		close(all->in_pipe[0]);
-// 	i = -1;
-// 	while (++i < command_count)
-// 	{
-// 		int status = 0;
-// 		if (cmd_type[i] == 1)
-// 			all->exit_status = exit_stats[i];
-// 		else if (cmd_type[i] == 0)
-// 		{
-// 			waitpid(pids[i], &status, 0);
-// 			all->exit_status = WEXITSTATUS(status);
-// 		}
-// 	}
-// 	return (0);
-// }

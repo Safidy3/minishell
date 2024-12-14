@@ -43,7 +43,7 @@ norm:
 	norminette $(SRCS)
 
 debug: fclean all
-	@valgrind --suppressions=readline.supp --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(NAME)
+	@valgrind --track-fds=yes --suppressions=readline.supp --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(NAME)
 
 .PHONY: all clean fclean re
 

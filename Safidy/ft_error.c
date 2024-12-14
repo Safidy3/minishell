@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:26:11 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/12 09:55:01 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/14 11:37:59 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 void	fd_error(char *file_path, t_redirect **redir, t_all *all)
 {
-	clear_all_redir(redir);
+	free_all_redir(redir);
 	perror(file_path);
 	// ft_free(bin_path);
 	free_list(all->command_list);

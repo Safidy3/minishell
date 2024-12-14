@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_check_valid_commad.c                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 11:47:46 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/13 14:14:08 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/12 10:55:59 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,8 @@ int ft_check_quote(char *command , char cote, int *i)
 			(*i)++;
 		if (command[*i] == '\0')
 			return(ft_putstr_fd("cote ts mihidy\n", 2), -1);
+		// if (command[*i + 1])
+		// 	(*i)++;
 	}
 	return(1);
 }
@@ -138,6 +140,8 @@ int	is_valid_command(char *command)
 		i++;
 	if (command[i] == '\0')
 		return (0);
+	// if (!check_unlosed_quotes(&command[i], 0))
+	// 	return (0);
 	while (command[i])
 	{
 		if (ft_isspace(command[i]))
