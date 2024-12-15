@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   minishell.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/12/15 17:08:16 by safandri          #+#    #+#             */
+/*   Updated: 2024/12/15 17:08:17 by safandri         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
 /******************* init list ******************/
@@ -136,11 +148,6 @@ void	append_env_value(char **dst, char **s, t_all *all)
 	char	*temp;
 	char	*exit_stat;
 
-	if (*(*s + 1) == '\"' || *(*s + 1) == '\'')
-	{
-		(*s)++;
-		return ;
-	}
 	if (**s == '$' && ft_isalnum(*(*s + 1)))
 		manage_env_var(dst, s, all);
 	else if (**s == '$' && *(*s + 1) == '?')
@@ -153,6 +160,7 @@ void	append_env_value(char **dst, char **s, t_all *all)
 		*s += 2;
 	}
 	else if (**s == '$' && (ft_isspace(*(*s + 1))
+			|| *(*s + 1) == '\'' || *(*s + 1) == '\"'
 			|| !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
 		*dst = copy_char(*dst, *(*s)++);
 }
@@ -163,7 +171,14 @@ void	append_quoted_text(char **dst, char **s, char quote, t_all *all)
 	while (**s && **s != quote)
 	{
 		if (**s == '$' && quote == '\"' )
+		{
 			append_env_value(dst, s, all);
+		}
+		else if (**s == '\\' && *(*s + 1) == '$')
+		{
+			*dst = copy_char(*dst, *(*s + 1));
+			*s += 2;
+		}
 		else
 			*dst = copy_char(*dst, *(*s)++);
 	}
@@ -171,10 +186,32 @@ void	append_quoted_text(char **dst, char **s, char quote, t_all *all)
 		*dst = copy_char(*dst, *(*s)++);
 }
 
+int	if_path(char *s)
+{
+	if (*s == '~' && (!*(s + 1) || ft_isspace(*(s + 1))
+			|| *(s + 1) == '/') && (!*(s - 1) || ft_isspace(*(s - 1))))
+		return (1);
+	return (0);
+}
+
+char	*expand_path(char **s, char **dst, t_all *all)
+{
+	char	*temp;
+	char	*home_path;
+
+	home_path = ft_getenv("HOME", all);
+	if (!home_path)
+		return (*dst);
+	temp = *dst;
+	*dst = ft_strjoin(*dst, home_path);
+	free(temp);
+	(*s)++;
+	return (*dst);
+}
+
 char	*replace_env_vars(char *s, t_all *all)
 {
 	char	*dst;
-	char	*temp;
 
 	dst = ft_strdup("");
 	while (*s)
@@ -183,16 +220,15 @@ char	*replace_env_vars(char *s, t_all *all)
 			append_quoted_text(&dst, &s, '\'', all);
 		else if (*s == '\"')
 			append_quoted_text(&dst, &s, '\"', all);
+		else if (*s == '\\' && *(s + 1) == '$')
+		{
+			dst = copy_char(dst, *(s + 1));
+			s += 2;
+		}
 		else if (*s == '$')
 			append_env_value(&dst, &s, all);
-		else if (*s == '~' && (!*(s + 1) || ft_isspace(*(s + 1))
-				|| *(s + 1) == '/') && (!*(s - 1) || ft_isspace(*(s - 1))))
-		{
-			temp = dst;
-			dst = ft_strjoin(dst, ft_getenv("HOME", all));
-			free(temp);
-			s++;
-		}
+		else if (if_path(s))
+			dst = expand_path(&s, &dst, all);
 		else
 			dst = copy_char(dst, *s++);
 	}
