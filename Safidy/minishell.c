@@ -136,6 +136,11 @@ void	append_env_value(char **dst, char **s, t_all *all)
 	char	*temp;
 	char	*exit_stat;
 
+	if (*(*s + 1) == '\"' || *(*s + 1) == '\'')
+	{
+		(*s)++;
+		return ;
+	}
 	if (**s == '$' && ft_isalnum(*(*s + 1)))
 		manage_env_var(dst, s, all);
 	else if (**s == '$' && *(*s + 1) == '?')
@@ -155,16 +160,10 @@ void	append_env_value(char **dst, char **s, t_all *all)
 void	append_quoted_text(char **dst, char **s, char quote, t_all *all)
 {
 	*dst = copy_char(*dst, *(*s)++);
-
 	while (**s && **s != quote)
 	{
-		if (**s == '$' && quote == '\"' && *(*s + 1) != quote)
-		{
-			// if (*(*s + 1) != '\"' && *(*s + 1) != '\'')
-				append_env_value(dst, s, all);
-			// else
-			// 	(*s)++;
-		}
+		if (**s == '$' && quote == '\"' )
+			append_env_value(dst, s, all);
 		else
 			*dst = copy_char(*dst, *(*s)++);
 	}
@@ -185,12 +184,7 @@ char	*replace_env_vars(char *s, t_all *all)
 		else if (*s == '\"')
 			append_quoted_text(&dst, &s, '\"', all);
 		else if (*s == '$')
-		{
-			if (*(s + 1) != '\"' && *(s + 1) != '\'')
-				append_env_value(&dst, &s, all);
-			else
-				s++;
-		}
+			append_env_value(&dst, &s, all);
 		else if (*s == '~' && (!*(s + 1) || ft_isspace(*(s + 1))
 				|| *(s + 1) == '/') && (!*(s - 1) || ft_isspace(*(s - 1))))
 		{
