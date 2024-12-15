@@ -159,9 +159,10 @@ void	append_env_value(char **dst, char **s, t_all *all)
 		free(exit_stat);
 		*s += 2;
 	}
-	else if (**s == '$' && (ft_isspace(*(*s + 1))
-			|| *(*s + 1) == '\'' || *(*s + 1) == '\"'
-			|| !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
+	// else if (**s == '$' && (ft_isspace(*(*s + 1))
+	// 		|| *(*s + 1) == '\'' || *(*s + 1) == '\"'
+	// 		|| !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
+	else
 		*dst = copy_char(*dst, *(*s)++);
 }
 
@@ -171,9 +172,7 @@ void	append_quoted_text(char **dst, char **s, char quote, t_all *all)
 	while (**s && **s != quote)
 	{
 		if (**s == '$' && quote == '\"' )
-		{
 			append_env_value(dst, s, all);
-		}
 		else if (**s == '\\' && *(*s + 1) == '$')
 		{
 			*dst = copy_char(*dst, *(*s + 1));
