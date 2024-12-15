@@ -54,24 +54,29 @@ int	ft_cd(char **t_path, t_all *all)
 	o_path = getcwd(NULL, 0);
 	if (!o_path)
 		return (perror("getcwd"), 2);
-	
 	if (ft_strcmp(o_path, t_path[1]) == 0)
-	{
-		free(o_path);
-		return (0);
-	}
+		return (free(o_path), 0);
 	if (chdir(path) == -1)
 		return (free(o_path), perror(path), 1);
-	n_path = getcwd(NULL,0);
+	n_path = getcwd(NULL, 0);
 	if (!n_path)
-		return (perror("getcwd"), 2);
+		return (perror("getcwd"), free(o_path), 2);
 	env = all->env_list;
 	while (env)
 	{
-		if (strcmp(env->first , "PWD") == 0)
+		char *tmp;
+		if (!strcmp(env->first , "PWD"))
+		{
+			tmp = env->second;
 			env->second = n_path;
+			free(tmp);
+		}
 		else if (strcmp(env->first , "OLDPWD") == 0)
+		{
+			tmp = env->second;
 			env->second = o_path;
+			free(tmp);
+		}
 		env = env->next;
 	}
 	return (0);
