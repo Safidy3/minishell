@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 10:29:42 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/14 17:24:56 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/15 15:26:53 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,11 +95,17 @@ int main(int argc, char **argv, char **envp)
 			dup2(all->fd_og[0], STDIN_FILENO);
 			continue;
 		}
+
+		// line = "echo $\"HOME\"";
+		// line = "echo \"$\"HOME";
+		// line = "echo 'exit_code ->$? user ->$USER home -> $HOME'";
+		// printf("%s\n", line);
 		if (!line)
 			exit(all->exit_status);
 		if (*line)
 			add_history(line);
 		line = replace_env_vars(line, all);
+		// printf("%s\n", line);
 		if (valid_command(line, all))
 		{
 			commands = ft_split_esc(line, '|');
