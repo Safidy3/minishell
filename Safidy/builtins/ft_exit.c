@@ -49,6 +49,9 @@ int	ft_exit(t_all *all, char **command)
 	free_list(all->command_list);
 	free_split(all->env_arr);
 	ft_free_env_list(all->env_list);
+	close(all->fd_og[0]);
+	close(all->fd_og[1]);
+	free(command);
 	free(all);
 	// write(2,"exit\n",5);
 	exit(exit_status);

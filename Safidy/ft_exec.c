@@ -113,94 +113,6 @@ void	get_all_exit_stat(t_all *all, int command_count, t_cmd_utils *c_utils)
 	}
 }
 
-void	exec_child(t_all *all, t_cmd_utils *c_utils,
-			t_list *command_list, int command_count)
-{
-	char	**command;
-	char	*bin_path;
-	int		exit_stat;
-
-	bin_path = c_utils->bin_path;
-	command = c_utils->cmd;
-	if (all->in_pipe[0] != -1)
-		dup_in(all->in_pipe, 0);
-	if (command_list->next)
-		dup_out(all->out_pipe, 1);
-	if (bin_path)
-	{
-		free(c_utils);
-		execve(bin_path, command, all->env_arr);
-	}
-	else if (is_builtins(command[0]))
-	{
-		exit_stat = builtin_execution(command, all);
-		c_utils->exit_stats[command_count] = exit_stat;
-		free_all_struct(all);
-		free(c_utils);
-		free(command);
-		exit(exit_stat);
-	}
-}
-
-void	exec_parent(t_all *all, t_cmd_utils *c_utils,
-			t_list *command_list)
-{
-	if (all->in_pipe[0] != -1)
-		close(all->in_pipe[0]);
-	if (command_list->next)
-	{
-		close(all->out_pipe[1]);
-		all->in_pipe[0] = all->out_pipe[0];
-	}
-	dup2(all->fd_og[0], STDIN_FILENO);
-	dup2(all->fd_og[1], STDOUT_FILENO);
-	ft_free(c_utils->bin_path);
-	free(c_utils->cmd);
-}
-
-int	exec_unfork_builtin(t_all *all, t_cmd_utils *c_utils,
-			t_list *command_list, int command_count)
-{
-	if (!ft_strcmp(c_utils->cmd[0], "exit")
-		|| !ft_strcmp(c_utils->cmd[0], "env")
-		|| !ft_strcmp(c_utils->cmd[0], "export")
-		|| !ft_strcmp(c_utils->cmd[0], "unset")
-		|| !ft_strcmp(c_utils->cmd[0], "pwd")
-		|| !ft_strcmp(c_utils->cmd[0], "cd"))
-	{
-		if (c_utils->bin_path)
-			free(c_utils->bin_path);
-		free(c_utils->cmd);
-		c_utils->cmd_type[command_count] = 1;
-		c_utils->exit_stats[command_count] = exec_builtins(command_list,
-				all->in_pipe, all->out_pipe, all);
-		return (1);
-	}
-	return (0);
-}
-
-
-void	command_execution(t_all *all, t_cmd_utils *c_utils,
-			t_list *command_list, int command_count)
-{
-	if (exec_unfork_builtin(all, c_utils, command_list, command_count))
-		;
-	else
-	{
-		c_utils->pids[command_count] = fork();
-		if (c_utils->pids[command_count] == 0)
-		{
-			signal(SIGQUIT, SIG_DFL);
-			exec_child(all, c_utils, command_list, command_count);
-			exec_error(c_utils->bin_path, all, "execve failed\n");
-		}
-		else if (c_utils->pids[command_count] > 0)
-			exec_parent(all, c_utils, command_list);
-		else
-			exec_error(NULL, all, "fork failed\n");
-	}
-}
-
 char	*get_first_command(t_list *command_list)
 {
 	char	**command;
@@ -357,10 +269,13 @@ int exec_commands(t_all *all)
 					continue ;
 				}
 			}
+			close(all->fd_og[0]);
+			close(all->fd_og[1]);
 			if (command)
 			{
 				if (is_builtins(command[0]))
 				{
+					free(bin_path);
 					exit_stats[command_count] = builtin_execution(command, all);
 					free_all_struct(all);
 					free(command);

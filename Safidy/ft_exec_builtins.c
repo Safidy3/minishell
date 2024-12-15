@@ -61,6 +61,7 @@ int	builtin_execution(char **command, t_all *all)
 		ft_exit(all, command);
 	return (exit_status);
 }
+// int	exec_builtins(t_list *command_list, int out_pipe[2], t_all *all)
 
 int	exec_builtins(t_list *command_list, int in_pipe[2], int out_pipe[2],
 		t_all *all)
