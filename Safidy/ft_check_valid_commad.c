@@ -35,9 +35,7 @@ int ft_check_quote(char *command , char cote, int *i)
 		while (command[*i] && command[*i] != cote)
 			(*i)++;
 		if (command[*i] == '\0')
-			return(ft_putstr_fd("cote ts mihidy\n", 2), -1);
-		// if (command[*i + 1])
-		// 	(*i)++;
+			return(ft_putstr_fd("syntax error; unclosed quote\n", 2), -1);
 	}
 	return(1);
 }
@@ -140,8 +138,6 @@ int	is_valid_command(char *command)
 		i++;
 	if (command[i] == '\0')
 		return (0);
-	// if (!check_unlosed_quotes(&command[i], 0))
-	// 	return (0);
 	while (command[i])
 	{
 		if (ft_isspace(command[i]))
