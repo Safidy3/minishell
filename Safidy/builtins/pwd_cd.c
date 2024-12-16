@@ -35,7 +35,7 @@ char	*manage_home_path(char *path, t_all *all)
 			env = env->next;
 		}
 	}
-	return (path);
+	return (ft_putstr_fd("bash: cd: HOME not set\n", 2), path);
 }
 
 int	ft_cd(char **t_path, t_all *all)
@@ -46,11 +46,10 @@ int	ft_cd(char **t_path, t_all *all)
 	char		*path;
 
 	if (array_len(t_path) > 2)
-	{
-		ft_putstr_fd(" too many arguments\n", 2);
-		return (1);
-	}
+		return (ft_putstr_fd(" too many arguments\n", 2), 1);
 	path = manage_home_path(t_path[1], all);
+	if (path == NULL)
+		return (1);
 	o_path = getcwd(NULL, 0);
 	if (!o_path)
 		return (perror("getcwd"), 2);
