@@ -89,6 +89,16 @@ int main(int argc, char **argv, char **envp)
 			flag = 0;
 		}
 		line = readline(">: ");
+		if (line == NULL)
+		{
+			printf("\n");
+			close(all->fd_og[0]);
+			close(all->fd_og[1]);
+			ft_free_env_list(all->env_list);
+			free_split(all->env_arr);
+			free(all);
+			exit(0);
+		}
 		if (flag == SIGINT)
 		{
 			flag = 0;
@@ -96,8 +106,6 @@ int main(int argc, char **argv, char **envp)
 			continue;
 		}
 
-		// line = "echo $\"HOME\"";
-		// line = "echo \"$\"HOME";
 		// line = "echo 'exit_code ->$? user ->$USER home -> $HOME'";
 		// printf("%s\n", line);
 		if (!line)
@@ -105,7 +113,6 @@ int main(int argc, char **argv, char **envp)
 		if (*line)
 			add_history(line);
 		line = replace_env_vars(line, all);
-		// printf("%s\n", line);
 		if (valid_command(line, all))
 		{
 			commands = ft_split_esc(line, '|');

@@ -187,19 +187,21 @@ int builtin_redirections(t_list *command_list, t_all *all)
 /********************************************************************* */
 
 
-/*tsy mety : < a > b cat > hey >> d */
-/*""*/
-/*ls|<k*/
-/*exit 42 5*/
-/*exit hj 5*/
-/*
-unset HOME
->: cd
+/*tsy mety :
+< a > b cat > hey >> d 
+""
+ls|<k
+exit 42 5
+exit hj 5
+
+unset HOME && cd
+
+ls ">" ds
+cat << $a
+
+ghj|fghj
+
 */
-// ls ">" ds
-/*cat << $a
-*/
-/*ghj|fghj*/
 
 int exec_commands(t_all *all)
 {
