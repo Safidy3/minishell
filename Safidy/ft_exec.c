@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exec.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/14 17:26:48 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/16 16:13:03 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,40 +134,60 @@ void	restore_std(t_all *all)
 		exec_error(NULL, all, "dup2 restore stdout failed\n");
 }
 
+/*********************** BUILTINS REDIRECTION ************************* */
+
+int	builtins_output_redirection(t_redirect *redirect,  t_all *all)
+{
+	int	fd;
+
+	fd = 0;
+	if (redirect->type == TRUNCATE)
+		fd = open(redirect->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	else
+		fd = open(redirect->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+	if (fd == -1)
+		perror(redirect->filename);
+		// fd_error(redirect->filename, redir_head, all);
+	if (fd != -1 && dup2(fd, STDOUT_FILENO) == -1)
+		exec_error(NULL, all, "dup2 failed\n");
+	return (fd);
+}
+
 int builtin_redirections(t_list *command_list, t_all *all)
 {
-	t_redirect	**redir;
 	int			fd;
 	int         i;
 
-	redir = get_all_redirections(command_list, all);
-	if (!redir)
+	all->redir = get_all_redirections(command_list, all);
+	if (!all->redir)
 		return (0);
 	i = -1;
-	while (redir[++i])
+	while (all->redir[++i])
 	{
 		fd = -1;
-		if (redir[i]->type == TRUNCATE || redir[i]->type == APPEND)
-			fd = handle_output_redirection(redir[i], all, redir);
-		else if (redir[i]->type == INPUT)
+		if (all->redir[i]->type == TRUNCATE || all->redir[i]->type == APPEND)
+			fd = builtins_output_redirection(all->redir[i], all);
+		else if (all->redir[i]->type == INPUT)
 		{
-			fd = open(redir[i]->filename, O_RDONLY);
+			fd = open(all->redir[i]->filename, O_RDONLY);
 			if (fd == -1)
-				fd_error(redir[i]->filename, redir, all);
+				perror(all->redir[i]->filename);
 		}
 		if (fd != -1)
 			close(fd);
-		ft_free(redir[i]->filename);
-		free(redir[i]);
 		if (fd == -1)
 		{
-			dup2(all->fd_og[0], STDIN_FILENO);
-			dup2(all->fd_og[1], STDOUT_FILENO);
-			break ;
+			all->exit_status = 1;
+			break;
 		}
 	}
-	return (free(redir), fd);
+	return (free_all_redir(all->redir), fd);
 }
+
+/********************************************************************* */
+
+
+
 
 int exec_commands(t_all *all)
 {
@@ -178,13 +198,9 @@ int exec_commands(t_all *all)
 	int in_pipe[2];
 	int out_pipe[2];
 	int command_count;
-	t_redirect	**redir;
 
-	char **command;
-	char *bin_path;
-
-	command = NULL;
-	bin_path = NULL;
+	all->command = NULL;
+	all->bin_path = NULL;
 
 	command_count = 0;
 	in_pipe[0] = -1;
@@ -197,17 +213,17 @@ int exec_commands(t_all *all)
 	command_list = all->command_list;
 
 	/* exec builtins fotsiny */
-	
+
 	char *cmd = get_first_command(command_list);
 	if (is_builtins(cmd) && command_list->next == NULL)
 	{
-		command = get_new_command(command_list, all);
-		if (ft_strchr(command[0], '/') && is_dir(command[0], all))
+		all->command = get_new_command(command_list, all);
+		if (ft_strchr(all->command[0], '/') && is_dir(all->command[0], all))
 			return (0);
 		if (builtin_redirections(command_list, all) != -1)
-			all->exit_status = builtin_execution(command, all);
+			all->exit_status = builtin_execution(all->command, all);
 		restore_std(all);
-		return (free(command), 0);
+		return (free(all->command), 0);
 	}
 
 	/* exec misy pipe sy non_builtin */
@@ -215,37 +231,36 @@ int exec_commands(t_all *all)
 	{
 		if (command_list->next && pipe(out_pipe) == -1)
 			exec_error(NULL, all, "pipe creation failed\n");
-		command = get_new_command(command_list, all);
 
-		if (command)
+		all->command = get_new_command(command_list, all);
+		if (all->command)
 		{
-			if (ft_strchr(command[0], '/') && is_dir(command[0], all))
+			if (ft_strchr(all->command[0], '/') && is_dir(all->command[0], all))
 				return (0);
-			bin_path = get_bin_path(command[0], all);
+			all->bin_path = get_bin_path(all->command[0], all);
 		}
 
-		redir = get_all_redirections(command_list, all);
+		all->redir = get_all_redirections(command_list, all);
 		i = -1;
-		if (redir)
-			while (redir[++i])
-				if (redir[i]->type == HEREDOC && get_heredoc(redir[i]->filename, &redir[i]->fd, all))
+		if (all->redir)
+			while (all->redir[++i])
+				if (all->redir[i]->type == HEREDOC && get_heredoc(all->redir[i]->filename, &all->redir[i]->fd, all))
 					return (1);
 
-		if (!bin_path && command && !is_builtins(command[0]))
+		if (!all->bin_path && all->command && !is_builtins(all->command[0]))
 		{
-			all->exit_status = command_not_found(command_list, command);
+			all->exit_status = command_not_found(command_list, all->command);
 			return (1);
 		}
-		if (!bin_path && !command && redir)
+		if (!all->bin_path && !all->command && all->redir)
 		{
-			free_all_redir(redir);
+			free_all_redir(all->redir);
 			cmd_type[command_count] = 1;
 			exit_stats[command_count] = 0;
 			command_list = command_list->next;
 			command_count++;
 			continue;
 		}
-
 		pids[command_count] = fork();
 		if (pids[command_count] == 0)
 		{
@@ -254,35 +269,26 @@ int exec_commands(t_all *all)
 				dup_in(in_pipe, 0);
 			if (command_list->next)
 				dup_out(out_pipe, 1);
-			if (redir)
+			if (all->redir)
 			{
-				int redir_val = manage_redirections(redir, all);
+				int redir_val = manage_redirections(all->redir, all);
 				if (redir_val == 1)
 					return (-1);
-				else if (redir_val == -1)
-				{
-					free(command);
-					exit_stats[command_count] = 1;
-					cmd_type[command_count] = 1;
-					command_list = command_list->next;
-					command_count++;
-					continue ;
-				}
 			}
 			close(all->fd_og[0]);
 			close(all->fd_og[1]);
-			if (command)
+			if (all->command)
 			{
-				if (is_builtins(command[0]))
+				if (is_builtins(all->command[0]))
 				{
-					free(bin_path);
-					exit_stats[command_count] = builtin_execution(command, all);
+					exit_stats[command_count] = builtin_execution(all->command, all);
+					free(all->bin_path);
+					free(all->command);
 					free_all_struct(all);
-					free(command);
 					exit(exit_stats[command_count]);
 				}
-				else if (bin_path)
-					execve(bin_path, command, all->env_arr);
+				else if (all->bin_path)
+					execve(all->bin_path, all->command, all->env_arr);
 			}
 			///modification
 			free_list(all->command_list);
@@ -303,11 +309,12 @@ int exec_commands(t_all *all)
 			}
 			dup2(all->fd_og[0], STDIN_FILENO);
 			dup2(all->fd_og[1], STDOUT_FILENO);
-			if (command)
+			free_all_redir(all->redir);
+			if (all->command)
 			{
-				if (bin_path)
-					free(bin_path);
-				free(command);
+				if (all->bin_path)
+					free(all->bin_path);
+				free(all->command);
 			}
 		}
 		else

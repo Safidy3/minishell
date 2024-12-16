@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/16 11:10:11 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/16 15:28:31 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,13 @@ typedef struct s_env_list
 	struct s_env_list	*next;
 }						t_env_list;
 
+typedef struct s_redirect
+{
+	char		*filename;
+	int			type;
+	int			fd;
+}				t_redirect;
+
 typedef struct s_all
 {
 	int			exit_status;
@@ -56,15 +63,11 @@ typedef struct s_all
 	int			fd_og[2];
 	int			in_pipe[2];
 	int			out_pipe[2];
+	char		**command;
+	char		*bin_path;
+	t_redirect	**redir;
 	t_env_list	*env_list;
 }				t_all;
-
-typedef struct s_redirect
-{
-	char		*filename;
-	int			type;
-	int			fd;
-}				t_redirect;
 
 typedef struct s_cmd_utils
 {

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_redirect.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/14 15:33:14 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/16 15:23:51 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,13 +115,16 @@ void	free_all_redir(t_redirect **redir)
 {
 	int	i;
 
-	i = 0;
-	while (redir[++i])
+	i = -1;
+	if (redir)
 	{
-		ft_free(redir[i]->filename);
-		free(redir[i]);
+		while (redir[++i])
+		{
+			ft_free(redir[i]->filename);
+			free(redir[i]);
+		}
+		free(redir);
 	}
-	free(redir);
 }
 
 int	manage_redirections(t_redirect	**redir, t_all *all)
@@ -141,14 +144,6 @@ int	manage_redirections(t_redirect	**redir, t_all *all)
 			fd = handle_heredoc_redirection(redir[i]->fd);
 		if (fd != -1)
 			close(fd);
-		ft_free(redir[i]->filename);
-		free(redir[i]);
-		if (fd == -1)
-		{
-			dup2(all->fd_og[0], STDIN_FILENO);
-			dup2(all->fd_og[1], STDOUT_FILENO);
-			break ;
-		}
 	}
-	return (free(redir), fd);
+	return (free_all_redir(redir), fd);
 }

@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 10:29:42 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/15 15:26:53 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/16 16:10:24 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,6 +116,7 @@ int main(int argc, char **argv, char **envp)
 				free_list(all->command_list);
 				continue;
 			}
+			// printf("%d\n", all->exit_status);
 			free_list(all->command_list);
 		}
 	}

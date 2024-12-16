@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_error.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:26:11 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/14 11:37:59 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/16 15:32:01 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,12 @@
 
 void	fd_error(char *file_path, t_redirect **redir, t_all *all)
 {
-	free_all_redir(redir);
 	perror(file_path);
-	// ft_free(bin_path);
+	free_all_redir(redir);
+	ft_free(all->bin_path);
+	ft_free(all->command);
+	close(all->fd_og[0]);
+	close(all->fd_og[1]);
 	free_list(all->command_list);
 	free_split(all->env_arr);
 	ft_free_env_list(all->env_list);
