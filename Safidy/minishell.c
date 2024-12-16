@@ -55,7 +55,7 @@ char	*ft_getenv(char *env_var, t_all *all)
 	res = NULL;
 	while (tmp)
 	{
-		if (ft_strcmp(tmp->first, env_var) == 0)
+		if (!ft_strcmp(tmp->first, env_var) && tmp->second)
 		{
 			res = ft_strdup(tmp->second);
 			break ;

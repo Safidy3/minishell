@@ -30,12 +30,14 @@ char	*manage_home_path(char *path, t_all *all)
 	{
 		while (env)
 		{
-			if (strcmp(env->first, "HOME") == 0)
+			if (!strcmp(env->first, "HOME") && env->second)
 				return (env->second);
 			env = env->next;
 		}
+		return (ft_putstr_fd("bash: cd: HOME not set\n", 2), path);
 	}
-	return (ft_putstr_fd("bash: cd: HOME not set\n", 2), path);
+	else
+		return (path);
 }
 
 int	ft_cd(char **t_path, t_all *all)
