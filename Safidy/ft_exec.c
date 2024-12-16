@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/16 16:13:03 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/16 17:35:26 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,7 +187,19 @@ int builtin_redirections(t_list *command_list, t_all *all)
 /********************************************************************* */
 
 
-
+/*tsy mety : < a > b cat > hey >> d */
+/*""*/
+/*ls|<k*/
+/*exit 42 5*/
+/*exit hj 5*/
+/*
+unset HOME
+>: cd
+*/
+// ls ">" ds
+/*cat << $a
+*/
+/*ghj|fghj*/
 
 int exec_commands(t_all *all)
 {
@@ -241,6 +253,19 @@ int exec_commands(t_all *all)
 		}
 
 		all->redir = get_all_redirections(command_list, all);
+		
+		// i = -1;
+		// int fd;
+		// while (all->redir[++i])
+		// {
+		// 	fd = -1;
+		// 	if (all->redir[i]->type != HEREDOC)
+		// 		if (open(all->redir[i]->filename, O_WRONLY) == -1);
+		// 			perror(all->redir[i]->filename);
+		// 	if (fd != -1)
+		// 		close(fd);
+		// }
+
 		i = -1;
 		if (all->redir)
 			while (all->redir[++i])
