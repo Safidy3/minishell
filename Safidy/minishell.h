@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/14 11:54:28 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/16 11:10:11 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,7 +130,7 @@ void			ft_update_flag_0(t_env_list *tmp, char *line, char *commande);
 void			ft_update_ensemble(int *flag, t_env_list *tmp,
 					char *line, char *cmd);
 char			*ft_init_variable_name(char *commande, int *flag, char *line);
-int				ft_maj_export(t_env_list *env, char *commande, int *flag);
+int				ft_maj_export(t_env_list *env, char *command, int *flag, int *return_value);
 int				ft_export(t_env_list **env, char **commade);
 void			ft_free_tmp(t_env_list *tmp);
 int				ft_unset(t_env_list **env, char **commande);

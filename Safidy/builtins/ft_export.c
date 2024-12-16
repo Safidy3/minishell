@@ -6,7 +6,7 @@
 /*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 10:02:40 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/16 10:55:49 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/16 11:09:19 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,7 +170,7 @@ char	*ft_init_variable_name(char *command, int *flag, char *line)
 	return (variable_name);
 }
 
-int	ft_maj_export(t_env_list *env, char *command, int *flag)
+int	ft_maj_export(t_env_list *env, char *command, int *flag, int *return_value)
 {
 	char		*line;
 	char		*variable_name;
@@ -178,10 +178,12 @@ int	ft_maj_export(t_env_list *env, char *command, int *flag)
 
 	env_list = env;
 	line = ft_strchr(command, '=');
-	printf("line: %s\n", line);
 	variable_name = ft_init_variable_name(command, flag, line);
 	if (ft_export_error(variable_name, command) == 1)
+	{
+		*return_value = 1;
 		return (free(variable_name), 2);
+	}
 	while (env_list)
 	{
 			if (ft_strcmp(env_list->first, variable_name) == 0)
@@ -199,15 +201,17 @@ int	ft_export(t_env_list **env, char **command)
 {
 	int		i;
 	int		flag;
+	int		return_value;
 	t_env_list	*new;
 
 	i = 1;
+	return_value = 0;
 	while (command[i] != NULL)
 	{
 		flag = 0;
 		if (command[i])
 		{
-			if (ft_maj_export(*env, command[i], &flag) == 0)
+			if (ft_maj_export(*env, command[i], &flag, &return_value) == 0)
 			{
 				new = ft_lstnew(command[i], flag);
 				ft_lstadd_back(env, new);
@@ -215,5 +219,5 @@ int	ft_export(t_env_list **env, char **command)
 		}
 		i++;
 	}
-	return (0);
+	return (return_value);
 }
