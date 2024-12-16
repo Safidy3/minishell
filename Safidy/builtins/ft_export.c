@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_export.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 10:02:40 by larakoto          #+#    #+#             */
-/*   Updated: 2024/11/28 15:18:06 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/16 10:55:49 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,17 +178,19 @@ int	ft_maj_export(t_env_list *env, char *command, int *flag)
 
 	env_list = env;
 	line = ft_strchr(command, '=');
+	printf("line: %s\n", line);
 	variable_name = ft_init_variable_name(command, flag, line);
 	if (ft_export_error(variable_name, command) == 1)
-		return (free(variable_name), 1);
+		return (free(variable_name), 2);
 	while (env_list)
 	{
-		if (ft_strcmp(env_list->first, variable_name) == 0)
-		{
-			ft_update_ensemble(flag, env_list, line, command);
-			return (free(variable_name), 1);
-		}
-		env_list = env_list->next;
+			if (ft_strcmp(env_list->first, variable_name) == 0)
+			{
+				if (line)				
+					ft_update_ensemble(flag, env_list, line, command);
+				return (free(variable_name), 1);
+			}
+			env_list = env_list->next;
 	}
 	return (free(variable_name), 0);
 }
@@ -199,10 +201,10 @@ int	ft_export(t_env_list **env, char **command)
 	int		flag;
 	t_env_list	*new;
 
-	flag = 0;
 	i = 1;
 	while (command[i] != NULL)
 	{
+		flag = 0;
 		if (command[i])
 		{
 			if (ft_maj_export(*env, command[i], &flag) == 0)
@@ -210,8 +212,6 @@ int	ft_export(t_env_list **env, char **command)
 				new = ft_lstnew(command[i], flag);
 				ft_lstadd_back(env, new);
 			}
-			else
-				return (1);
 		}
 		i++;
 	}
