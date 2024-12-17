@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exit.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/06 14:15:55 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/17 16:13:08 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ void	exit_program(t_all *all, char **command, int print_exit)
 
 	exit_status = all->exit_status;
 	if (print_exit == 1)
-		ft_putstr_fd("exit\n", 2);
+		ft_putstr_fd("exit\n", 1);
 	free_list(all->command_list);
 	free_split(all->env_arr);
 	ft_free_env_list(all->env_list);
@@ -53,15 +53,19 @@ int ft_exit(t_all *all, char **command)
 	}
 	if (!is_valid_number)
 	{
-		ft_putstr_fd("exit\n", 2);
+		ft_putstr_fd("exit\n", 1);
 		ft_putstr_fd("exit: ", 2);
 		ft_putstr_fd(command[1], 2);
 		ft_putstr_fd(": numeric argument required\n", 2);
-		all->exit_status = 255;
+		all->exit_status = 2;
 		exit_program(all, command, 0);
 	}
 	if (array_len(command) > 2)
-		return (ft_putstr_fd("exit\nexit: too many arguments\n", 2), 1);
+	{
+		ft_putstr_fd("exit\n", 1);
+		ft_putstr_fd("exit: too many arguments\n", 2);
+		return (1);
+	}
 	all->exit_status = ft_atoi(command[1]) % 256;
 	exit_program(all, command, 1);
 	return (0);
