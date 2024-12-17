@@ -6,7 +6,7 @@
 /*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 11:47:46 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/16 10:59:27 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/17 16:03:28 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,6 +138,11 @@ int	is_valid_command(char *command)
 	i = 0;
 	while (command[i] && ft_isspace(command[i]))
 		i++;
+	if (command[i] == '|')
+	{
+		ft_putstr_fd("bash: syntax error\n", 1);
+		return (1);
+	}
 	if (command[i] == '\0')
 		return (0);
 	while (command[i])

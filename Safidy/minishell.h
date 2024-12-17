@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/16 15:28:31 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/17 15:48:05 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@
 
 extern volatile int	flag;
 
-# define MAX_COMMANDS 100
+# define MAX_COMMANDS 1000
 # define MAX_VAR_LEN 256
 
 # define TRUNCATE 1

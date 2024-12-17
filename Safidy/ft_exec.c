@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exec.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/16 17:35:26 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/17 15:47:22 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
