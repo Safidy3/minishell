@@ -58,7 +58,7 @@ int	builtin_execution(char **command, t_all *all)
 	else if (!ft_strncmp(command[0], "pwd", ft_strlen("pwd")))
 		exit_status = ft_pwd();
 	else if (!ft_strncmp(command[0], "exit", ft_strlen("exit")))
-		ft_exit(all, command);
+		exit_status = ft_exit(all, command);
 	return (exit_status);
 }
 // int	exec_builtins(t_list *command_list, int out_pipe[2], t_all *all)
