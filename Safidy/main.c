@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 10:29:42 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/16 16:10:24 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/17 15:15:38 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,19 +113,21 @@ int main(int argc, char **argv, char **envp)
 		if (*line)
 			add_history(line);
 		line = replace_env_vars(line, all);
-		if (valid_command(line, all))
+		if (!valid_command(line, all))
 		{
-			commands = ft_split_esc(line, '|');
-			ft_free(line);
-			init_list(&all->command_list, commands);
-			if (exec_commands(all) == -1)
-			{
-				free_list(all->command_list);
-				continue;
-			}
-			// printf("%d\n", all->exit_status);
-			free_list(all->command_list);
+			free(line);
+			continue;
 		}
+		commands = ft_split_esc(line, '|');
+		ft_free(line);
+		init_list(&all->command_list, commands);
+		if (exec_commands(all) == -1)
+		{
+			free_list(all->command_list);
+			continue;
+		}
+		// printf("%d\n", all->exit_status);
+		free_list(all->command_list);
 	}
 	return (0);
 }
