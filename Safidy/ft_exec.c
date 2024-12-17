@@ -186,12 +186,12 @@ int builtin_redirections(t_list *command_list, t_all *all)
 
 /********************************************************************* */
 
+/*
+	fonction CALLOC ESORINA
+*/
 
 /*tsy mety :
 ""
-exit 42 5
-exit hj 5
-
 unset HOME && cd ~
 cat << $a
 
@@ -259,6 +259,8 @@ int exec_commands(t_all *all)
 			all->command = get_new_command(command_list, all);
 			if (all->command)
 			{
+				if (!all->command[0][0])
+					command_not_found(all);
 				if (ft_strchr(all->command[0], '/') && is_dir(all->command[0], all))
 				{
 					int exit_stat = all->exit_status;
@@ -362,3 +364,29 @@ int exec_commands(t_all *all)
 	return (0);
 }
 
+/*
+>: ./minishell
+>: exit 42 5
+exit: too many arguments
+>: exit
+exit
+>: ./minishell
+>: exit
+exit
+>: 
+>: exit
+exit
+==9539== 
+==9539== FILE DESCRIPTORS: 3 open (3 std) at exit.
+==9539== 
+==9539== HEAP SUMMARY:
+==9539==     in use at exit: 228,836 bytes in 247 blocks
+==9539==   total heap usage: 1,046 allocs, 799 frees, 300,514 bytes allocated
+==9539== 
+==9539== 1 bytes in 1 blocks are definitely lost in loss record 1 of 79
+==9539==    at 0x484280F: malloc (vg_replace_malloc.c:442)
+==9539==    by 0x407C54: ft_strdup (in /home/nobara/Documents/minishell/Safidy/minishell)
+==9539==    by 0x401BE6: replace_env_vars (minishell.c:215)
+==9539==    by 0x404644: main (main.c:115)
+
+*/
