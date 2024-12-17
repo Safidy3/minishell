@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/15 17:08:16 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/15 17:08:17 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/17 14:57:06 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,7 +160,7 @@ void	append_env_value(char **dst, char **s, t_all *all)
 		*s += 2;
 	}
 	// else if (**s == '$' && (ft_isspace(*(*s + 1))
-	// 		|| *(*s + 1) == '\'' || *(*s + 1) == '\"'
+	// 		|| *(*s + 1) == '\'' || *(*s + 1) == '"'
 	// 		|| !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
 	else
 		*dst = copy_char(*dst, *(*s)++);
@@ -171,7 +171,7 @@ void	append_quoted_text(char **dst, char **s, char quote, t_all *all)
 	*dst = copy_char(*dst, *(*s)++);
 	while (**s && **s != quote)
 	{
-		if (**s == '$' && quote == '\"' )
+		if (**s == '$' && quote == '"' )
 			append_env_value(dst, s, all);
 		else if (**s == '\\' && *(*s + 1) == '$')
 		{
@@ -211,7 +211,9 @@ char	*expand_path(char **s, char **dst, t_all *all)
 char	*replace_env_vars(char *s, t_all *all)
 {
 	char	*dst;
+	int		heredoc;
 
+	heredoc = 0;
 	dst = ft_strdup("");
 	while (*s)
 	{
@@ -223,6 +225,34 @@ char	*replace_env_vars(char *s, t_all *all)
 		{
 			dst = copy_char(dst, *(s + 1));
 			s += 2;
+		}
+		else if (*s == '<' && *(s + 1) == '<')
+		{
+			dst = copy_char(dst, *s++);
+			dst = copy_char(dst, *s++);
+			while (isspace(*s))
+				dst = copy_char(dst, *s++);
+			if (*s == '\'')
+			{
+				dst = copy_char(dst, '"');
+				dst = copy_char(dst, *s++);
+				while (*s && *s != '\'')
+					dst = copy_char(dst, *s++);
+				dst = copy_char(dst, *s++);
+				dst = copy_char(dst, '"');
+			}
+			else if (*s == '"')
+			{
+				dst = copy_char(dst, '\'');
+				dst = copy_char(dst, *s++);
+				while (*s && *s != '"')
+					dst = copy_char(dst, *s++);
+				dst = copy_char(dst, *s++);
+				dst = copy_char(dst, '\'');
+			}
+			else
+				while (*s && !isspace(*s))
+					dst = copy_char(dst, *s++);
 		}
 		else if (*s == '$')
 			append_env_value(&dst, &s, all);

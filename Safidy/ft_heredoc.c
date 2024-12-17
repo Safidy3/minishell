@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_heredoc.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:50:53 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/12 16:23:51 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/17 15:02:24 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,12 +46,38 @@ int	herdoc_delimiter(char *input, char *delimiter)
 	}
 	return (0);
 }
+char	*new_delimiter(char *old, int *del_quote)
+{
+	char	*new;
+	int		i;
+	int		j;
+	char	quote;
+	
+	new = NULL;
+	i = 0;
+	j = 0;
+	if (old[i] != '\'' && old[i] != '"')
+		return (old);
+	*del_quote = 1;
+	quote = old[i];
+	while(old[++i] && old[i] != quote)
+		j++;
+	new = (char *)calloc(sizeof(char), (j + 1));
+	i = 0;
+	j = 0;
+	while(old[++i] && old[i] != quote)
+		new[j++] = old[i];
+	return (new);
+}
 
 char	*read_join_heredoc(char *buffer, char *delimiter, int pipe_fd[2], t_all *all)
 {
 	char	*input;
+	int		dell_quote;
 
 	input = NULL;
+	dell_quote = 0;
+	delimiter = new_delimiter(delimiter, &dell_quote);
 	while (1)
 	{
 		put_signal_handlig(2);
@@ -69,16 +95,18 @@ char	*read_join_heredoc(char *buffer, char *delimiter, int pipe_fd[2], t_all *al
 			ft_free(buffer);
 			close(pipe_fd[1]);
 			close(pipe_fd[0]);
-			close(all->fd_og[0]);
-			close(all->fd_og[1]);
 			free_all_redir(all->redir);
 			flag = 0;
 			return (NULL);
 		}
 		if (herdoc_delimiter(input, delimiter))
 			break ;
+		if (dell_quote == 1)
+			input = replace_env_vars(input, all);
 		buffer = join_result(buffer, input);
 	}
+	if (dell_quote == 1)
+		free(delimiter);
 	return (buffer);
 }
 
@@ -148,7 +176,6 @@ int	get_heredoc(char *delimiter, int *fd, t_all *all)
 		close(pipe_fds[1]);
 		*fd = dup(pipe_fds[0]);
 		close(pipe_fds[0]);
-		// close(*fd);
 		free(buffer);
 		return (0);
 	}
