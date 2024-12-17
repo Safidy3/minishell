@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/15 17:08:16 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/17 14:57:06 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/17 17:01:00 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,10 +159,29 @@ void	append_env_value(char **dst, char **s, t_all *all)
 		free(exit_stat);
 		*s += 2;
 	}
-	// else if (**s == '$' && (ft_isspace(*(*s + 1))
-	// 		|| *(*s + 1) == '\'' || *(*s + 1) == '"'
-	// 		|| !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
-	else
+	else if (**s == '$' && (*(*s + 1) == '\'' || *(*s + 1) == '"'))
+		*s += 1;
+}
+
+void	append_env_value_quote(char **dst, char **s, t_all *all)
+{
+	char	*temp;
+	char	*exit_stat;
+
+	if (**s == '$' && ft_isalnum(*(*s + 1)))
+		manage_env_var(dst, s, all);
+	else if (**s == '$' && *(*s + 1) == '?')
+	{
+		exit_stat = ft_itoa(all->exit_status);
+		temp = *dst;
+		*dst = ft_strjoin(*dst, exit_stat);
+		free(temp);
+		free(exit_stat);
+		*s += 2;
+	}
+	else if (**s == '$' && (ft_isspace(*(*s + 1))
+			|| *(*s + 1) == '\'' || *(*s + 1) == '"'
+			|| !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
 		*dst = copy_char(*dst, *(*s)++);
 }
 
@@ -172,7 +191,7 @@ void	append_quoted_text(char **dst, char **s, char quote, t_all *all)
 	while (**s && **s != quote)
 	{
 		if (**s == '$' && quote == '"' )
-			append_env_value(dst, s, all);
+			append_env_value_quote(dst, s, all);
 		else if (**s == '\\' && *(*s + 1) == '$')
 		{
 			*dst = copy_char(*dst, *(*s + 1));
@@ -254,7 +273,7 @@ char	*replace_env_vars(char *s, t_all *all)
 				while (*s && !isspace(*s))
 					dst = copy_char(dst, *s++);
 		}
-		else if (*s == '$')
+		else if (*s == '$' && *(s + 1))
 			append_env_value(&dst, &s, all);
 		else if (if_path(s))
 			dst = expand_path(&s, &dst, all);
