@@ -29,6 +29,12 @@ char	*get_redir_name(char *command)
 	return (redirection_file);
 }
 
+void	set_type_fd_heredoc(t_redirect *redirection_files)
+{
+	redirection_files->type = HEREDOC;
+	redirection_files->fd = -1;
+}
+
 void	set_rd_name_type(t_redirect **redirection_files,
 	char **command, int *type, t_all *all)
 {
@@ -52,7 +58,7 @@ void	set_rd_name_type(t_redirect **redirection_files,
 			else if (command[i][0] == '<' && command[i][1] != '<' )
 				redirection_files[j]->type = INPUT;
 			else if (command[i][0] == '<' && command[i][1] == '<' )
-				redirection_files[j]->type = HEREDOC;
+				set_type_fd_heredoc(redirection_files[j]);
 			if (!redirection_files[j]->filename)
 				exec_error(NULL, all, "get_redirections\n");
 		}
@@ -120,6 +126,8 @@ void	free_all_redir(t_redirect **redir)
 	{
 		while (redir[++i])
 		{
+			if (redir[i]->type == HEREDOC && redir[i]->fd != -1)
+				close(redir[i]->fd);
 			ft_free(redir[i]->filename);
 			free(redir[i]);
 		}

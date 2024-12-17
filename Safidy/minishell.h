@@ -191,7 +191,7 @@ int				handle_input_redirection(t_redirect *redirect, t_all *all, t_redirect **r
 /****************** EXEC ERROR ********************/
 
 void			exec_error(char *bin_path, t_all *all, char *msg);
-int				command_not_found(t_list *command_list, char **command);
+int				command_not_found(t_all *all);
 void			fd_error(char *file_path, t_redirect **redir, t_all *all);
 void			free_all_redir(t_redirect **redir);
 int				handle_heredoc_redirection(int fd);

@@ -42,14 +42,18 @@ void	exec_error(char *bin_path, t_all *all, char *msg)
 	exit(EXIT_FAILURE);
 }
 
-int	command_not_found(t_list *command_list, char **command)
+int	command_not_found(t_all *all)
 {
-	if (!command_list->next)
-	{
-		ft_putstr_fd("bash: line 1: ", 2);
-		ft_putstr_fd(command[0], 2);
-		ft_putstr_fd(": command not found\n", 2);
-	}
-	free(command);
-	return (127);
+	ft_putstr_fd("bash: line 1: ", 2);
+	ft_putstr_fd(all->command[0], 2);
+	ft_putstr_fd(": command not found\n", 2);
+	free_all_redir(all->redir);
+	close(all->fd_og[0]);
+	close(all->fd_og[1]);
+	ft_free(all->command);
+	free_list(all->command_list);
+	free_split(all->env_arr);
+	ft_free_env_list(all->env_list);
+	free(all);
+	exit(127);
 }

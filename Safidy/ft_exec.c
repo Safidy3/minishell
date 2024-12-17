@@ -188,18 +188,12 @@ int builtin_redirections(t_list *command_list, t_all *all)
 
 
 /*tsy mety :
-< a > b cat > hey >> d 
 ""
-ls|<k
 exit 42 5
 exit hj 5
 
-unset HOME && cd
-
-ls ">" ds
+unset HOME && cd ~
 cat << $a
-
-ghj|fghj
 
 */
 
@@ -246,48 +240,13 @@ int exec_commands(t_all *all)
 		if (command_list->next && pipe(out_pipe) == -1)
 			exec_error(NULL, all, "pipe creation failed\n");
 
-		all->command = get_new_command(command_list, all);
-		if (all->command)
-		{
-			if (ft_strchr(all->command[0], '/') && is_dir(all->command[0], all))
-				return (0);
-			all->bin_path = get_bin_path(all->command[0], all);
-		}
-
 		all->redir = get_all_redirections(command_list, all);
-		
-		// i = -1;
-		// int fd;
-		// while (all->redir[++i])
-		// {
-		// 	fd = -1;
-		// 	if (all->redir[i]->type != HEREDOC)
-		// 		if (open(all->redir[i]->filename, O_WRONLY) == -1);
-		// 			perror(all->redir[i]->filename);
-		// 	if (fd != -1)
-		// 		close(fd);
-		// }
-
 		i = -1;
 		if (all->redir)
 			while (all->redir[++i])
 				if (all->redir[i]->type == HEREDOC && get_heredoc(all->redir[i]->filename, &all->redir[i]->fd, all))
 					return (1);
 
-		if (!all->bin_path && all->command && !is_builtins(all->command[0]))
-		{
-			all->exit_status = command_not_found(command_list, all->command);
-			return (1);
-		}
-		if (!all->bin_path && !all->command && all->redir)
-		{
-			free_all_redir(all->redir);
-			cmd_type[command_count] = 1;
-			exit_stats[command_count] = 0;
-			command_list = command_list->next;
-			command_count++;
-			continue;
-		}
 		pids[command_count] = fork();
 		if (pids[command_count] == 0)
 		{
@@ -296,12 +255,32 @@ int exec_commands(t_all *all)
 				dup_in(in_pipe, 0);
 			if (command_list->next)
 				dup_out(out_pipe, 1);
-			if (all->redir)
+
+			all->command = get_new_command(command_list, all);
+			if (all->command)
 			{
-				int redir_val = manage_redirections(all->redir, all);
-				if (redir_val == 1)
-					return (-1);
+				if (ft_strchr(all->command[0], '/') && is_dir(all->command[0], all))
+				{
+					int exit_stat = all->exit_status;
+
+					close(all->fd_og[0]);
+					close(all->fd_og[1]);
+					free_all_redir(all->redir);
+					ft_free(all->bin_path);
+					ft_free(all->command);
+					free_list(all->command_list);
+					free_split(all->env_arr);
+					ft_free_env_list(all->env_list);
+					free(all);
+					exit(exit_stat);
+				}
+				all->bin_path = get_bin_path(all->command[0], all);
 			}
+			if (!all->bin_path && all->command && !is_builtins(all->command[0]))
+				command_not_found(all);
+			if (all->redir)
+				manage_redirections(all->redir, all);
+
 			close(all->fd_og[0]);
 			close(all->fd_og[1]);
 			if (all->command)

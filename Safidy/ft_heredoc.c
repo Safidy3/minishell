@@ -47,7 +47,7 @@ int	herdoc_delimiter(char *input, char *delimiter)
 	return (0);
 }
 
-char	*read_join_heredoc(char *buffer, char *delimiter, t_all *all)
+char	*read_join_heredoc(char *buffer, char *delimiter, int pipe_fd[2], t_all *all)
 {
 	char	*input;
 
@@ -66,6 +66,12 @@ char	*read_join_heredoc(char *buffer, char *delimiter, t_all *all)
 		if (flag == SIGINT)
 		{
 			dup2(all->fd_og[0], STDIN_FILENO);
+			ft_free(buffer);
+			close(pipe_fd[1]);
+			close(pipe_fd[0]);
+			close(all->fd_og[0]);
+			close(all->fd_og[1]);
+			free_all_redir(all->redir);
 			flag = 0;
 			return (NULL);
 		}
@@ -76,6 +82,57 @@ char	*read_join_heredoc(char *buffer, char *delimiter, t_all *all)
 	return (buffer);
 }
 
+// char	*read_join_heredoc(char *buffer, char *delimiter, int pipe_fd[2], t_all *all)
+// {
+// 	char	*input;
+
+// 	input = NULL;
+// 	while (1)
+// 	{
+// 		put_signal_handlig(2);
+// 		input = readline("heredoc> ");
+// 		if (!input && flag != SIGINT)
+// 		{
+// 			write(2, "bash: warning: here-document (", 30);
+// 			write(2, delimiter, ft_strlen(delimiter));
+// 			write(2, ")\n", 2);
+// 			ft_free(buffer);
+// 			close(pipe_fd[1]);
+// 			close(pipe_fd[0]);
+// 			close(all->fd_og[0]);
+// 			close(all->fd_og[1]);
+// 			free_all_redir(all->redir);
+// 			free_list(all->command_list);
+// 			free_split(all->env_arr);
+// 			ft_free_env_list(all->env_list);
+// 			dup2(all->fd_og[0], STDIN_FILENO);
+// 			free(all);
+// 			flag = 0;
+// 			exit(0);
+// 		}
+// 		if (flag == SIGINT)
+// 		{
+// 			dup2(all->fd_og[0], STDIN_FILENO);
+// 			ft_free(buffer);
+// 			close(pipe_fd[1]);
+// 			close(pipe_fd[0]);
+// 			close(all->fd_og[0]);
+// 			close(all->fd_og[1]);
+// 			free_all_redir(all->redir);
+// 			free_list(all->command_list);
+// 			free_split(all->env_arr);
+// 			ft_free_env_list(all->env_list);
+// 			free(all);
+// 			flag = 0;
+// 			exit(130);
+// 		}
+// 		if (herdoc_delimiter(input, delimiter))
+// 			break ;
+// 		buffer = join_result(buffer, input);
+// 	}
+// 	return (buffer);
+// }
+
 int	get_heredoc(char *delimiter, int *fd, t_all *all)
 {
 	char	*buffer;
@@ -83,17 +140,15 @@ int	get_heredoc(char *delimiter, int *fd, t_all *all)
 
 	buffer = ft_strdup("");
 	if (pipe(pipe_fds) == -1)
-	{
-		perror("pipe");
-		return (-1);
-	}
-	buffer = read_join_heredoc(buffer, delimiter, all);
+		return (perror("pipe"), -1);
+	buffer = read_join_heredoc(buffer, delimiter, pipe_fds, all);
 	if (buffer)
 	{
 		write(pipe_fds[1], buffer, strlen(buffer));
 		close(pipe_fds[1]);
 		*fd = dup(pipe_fds[0]);
 		close(pipe_fds[0]);
+		// close(*fd);
 		free(buffer);
 		return (0);
 	}
