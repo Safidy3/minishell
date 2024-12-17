@@ -187,13 +187,16 @@ int builtin_redirections(t_list *command_list, t_all *all)
 /********************************************************************* */
 
 /*
-	fonction CALLOC ESORINA
-*/
+to do :
+fonction CALLOC ESORINA
 
-/*tsy mety :
-""
+exit tester_2
+
 unset HOME && cd ~
 cat << $a
+
+cat << g
+<$HOME
 
 */
 
@@ -365,6 +368,7 @@ int exec_commands(t_all *all)
 }
 
 /*
+
 >: ./minishell
 >: exit 42 5
 exit: too many arguments
