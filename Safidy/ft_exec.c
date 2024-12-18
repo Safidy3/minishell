@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exec.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/17 15:47:22 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/18 15:24:47 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,6 +194,21 @@ fonction CALLOC ESORINA
 unset HOME && cd ~
 
 cat << "$US"E"R"
+
+export var9="echo 'Hello world'"
+$var9
+
+export var10='echo "Hello world"'
+$var10
+
+HEREDOC ENV
+
+*---> leaks
+unset PWD OLDPWD
+cd /
+/bin/ls
+pwd
+echo $OLDPWD $PWD
 
 */
 

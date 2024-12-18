@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/15 17:08:16 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/18 12:01:14 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/18 15:23:39 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -231,13 +231,59 @@ char	*expand_path(char **s, char **dst, t_all *all)
 	return (*dst);
 }
 
+/************************/
+
+char	*handle_quoted_delimiter(char **s, char *dst, char quote_type)
+{
+	char	opposite_quote;
+
+	if (quote_type == '\'')
+		opposite_quote = '"';
+	else
+		opposite_quote = '\'';
+	dst = copy_char(dst, opposite_quote);
+	dst = copy_char(dst, quote_type);
+	(*s)++;
+	while (**s && **s != quote_type)
+		dst = copy_char(dst, *(*s)++);
+	dst = copy_char(dst, *(*s)++);
+	dst = copy_char(dst, opposite_quote);
+	return (dst);
+}
+
+char	*handle_heredoc_delimiter(char **s, char *dst)
+{
+	dst = copy_char(dst, **s);
+	(*s)++;
+	dst = copy_char(dst, **s);
+	(*s)++;
+	while (isspace(**s))
+		dst = copy_char(dst, *(*s)++);
+	if (**s == '\'')
+		dst = handle_quoted_delimiter(s, dst, '\'');
+	else if (**s == '"')
+		dst = handle_quoted_delimiter(s, dst, '"');
+	else
+		while (**s && !isspace(**s))
+			dst = copy_char(dst, *(*s)++);
+	return (dst);
+}
+/************** HEREDOC PARSING ***********************/
+
+int	initiate_dst(char **dst, char *s)
+{
+	if (!ft_strchr(s, '$'))
+		return (0);
+	*dst = ft_strdup("");
+	return (1);
+}
+
 char	*replace_env_vars(char *s, t_all *all)
 {
 	char	*dst;
 
-	if (!ft_strchr(s, '$'))
+	if (initiate_dst(&dst, s) == 0)
 		return (s);
-	dst = ft_strdup("");
 	while (*s)
 	{
 		if (*s == '\'')
@@ -250,33 +296,7 @@ char	*replace_env_vars(char *s, t_all *all)
 			s += 2;
 		}
 		else if (*s == '<' && *(s + 1) == '<')
-		{
-			dst = copy_char(dst, *s++);
-			dst = copy_char(dst, *s++);
-			while (isspace(*s))
-				dst = copy_char(dst, *s++);
-			if (*s == '\'')
-			{
-				dst = copy_char(dst, '"');
-				dst = copy_char(dst, *s++);
-				while (*s && *s != '\'')
-					dst = copy_char(dst, *s++);
-				dst = copy_char(dst, *s++);
-				dst = copy_char(dst, '"');
-			}
-			else if (*s == '"')
-			{
-				dst = copy_char(dst, '\'');
-				dst = copy_char(dst, *s++);
-				while (*s && *s != '"')
-					dst = copy_char(dst, *s++);
-				dst = copy_char(dst, *s++);
-				dst = copy_char(dst, '\'');
-			}
-			else
-				while (*s && !isspace(*s))
-					dst = copy_char(dst, *s++);
-		}
+			dst = handle_heredoc_delimiter(&s, dst);
 		else if (*s == '$' && *(s + 1))
 			append_env_value(&dst, &s, all);
 		else if (if_path(s))
@@ -286,6 +306,61 @@ char	*replace_env_vars(char *s, t_all *all)
 	}
 	return (dst);
 }
+
+// char	*replace_env_vars(char *s, t_all *all)
+// {
+// 	char	*dst;
+// 	if (!ft_strchr(s, '$'))
+// 		return (s);
+// 	dst = ft_strdup("");
+// 	while (*s)
+// 	{
+// 		if (*s == '\'')
+// 			append_quoted_text(&dst, &s, '\'', all);
+// 		else if (*s == '\"')
+// 			append_quoted_text(&dst, &s, '\"', all);
+// 		else if (*s == '\\' && *(s + 1) == '$')
+// 		{
+// 			dst = copy_char(dst, *(s + 1));
+// 			s += 2;
+// 		}
+// 		else if (*s == '<' && *(s + 1) == '<')
+// 		{
+// 			dst = copy_char(dst, *s++);
+// 			dst = copy_char(dst, *s++);
+// 			while (isspace(*s))
+// 				dst = copy_char(dst, *s++);
+// 			if (*s == '\'')
+// 			{
+// 				dst = copy_char(dst, '"');
+// 				dst = copy_char(dst, *s++);
+// 				while (*s && *s != '\'')
+// 					dst = copy_char(dst, *s++);
+// 				dst = copy_char(dst, *s++);
+// 				dst = copy_char(dst, '"');
+// 			}
+// 			else if (*s == '"')
+// 			{
+// 				dst = copy_char(dst, '\'');
+// 				dst = copy_char(dst, *s++);
+// 				while (*s && *s != '"')
+// 					dst = copy_char(dst, *s++);
+// 				dst = copy_char(dst, *s++);
+// 				dst = copy_char(dst, '\'');
+// 			}
+// 			else
+// 				while (*s && !isspace(*s))
+// 					dst = copy_char(dst, *s++);
+// 		}
+// 		else if (*s == '$' && *(s + 1))
+// 			append_env_value(&dst, &s, all);
+// 		else if (if_path(s))
+// 			dst = expand_path(&s, &dst, all);
+// 		else
+// 			dst = copy_char(dst, *s++);
+// 	}
+// 	return (dst);
+// }
 
 int	get_exit_stat(pid_t pids[MAX_COMMANDS], int command_count)
 {
