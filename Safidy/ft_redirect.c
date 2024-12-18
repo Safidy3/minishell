@@ -89,7 +89,8 @@ t_redirect	**get_all_redirections(t_list *command_list, t_all *all)
 	return (redirection_files);
 }
 
-int	handle_output_redirection(t_redirect *redirect,  t_all *all, t_redirect **redir_head)
+int	handle_output_redirection(t_redirect *redirect,
+	t_all *all, t_redirect **redir_head)
 {
 	int	fd;
 
@@ -105,7 +106,8 @@ int	handle_output_redirection(t_redirect *redirect,  t_all *all, t_redirect **re
 	return (fd);
 }
 
-int	handle_input_redirection(t_redirect *redirect, t_all *all, t_redirect **redir_head)
+int	handle_input_redirection(t_redirect *redirect,
+	t_all *all, t_redirect **redir_head)
 {
 	int	fd;
 
