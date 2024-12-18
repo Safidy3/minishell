@@ -91,7 +91,6 @@ int	is_dir(char *command, t_all *all)
 	return (0);
 }
 
-
 char	*get_first_command(t_list *command_list)
 {
 	char	**command;
@@ -115,7 +114,7 @@ void	restore_std(t_all *all)
 
 /*********************** BUILTINS REDIRECTION ************************* */
 
-int	builtins_output_redirection(t_redirect *redirect,  t_all *all)
+int	builtins_output_redirection(t_redirect *redirect, t_all *all)
 {
 	int	fd;
 
@@ -126,18 +125,16 @@ int	builtins_output_redirection(t_redirect *redirect,  t_all *all)
 		fd = open(redirect->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
 	if (fd == -1)
 		perror(redirect->filename);
-		// fd_error(redirect->filename, redir_head, all);
 	if (fd != -1 && dup2(fd, STDOUT_FILENO) == -1)
 		exec_error(NULL, all, "dup2 failed\n");
 	return (fd);
 }
 
-int builtin_redirections(t_list *command_list, t_all *all)
+int	builtin_redirections(t_all *all)
 {
-	int			fd;
-	int         i;
+	int	fd;
+	int	i;
 
-	all->redir = get_all_redirections(command_list, all);
 	if (!all->redir)
 		return (0);
 	i = -1;
@@ -152,12 +149,11 @@ int builtin_redirections(t_list *command_list, t_all *all)
 			if (fd == -1)
 				perror(all->redir[i]->filename);
 		}
-		if (fd != -1)
-			close(fd);
 		if (fd == -1)
 		{
+			close(fd);
 			all->exit_status = 1;
-			break;
+			break ;
 		}
 	}
 	return (free_all_redir(all->redir), fd);
@@ -193,11 +189,12 @@ echo $OLDPWD $PWD
 void	get_all_exit_stat(t_all *all, int command_count)
 {
 	int	i;
+	int	status;
 
 	i = -1;
 	while (++i < command_count)
 	{
-		int status = 0;
+		status = 0;
 		waitpid(all->pids[i], &status, 0);
 		if (WIFSIGNALED(status) || flag)
 		{
@@ -240,8 +237,9 @@ void	exec_parent(t_all *all, t_list *command_list)
 
 void	command_dir_error(t_all *all)
 {
-	int exit_stat = all->exit_status;
+	int	exit_stat;
 
+	exit_stat = all->exit_status;
 	close(all->fd_og[0]);
 	close(all->fd_og[1]);
 	free_all_redir(all->redir);
@@ -273,7 +271,7 @@ void	get_command_bin(t_all *all, t_list *command_list)
 
 void	free_if_failed_exec(t_all *all)
 {
-	int exit_stat;
+	int	exit_stat;
 
 	exit_stat = all->exit_status;
 	free_list(all->command_list);
@@ -285,7 +283,7 @@ void	free_if_failed_exec(t_all *all)
 
 void	exec_child(t_all *all, t_list *command_list)
 {
-	int exit_stats;
+	int	exit_stats;
 
 	signal(SIGQUIT, SIG_DFL);
 	if (all->in_pipe[0] != -1)
@@ -316,7 +314,8 @@ void	exec_non_forked(t_all *all, t_list *command_list)
 	all->command = get_new_command(command_list, all);
 	if (ft_strchr(all->command[0], '/') && is_dir(all->command[0], all))
 		return ;
-	if (builtin_redirections(command_list, all) != -1)
+	all->redir = get_all_redirections(command_list, all);
+	if (builtin_redirections(all) != -1)
 		all->exit_status = builtin_execution(all->command, all);
 	restore_std(all);
 	return (free(all->command));
@@ -342,7 +341,9 @@ int	manage_heredoc_sigdef(t_all *all)
 	i = -1;
 	if (all->redir)
 		while (all->redir[++i])
-			if (all->redir[i]->type == HEREDOC && get_heredoc(all->redir[i]->filename, &all->redir[i]->fd, all))
+			if (all->redir[i]->type == HEREDOC
+				&& get_heredoc(all->redir[i]->filename,
+					&all->redir[i]->fd, all))
 				return (1);
 	return (0);
 }
@@ -357,7 +358,7 @@ void	exec_forked(t_all *all, t_list *command_list, int command_count)
 		exec_error(NULL, all, "fork failed\n");
 }
 
-int exec_commands(t_all *all)
+int	exec_commands(t_all *all)
 {
 	t_list	*command_list;
 	char	*cmd;
@@ -383,6 +384,5 @@ int exec_commands(t_all *all)
 	}
 	if (all->in_pipe[0] != -1)
 		close(all->in_pipe[0]);
-	get_all_exit_stat(all, command_count);
-	return (0);
+	return (get_all_exit_stat(all, command_count), 0);
 }
