@@ -55,29 +55,25 @@ static char	*ft_escape_special_char(char *s)
 	return (s);
 }
 
-static size_t	ft_count_words(char *s, char c)
+static size_t ft_count_words(char *s, char c)
 {
-	size_t	count;
+	size_t count = 0;
 
-	count = 0;
 	while (*s)
 	{
-		s = ft_escap_spliter(s, c);
-		if (*s && !is_special_char(*s))
+		while (*s == c)
+			s++;
+		if (*s == '\0')
+			break;
+		count++;
+		while (*s && *s != c)
 		{
-			count++;
-			while (*s && *s != c && !is_special_char(*s))
-			{
-				if (*s == '\'' || *s == '\"')
-					s = ft_escape_quote(s);
-				if (*s && *s != c && !is_special_char(*s))
-					s++;
-			}
-		}
-		else if (*s && is_special_char(*s))
-		{
-			count++;
-			s = ft_escape_special_char(s);
+			if (*s == '\'' || *s == '\"')
+				s = ft_escape_quote(s);
+			else if (is_special_char(*s))
+				s = ft_escape_special_char(s);
+			else
+				s++;
 		}
 	}
 	return (count);
@@ -139,7 +135,32 @@ static size_t	ft_count_words_len(char *s, char c)
 	return (word_len);
 }
 
-static char	*cpy_to_arr(char *s, char *tab, int word_len)
+static size_t	ft_count_str_len(char *s, char c)
+{
+	int		word_len;
+	int		i;
+
+	word_len = 0;
+	i = 0;
+	if (s[i] && s[i] != c && !is_special_char(s[i]))
+	{
+		while (s[i] && s[i] != c && !is_special_char(s[i]))
+		{
+			if (s[i] == '\'' || s[i] == '"')
+				skip_quote(s, &word_len, &i);
+			else if (s[i] && s[i] != c && !is_special_char(s[i]))
+				i++;
+			else if (s[i] == c || is_special_char(s[i]))
+				break ;
+		}
+	}
+	else if (is_special_char(s[i]))
+		handle_special_char(s, &word_len, &i);
+	word_len += i;
+	return (i);
+}
+
+void	cpy_to_arr(char *s, char *tab, int word_len)
 {
 	char	quote;
 	int		i;
@@ -148,7 +169,7 @@ static char	*cpy_to_arr(char *s, char *tab, int word_len)
 	i = 0;
 	j = 0;
 	if (word_len == 0)
-		return (s + 2);
+		return ;
 	while (j < word_len)
 	{
 		if (s[i] == '\'' || s[i] == '"')
@@ -162,8 +183,6 @@ static char	*cpy_to_arr(char *s, char *tab, int word_len)
 		else
 			tab[j++] = s[i++];
 	}
-	s += i;
-	return (s);
 }
 
 char	**ft_split_esc_2(char *s, char c)
@@ -185,7 +204,8 @@ char	**ft_split_esc_2(char *s, char c)
 		tab[i] = (char *)calloc(sizeof(char), (word_len + 1));
 		if (!tab[i])
 			return (ft_free_exit(tab));
-		s = cpy_to_arr(s, tab[i], word_len);
+		cpy_to_arr(s, tab[i], word_len);
+		s += ft_count_str_len(s, c);
 	}
 	return (tab);
 }

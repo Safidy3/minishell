@@ -14,6 +14,7 @@
 
 void	fd_error(char *file_path, t_redirect **redir, t_all *all)
 {
+	ft_putstr_fd("bash: ", 2);
 	perror(file_path);
 	free_all_redir(redir);
 	ft_free(all->bin_path);

@@ -100,8 +100,8 @@ void			free_all_struct(t_all *all);
 
 /************************************** */
 
-int				valid_command(char *command, t_all *all);
-int				is_valid_command(char *command);
+int				valid_command(const char *command, t_all *all);
+int				is_valid_command(const char *command);
 
 /************************************** */
 

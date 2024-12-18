@@ -19,7 +19,7 @@ int	is_symbol(char c)
 	return (0);
 }
 
-int	symbols_condition(char *command, int i)
+int	symbols_condition(const char *command, int i)
 {
 	if (command[i] == '<' || command[i] == '>' || command[i] == '|'
 		|| command[i] == '\0')
@@ -27,7 +27,7 @@ int	symbols_condition(char *command, int i)
 	return (0);
 }
 
-int ft_check_quote(char *command , char cote, int *i)
+int ft_check_quote(const char *command , char cote, int *i)
 {
 	if (command[*i] == cote)
 	{
@@ -40,7 +40,7 @@ int ft_check_quote(char *command , char cote, int *i)
 	return(1);
 }
 
-int	check_symbol(char *command, char c, int *i)
+int	check_symbol(const char *command, char c, int *i)
 {
 	*i = *i + 1;
 	if(command[*i] == '\0')
@@ -72,7 +72,7 @@ int	check_symbol(char *command, char c, int *i)
 	return (0);
 }
 
-int	handle_pipe(int *flag_redirection, char *command, int *i)
+int	handle_pipe(int *flag_redirection, const char *command, int *i)
 {
 	if (command[*i] == '|')
 	{
@@ -89,7 +89,7 @@ int	handle_pipe(int *flag_redirection, char *command, int *i)
 	return (0);
 }
 
-int	handle_redirection(int *flag_redirection, char *command, int *i)
+int	handle_redirection(int *flag_redirection, const char *command, int *i)
 {
 	if (command[*i] == '>' || command[*i] == '<')
 	{
@@ -129,7 +129,7 @@ int check_unlosed_quotes(char *command, int i)
     return (1);
 }
 
-int	is_valid_command(char *command)
+int	is_valid_command(const char *command)
 {
 	int	i;
 	int	flag_redirection;
@@ -139,10 +139,7 @@ int	is_valid_command(char *command)
 	while (command[i] && ft_isspace(command[i]))
 		i++;
 	if (command[i] == '|')
-	{
-		ft_putstr_fd("bash: syntax error\n", 1);
-		return (1);
-	}
+		return (ft_putstr_fd("bash: syntax error\n", 1), 0);
 	if (command[i] == '\0')
 		return (0);
 	while (command[i])
@@ -161,5 +158,17 @@ int	is_valid_command(char *command)
 	}
 	if (print_syntax_error(&flag_redirection) == 0)
 		return (0);
+	return (1);
+}
+
+int	valid_command(const char *command, t_all *all)
+{
+	if (ft_strlen((char *)command) == 0)
+		return (0);
+	if (!is_valid_command(command))
+	{
+		all->exit_status = 2;
+		return (0);
+	}
 	return (1);
 }

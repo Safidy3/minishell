@@ -161,6 +161,8 @@ void	append_env_value(char **dst, char **s, t_all *all)
 	}
 	else if (**s == '$' && (*(*s + 1) == '\'' || *(*s + 1) == '"'))
 		*s += 1;
+	else
+		*dst = copy_char(*dst, *(*s)++);
 }
 
 void	append_env_value_quote(char **dst, char **s, t_all *all)
@@ -182,6 +184,8 @@ void	append_env_value_quote(char **dst, char **s, t_all *all)
 	else if (**s == '$' && (ft_isspace(*(*s + 1))
 			|| *(*s + 1) == '\'' || *(*s + 1) == '"'
 			|| !(*(*s + 1)) || !ft_isalnum(*(*s + 2))))
+		*dst = copy_char(*dst, *(*s)++);
+	else
 		*dst = copy_char(*dst, *(*s)++);
 }
 
@@ -230,9 +234,9 @@ char	*expand_path(char **s, char **dst, t_all *all)
 char	*replace_env_vars(char *s, t_all *all)
 {
 	char	*dst;
-	int		heredoc;
 
-	heredoc = 0;
+	if (!ft_strchr(s, '$'))
+		return (s);
 	dst = ft_strdup("");
 	while (*s)
 	{
@@ -335,15 +339,3 @@ void	command_error(t_all *all)
 	exit(EXIT_FAILURE);
 }
 
-int	valid_command(char *command, t_all *all)
-{
-	if (ft_strlen(command) == 0)
-		return (0);
-	if (!is_valid_command(command))
-	{
-		all->exit_status = 2;
-		free(command);
-		return (0);
-	}
-	return (1);
-}

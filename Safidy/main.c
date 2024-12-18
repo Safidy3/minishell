@@ -107,7 +107,6 @@ int main(int argc, char **argv, char **envp)
 		}
 
 		// line = "echo 'exit_code ->$? user ->$USER home -> $HOME'";
-		// printf("%s\n", line);
 		if (!line)
 			exit(all->exit_status);
 		if (*line)

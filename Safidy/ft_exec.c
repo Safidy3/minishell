@@ -14,6 +14,7 @@
 
 void	close_dir(DIR *dir, char *path)
 {
+	ft_putstr_fd("bash: ", 2);
 	ft_putstr_fd(path, 2);
 	if (dir != NULL)
 		closedir(dir);
@@ -190,13 +191,9 @@ int builtin_redirections(t_list *command_list, t_all *all)
 to do :
 fonction CALLOC ESORINA
 
-exit tester_2
-
 unset HOME && cd ~
-cat << $a
 
-cat << g
-<$HOME
+cat << "$US"E"R"
 
 */
 
