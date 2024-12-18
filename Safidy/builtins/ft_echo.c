@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_echo.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/15 16:02:12 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/18 11:31:54 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ int	is_echo_flag(char *flag)
 	if (*flag != '-')
 		return (0);
 	flag++;
+	if (*flag != 'n')
+		return (0);
 	while (*flag)
 	{
 		if (*flag != 'n')

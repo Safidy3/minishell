@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/15 17:08:16 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/17 17:01:00 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/18 12:01:14 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ char	*get_env_name(char *s)
 	len = -1;
 	while (s[++len] && ft_isdigit(s[len]))
 		;
-	while (s[++len] && ft_isalnum(s[len]))
+	while (s[++len] && (s[len] == '_' || ft_isalnum(s[len])))
 		i++;
 	var_name = (char *)malloc(sizeof(char) * (len + 1));
 	if (!var_name)
@@ -138,7 +138,7 @@ void	manage_env_var(char **dst, char **s, t_all *all)
 		*dst = ft_strjoin(*dst, &env_name[1]);
 		free(temp);
 	}
-	while (++(*s) && ft_isalnum(**s))
+	while (++(*s) && (**s == '_' || ft_isalnum(**s)))
 		;
 	ft_free(env_name);
 }

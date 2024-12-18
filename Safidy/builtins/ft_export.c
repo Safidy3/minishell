@@ -6,7 +6,7 @@
 /*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 10:02:40 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/16 11:09:19 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/18 11:44:51 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,7 +155,14 @@ void	ft_update_ensemble(int *flag, t_env_list *env_list, char *line,
 char	*ft_init_variable_name(char *command, int *flag, char *line)
 {
 	char	*variable_name;
+	int		i;
 
+	variable_name = NULL;
+	i = 0;
+	while (command[i] && isspace(command[i]))
+		i++;
+	if (command[i] == '=')
+		return (variable_name);
 	if (!line)
 		variable_name = ft_strdup(command);
 	else
@@ -179,6 +186,11 @@ int	ft_maj_export(t_env_list *env, char *command, int *flag, int *return_value)
 	env_list = env;
 	line = ft_strchr(command, '=');
 	variable_name = ft_init_variable_name(command, flag, line);
+	if (!variable_name)
+	{
+		*return_value = 1;
+		return (ft_print_export_error(command), 1);
+	}
 	if (ft_export_error(variable_name, command) == 1)
 	{
 		*return_value = 1;
@@ -186,13 +198,13 @@ int	ft_maj_export(t_env_list *env, char *command, int *flag, int *return_value)
 	}
 	while (env_list)
 	{
-			if (ft_strcmp(env_list->first, variable_name) == 0)
-			{
-				if (line)				
-					ft_update_ensemble(flag, env_list, line, command);
-				return (free(variable_name), 1);
-			}
-			env_list = env_list->next;
+		if (ft_strcmp(env_list->first, variable_name) == 0)
+		{
+			if (line)				
+				ft_update_ensemble(flag, env_list, line, command);
+			return (free(variable_name), 1);
+		}
+		env_list = env_list->next;
 	}
 	return (free(variable_name), 0);
 }

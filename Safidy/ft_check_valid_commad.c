@@ -6,7 +6,7 @@
 /*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/07 11:47:46 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/17 16:03:28 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/18 11:18:09 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ int	handle_redirection(int *flag_redirection, const char *command, int *i)
 		if (check_symbol(command, command[*i], &(*i)) == -1)
 			*flag_redirection = 1;
 		if (!command[*i])
-			return (1);
+			return (ft_putstr_fd("bash: syntax error near unexpected token `newline'\n", 2), 1);
 	}
 	return (0);
 }
@@ -104,10 +104,7 @@ int	handle_redirection(int *flag_redirection, const char *command, int *i)
 int	print_syntax_error(int *flag_redirection)
 {
 	if (*flag_redirection == 1)
-	{
-		ft_putstr_fd("bash: syntax error\n", 1);
-		return (0);
-	}
+		return (ft_putstr_fd("bash: syntax error\n", 1), 0);
 	return (1);
 }
 
@@ -139,7 +136,11 @@ int	is_valid_command(const char *command)
 	while (command[i] && ft_isspace(command[i]))
 		i++;
 	if (command[i] == '|')
-		return (ft_putstr_fd("bash: syntax error\n", 1), 0);
+	{
+		if (command[i + 1] == '|')
+			return (ft_putstr_fd("bash: syntax error near unexpected token `||'\n", 2), 0);
+		return (ft_putstr_fd("bash: syntax error near unexpected token `|'\n", 2), 0);
+	}
 	if (command[i] == '\0')
 		return (0);
 	while (command[i])
@@ -152,7 +153,7 @@ int	is_valid_command(const char *command)
 		if (ft_check_quote(command, 34, &i) == -1 || ft_check_quote(command,39 ,&i) == -1)
 			return(0);
 		if (handle_redirection(&flag_redirection, command, &i) == 1)
-			return(ft_putstr_fd("bash: syntax error\n", 1), 0);
+			return(0);
 		handle_pipe(&flag_redirection, command, &i);
 		i++;
 	}
