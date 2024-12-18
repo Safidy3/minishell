@@ -55,16 +55,17 @@ static char	*ft_escape_special_char(char *s)
 	return (s);
 }
 
-static size_t ft_count_words(char *s, char c)
+static size_t	ft_count_words(char *s, char c)
 {
-	size_t count = 0;
+	size_t	count;
 
+	count = 0;
 	while (*s)
 	{
 		while (*s == c)
 			s++;
 		if (*s == '\0')
-			break;
+			break ;
 		count++;
 		while (*s && *s != c)
 		{
