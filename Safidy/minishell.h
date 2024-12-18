@@ -125,7 +125,8 @@ void			ft_update_flag_0(t_env_list *tmp, char *line, char *commande);
 void			ft_update_ensemble(int *flag, t_env_list *tmp,
 					char *line, char *cmd);
 char			*ft_init_variable_name(char *commande, int *flag, char *line);
-int				ft_maj_export(t_env_list *env, char *command, int *flag, int *return_value);
+int				ft_maj_export(t_env_list *env, char *command,
+					int *flag, int *return_value);
 int				ft_export(t_env_list **env, char **commade);
 void			ft_free_tmp(t_env_list *tmp);
 int				ft_unset(t_env_list **env, char **commande);
@@ -167,18 +168,17 @@ char			*get_bin_path(char *command, t_all *all);
 
 char			*get_redir_name(char *command);
 t_redirect		**get_all_redirections(t_list *command_list, t_all *all);
-int				handle_output_redirection(t_redirect *redirect,  t_all *all, t_redirect **redir_head);
-// int				manage_redirections(t_list *command_list, t_all *all);
-
-int	manage_redirections(t_redirect	**redir, t_all *all);
-
+int				handle_output_redirection(t_redirect *redirect,
+					t_all *all, t_redirect **redir_head);
+int				manage_redirections(t_redirect	**redir, t_all *all);
 void			dup_in(int fd[2], int closeall);
 void			dup_out(int fd[2], int closeall);
 
 /****************** HEREDOC ********************/
 
 int				get_heredoc(char *delimiter, int *fd, t_all *all);
-int				handle_input_redirection(t_redirect *redirect, t_all *all, t_redirect **redir_head);
+int				handle_input_redirection(t_redirect *redirect,
+					t_all *all, t_redirect **redir_head);
 
 /****************** EXEC ERROR ********************/
 
