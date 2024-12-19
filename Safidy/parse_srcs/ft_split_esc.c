@@ -6,23 +6,11 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/19 11:14:24 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/19 12:15:16 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/19 16:30:00 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-
-static char	*ft_escape_quote(const char *s)
-{
-	char	quote;
-
-	quote = *s++;
-	while (*s && *s != quote)
-		s++;
-	if (*s)
-		s++;
-	return ((char *) s);
-}
 
 static char	*set_last_pipe(const char *s, int *last_was_pipe)
 {
@@ -46,7 +34,7 @@ static size_t	ft_count_words(const char *s, char c)
 			while (*s && *s != c)
 			{
 				if (*s == '\'' || *s == '\"')
-					s = ft_escape_quote(s);
+					s = ft_escape_quote((char *)s);
 				if (*s && *s != c)
 					s++;
 			}
@@ -78,20 +66,6 @@ static size_t	ft_count_words_len(const char *s, char c)
 			word_len++;
 	}
 	return (word_len);
-}
-
-static void	*ft_free_exit(char **tab)
-{
-	int	i;
-
-	i = -1;
-	if (tab)
-	{
-		while (tab[++i])
-			free(tab[i]);
-		free(tab);
-	}
-	return (NULL);
 }
 
 char	**ft_split_esc(const char *s, char c)

@@ -3,23 +3,34 @@ BUILTINS_SRCS = ./builtins/ft_env.c ./builtins/ft_export.c\
 				./builtins/ft_unset.c ./builtins/pwd_cd.c\
 				./builtins/ft_exit.c ./builtins/ft_echo.c
 
-PARS_SRCS = ./parse_srcs/ft_split_esc_2.c ./parse_srcs/ft_split_esc.c\
-			./parse_srcs/ft_env_parser.c
+ENV_PARSER = ./parse_srcs/env_parser/ft_env_parser.c\
+			./parse_srcs/env_parser/ft_env_getter.c\
+			./parse_srcs/env_parser/ft_env_setter.c
+
+SPLIT_2_PARSER = ./parse_srcs/split_2_parser/ft_split_esc_2.c\
+				./parse_srcs/split_2_parser/ft_split_2_utils.c\
+				./parse_srcs/split_2_parser/ft_split_arg_type.c
+
+PARS_SRCS = ./parse_srcs/ft_split_esc.c\
+			./parse_srcs/ft_split_utils.c
 
 EXEC_SRCS = ./exec_srcs/ft_exec.c ./exec_srcs/ft_exec_builtins.c\
 			./exec_srcs/ft_bin_path.c ./exec_srcs/ft_exec_fd_utils.c\
 			./exec_srcs/exec_error.c ./exec_srcs/exec_geter.c\
 			./exec_srcs/exec_non_forked.c
 
-REDIR_SRCS = ./redirection_srcs/ft_redirect.c ./redirection_srcs/redirect_get_set.c
+REDIR_SRCS = ./redirection_srcs/ft_redirect.c\
+			./redirection_srcs/redirect_get_set.c
 
 VALIDATOR_SRC = ./cmd_validation_src/ft_check_valid_commad.c
 
 FREE_UTILS = ./free_utils/ft_free.c
 
 SRCS =	ft_signals.c ft_heredoc.c ft_error.c\
-		$(REDIR_SRCS) $(BUILTINS_SRCS) $(PARS_SRCS) $(EXEC_SRCS)\
-		$(VALIDATOR_SRC) $(FREE_UTILS) main.c
+		$(REDIR_SRCS) $(BUILTINS_SRCS) $(EXEC_SRCS)\
+		$(VALIDATOR_SRC) $(FREE_UTILS)\
+		$(PARS_SRCS) $(ENV_PARSER) $(SPLIT_2_PARSER)\
+		main.c
 
 FLAGS = -g -Wall -Werror -Wextra
 RELINE_FLAG = -lreadline

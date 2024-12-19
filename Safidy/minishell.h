@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/19 13:00:30 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/19 16:33:14 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,11 +69,6 @@ typedef struct s_all
 	t_env_list	*env_list;
 }				t_all;
 
-/******************** PARSING ****************** */
-
-char			**ft_split_esc_2(char *s, char c);
-int				*ft_split_arg_type(char *s, char c);
-
 /******************** CMD VALIDATOR ****************** */
 
 int				is_symbol(char c);
@@ -82,12 +77,52 @@ int				ft_check_quote(const char *command, char cote, int *i);
 int				check_space_and_symbols(const char *command, int *i);
 int				check_symbol(const char *command, char c, int *i);
 int				handle_pipe(int *flag_redirection, const char *command, int *i);
-int				handle_redirection(int *flag_redirection, const char *command, int *i);
+int				handle_redirection(int *flag_redirection,
+					const char *command, int *i);
 int				print_syntax_error(int *flag_redirection);
 int				check_unlosed_quotes(char *command, int i);
-int				error_checker_loop(const char *command, int i, int *flag_redirection);
+int				error_checker_loop(const char *command, int i,
+					int *flag_redirection);
 int				valid_command(const char *command, t_all *all);
 int				is_valid_command(const char *command);
+
+/******************** ENV PARSER ****************** */
+
+char			*ft_getenv(char *env_var, t_all *all);
+char			*get_env_name(char *s);
+char			*get_env_value(char *var_name, t_all *all);
+char			*copy_char(char *dest, char c);
+void			manage_env_var(char **dst, char **s, t_all *all);
+void			append_env_value(char **dst, char **s, t_all *all);
+void			append_env_value_quote(char **dst, char **s, t_all *all);
+void			append_quoted_text(char **dst, char **s,
+					char quote, t_all *all);
+int				if_path(char *s);
+char			*expand_path(char **s, char **dst, t_all *all);
+char			*handle_quoted_delimiter(char **s, char *dst, char quote_type);
+char			*handle_heredoc_delimiter(char **s, char *dst);
+int				initiate_dst(char **dst, char *s);
+
+/******************** SPLIT 2 ****************** */
+
+void			*ft_free_exit(char **tab);
+char			*ft_escape_quote(char *s);
+int				is_special_char(char c);
+char			*ft_escap_spliter(char *s, char c);
+char			*ft_escape_special_char(char *s);
+size_t			ft_count_words_2(char *s, char c);
+size_t			ft_count_words_len_2(char *s, char c);
+void			skip_quote(char *s, int *word_len, int *i);
+void			handle_special_char(char *s, int *word_len, int *i);
+size_t			ft_count_str_len(char *s, char c);
+void			cpy_to_arr(char *s, char *tab, int word_len);
+char			**ft_split_esc_2(char *s, char c);
+char			*replace_env_vars(char *s, t_all *all);
+
+int				arg_skip_quote(char *s);
+int				arg_special_char(char *s);
+size_t			ft_arg_type_words_len(char *s, char c);
+int				*ft_split_arg_type(char *s, char c);
 
 /******************** UTILS ****************** */
 
@@ -108,7 +143,6 @@ void			free_all_struct(t_all *all);
 void			list_init_error(t_list *commands_list, char **arr_commands);
 void			init_list(t_list **commands_list, char **arr_commands);
 
-
 /******************** env builtins ****************** */
 
 void			ft_swap_string(char **s1, char **s2);
@@ -118,12 +152,8 @@ t_env_list		*ft_lstnew(char *content, int flag);
 t_env_list		*ft_lstlast(t_env_list *lst);
 void			ft_lstadd_back(t_env_list **lst, t_env_list *new_element);
 void			ft_free_env_list(t_env_list *env);
-
-/***************** ENV builtins ********************* */
-
 void			int_lst_env(t_env_list **list, char **envp);
 char			**list_to_array(t_env_list *env);
-char			*ft_getenv(char *env_var, t_all *all);
 int				ft_print_env(t_env_list *env);
 
 /******************** EXPORT ****************** */
@@ -168,7 +198,6 @@ char			*get_first_command(t_list *command_list);
 void			restore_std(t_all *all);
 int				builtins_output_redirection(t_redirect *redirect, t_all *all);
 int				builtin_redirections(t_all *all);
-char			*replace_env_vars(char *s, t_all *all);
 int				exec_commands(t_all *all);
 void			init_list(t_list **commands_list, char **arr_commands);
 char			**ft_split_esc(const char *s, char c);
@@ -181,7 +210,8 @@ void			exec_child(t_all *all, t_list *command_list);
 void			exec_non_forked(t_all *all, t_list *command_list);
 void			init_t_all_var(t_all *all);
 int				manage_heredoc_sigdef(t_all *all);
-void			exec_forked(t_all *all, t_list *command_list, int command_count);
+void			exec_forked(t_all *all, t_list *command_list,
+					int command_count);
 
 /****************** BIN PATH ********************/
 
