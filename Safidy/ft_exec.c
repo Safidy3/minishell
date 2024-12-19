@@ -196,7 +196,7 @@ void	get_all_exit_stat(t_all *all, int command_count)
 	{
 		status = 0;
 		waitpid(all->pids[i], &status, 0);
-		if (WIFSIGNALED(status) || flag)
+		if (WIFSIGNALED(status) || g_flag)
 		{
 			if (WTERMSIG(status) == SIGQUIT)
 			{
@@ -206,9 +206,9 @@ void	get_all_exit_stat(t_all *all, int command_count)
 			else
 			{
 				ft_putstr_fd("\n", 1);
-				all->exit_status = 128 + flag;
+				all->exit_status = 128 + g_flag;
 			}
-			flag = 0;
+			g_flag = 0;
 		}
 		else
 			all->exit_status = WEXITSTATUS(status);

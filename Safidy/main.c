@@ -65,17 +65,17 @@ void	begin_loop(t_all *all)
 	while (1)
 	{
 		put_signal_handlig(2);
-		if (flag == SIGINT)
+		if (g_flag == SIGINT)
 		{
 			printf("\n");
-			flag = 0;
+			g_flag = 0;
 		}
 		line = readline(">: ");
 		if (line == NULL)
 			sig_def_main_handler(all);
-		if (flag == SIGINT)
+		if (g_flag == SIGINT)
 		{
-			flag = 0;
+			g_flag = 0;
 			dup2(all->fd_og[0], STDIN_FILENO);
 			continue ;
 		}

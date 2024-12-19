@@ -268,6 +268,7 @@ char	*handle_heredoc_delimiter(char **s, char *dst)
 			dst = copy_char(dst, *(*s)++);
 	return (dst);
 }
+
 /************** HEREDOC PARSING ***********************/
 
 int	initiate_dst(char **dst, char *s)

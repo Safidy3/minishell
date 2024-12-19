@@ -29,7 +29,7 @@
 # include "libft/libft.h"
 # include <string.h>
 
-extern volatile int	flag;
+extern volatile int	g_flag;
 
 # define MAX_COMMANDS 1000
 # define MAX_VAR_LEN 256

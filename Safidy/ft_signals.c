@@ -12,7 +12,7 @@
 
 #include "minishell.h"
 
-volatile int	flag;
+volatile int	g_flag;
 
 void	handle_ctrl_c_heredoc(int sig, siginfo_t *ok, void *param)
 {
@@ -27,7 +27,7 @@ void	handle_ctrl_c_heredoc(int sig, siginfo_t *ok, void *param)
 		rl_replace_line("", 0);
 		close(pipefd[0]);
 	}
-	flag = SIGINT;
+	g_flag = SIGINT;
 	param++;
 }
 

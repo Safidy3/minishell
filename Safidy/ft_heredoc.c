@@ -69,12 +69,12 @@ void	handle_hered_singint(t_all *all, int pipe_fd[2], char *buffer)
 	close(pipe_fd[1]);
 	close(pipe_fd[0]);
 	free_all_redir(all->redir);
-	flag = 0;
+	g_flag = 0;
 }
 
 int	handle_ctrl_d(char *delimiter, char *input)
 {
-	if (!input && flag != SIGINT)
+	if (!input && g_flag != SIGINT)
 	{
 		ft_putstr_fd("bash: warning: here-document (", 2);
 		ft_putstr_fd(delimiter, 2);
@@ -99,7 +99,7 @@ char	*read_join_heredoc(char *buffer, char *delimiter,
 		input = readline("heredoc> ");
 		if (handle_ctrl_d(delimiter, input))
 			break ;
-		if (flag == SIGINT)
+		if (g_flag == SIGINT)
 			return (handle_hered_singint(all, pipe_fd, buffer), NULL);
 		if (strcmp(input, delimiter) == 0)
 		{
@@ -122,7 +122,7 @@ char	*read_join_heredoc(char *buffer, char *delimiter,
 // 	{
 // 		put_signal_handlig(2);
 // 		input = readline("heredoc> ");
-// 		if (!input && flag != SIGINT)
+// 		if (!input && g_flag != SIGINT)
 // 		{
 // 			write(2, "bash: warning: here-document (", 30);
 // 			write(2, delimiter, ft_strlen(delimiter));
@@ -138,10 +138,10 @@ char	*read_join_heredoc(char *buffer, char *delimiter,
 // 			ft_free_env_list(all->env_list);
 // 			dup2(all->fd_og[0], STDIN_FILENO);
 // 			free(all);
-// 			flag = 0;
+// 			g_flag = 0;
 // 			exit(0);
 // 		}
-// 		if (flag == SIGINT)
+// 		if (g_flag == SIGINT)
 // 		{
 // 			dup2(all->fd_og[0], STDIN_FILENO);
 // 			ft_free(buffer);
@@ -154,7 +154,7 @@ char	*read_join_heredoc(char *buffer, char *delimiter,
 // 			free_split(all->env_arr);
 // 			ft_free_env_list(all->env_list);
 // 			free(all);
-// 			flag = 0;
+// 			g_flag = 0;
 // 			exit(130);
 // 		}
 // 		if (herdoc_delimiter(input, delimiter))
