@@ -54,7 +54,7 @@ char	*new_delimiter(char *old, int *del_quote)
 	quote = old[i];
 	while (old[++i] && old[i] != quote)
 		j++;
-	new = (char *)calloc(sizeof(char), (j + 1));
+	new = (char *)ft_calloc(sizeof(char), (j + 1));
 	i = 0;
 	j = 0;
 	while (old[++i] && old[i] != quote)

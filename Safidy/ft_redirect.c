@@ -82,7 +82,7 @@ t_redirect	**get_all_redirections(t_list *command_list, t_all *all)
 			count++;
 	if (count == 0)
 		return (NULL);
-	redirection_files = (t_redirect **)calloc(sizeof(t_redirect *), count + 1);
+	redirection_files = (t_redirect **)ft_calloc(sizeof(t_redirect *), count + 1);
 	if (!redirection_files)
 		exec_error(NULL, all, "malloc error\n");
 	set_rd_name_type(redirection_files, command, type, all);

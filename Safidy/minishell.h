@@ -27,7 +27,6 @@
 # include <dirent.h>
 
 # include "libft/libft.h"
-# include <string.h>
 
 extern volatile int	g_flag;
 

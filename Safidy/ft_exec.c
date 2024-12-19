@@ -37,7 +37,7 @@ char	**get_new_command(t_list *command_list, t_all *all)
 			count++;
 	if (count == 0)
 		return (NULL);
-	new_command = (char **)calloc(sizeof(char *), count + 1);
+	new_command = (char **)ft_calloc(sizeof(char *), count + 1);
 	if (!new_command)
 		exec_error(NULL, all, "malloc error\n");
 	i = -1;

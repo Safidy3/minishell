@@ -152,7 +152,7 @@ char	**list_to_array(t_env_list *env)
 		tmp = tmp->next;
 		i++;
 	}
-	dir = (char **)calloc(sizeof(char *), (i + 1));
+	dir = (char **)ft_calloc(sizeof(char *), (i + 1));
 	i = -1;
 	while (env)
 	{
