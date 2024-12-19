@@ -6,22 +6,11 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:50:53 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/17 15:02:24 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/19 14:20:10 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-
-int	handle_heredoc_redirection(int fd)
-{
-	if (dup2(fd, STDIN_FILENO) == -1)
-	{
-		perror("dup2");
-		close(fd);
-		return (-1);
-	}
-	return (10);
-}
 
 char	*join_result(char *buffer, char *input, int replace_env, t_all *all)
 {

@@ -11,7 +11,7 @@ EXEC_SRCS = ./exec_srcs/ft_exec.c ./exec_srcs/ft_exec_builtins.c\
 			./exec_srcs/exec_error.c ./exec_srcs/exec_geter.c\
 			./exec_srcs/exec_non_forked.c
 
-REDIR_SRCS = ./redirection_srcs/ft_redirect.c
+REDIR_SRCS = ./redirection_srcs/ft_redirect.c ./redirection_srcs/redirect_get_set.c
 
 VALIDATOR_SRC = ./cmd_validation_src/ft_check_valid_commad.c
 
