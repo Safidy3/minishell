@@ -141,7 +141,7 @@ l""s""""
 
 /bin/"echo"
 
-"find" "/" "-name" "file_name" "-type" "f"
+#find" "/" "-name" "file_name" "-type" "f"
 
 l''s''''
 
@@ -157,7 +157,7 @@ ls '-la' '/'
 
 /bin/'echo'
 
-'find' '/' '-name' 'file_name' '-type' 'f'
+#find' '/' '-name' 'file_name' '-type' 'f'
 
 echo "''"
 
