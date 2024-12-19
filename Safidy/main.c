@@ -27,13 +27,16 @@ void	init_all_struct(t_all *all, char **envp)
 
 void	sig_def_main_handler(t_all *all)
 {
+	int		status;
+
+	status = all->exit_status;
 	printf("\n");
 	close(all->fd_og[0]);
 	close(all->fd_og[1]);
 	ft_free_env_list(all->env_list);
 	free_split(all->env_arr);
 	free(all);
-	exit(0);
+	exit(status);
 }
 
 int	process_line(t_all *all, char *line)
@@ -57,7 +60,6 @@ int	process_line(t_all *all, char *line)
 
 void	begin_loop(t_all *all)
 {
-	char	**commands;
 	char	*line;
 
 	while (1)
