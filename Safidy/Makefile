@@ -1,11 +1,15 @@
 
-BUILTINS_SRCS = ./builtins/ft_env.c ./builtins/ft_export.c ./builtins/ft_unset.c ./builtins/pwd_cd.c\
-		./builtins/ft_exit.c ./builtins/ft_echo.c
+BUILTINS_SRCS = ./builtins/ft_env.c ./builtins/ft_export.c\
+				./builtins/ft_unset.c ./builtins/pwd_cd.c\
+				./builtins/ft_exit.c ./builtins/ft_echo.c
 
-PARS_SRCS = ./parse_srcs/ft_split_esc_2.c ./parse_srcs/ft_split_esc.c ./parse_srcs/ft_env_parser.c
+PARS_SRCS = ./parse_srcs/ft_split_esc_2.c ./parse_srcs/ft_split_esc.c\
+			./parse_srcs/ft_env_parser.c
 
 EXEC_SRCS = ./exec_srcs/ft_exec.c ./exec_srcs/ft_exec_builtins.c\
-			./exec_srcs/ft_bin_path.c
+			./exec_srcs/ft_bin_path.c ./exec_srcs/ft_exec_fd_utils.c\
+			./exec_srcs/exec_error.c ./exec_srcs/exec_geter.c\
+			./exec_srcs/exec_non_forked.c
 
 REDIR_SRCS = ./redirection_srcs/ft_redirect.c
 
