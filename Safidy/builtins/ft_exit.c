@@ -14,7 +14,7 @@
 
 void	exit_program(t_all *all, char **command, int print_exit)
 {
-	int exit_status;
+	int	exit_status;
 
 	exit_status = all->exit_status;
 	if (print_exit == 1)
@@ -29,15 +29,11 @@ void	exit_program(t_all *all, char **command, int print_exit)
 	exit(exit_status);
 }
 
-int ft_exit(t_all *all, char **command)
+int	check_valid_arg(char **command)
 {
-	int i;
-	int is_valid_number;
+	int	i;
 
-	is_valid_number = 1;
 	i = 0;
-	if (array_len(command) == 1)
-		exit_program(all, command, 1);
 	while (isspace(command[1][i]))
 		i++;
 	if (command[1][0] == '-' || command[1][0] == '+')
@@ -45,12 +41,19 @@ int ft_exit(t_all *all, char **command)
 	while (command[1][i])
 	{
 		if (!ft_isdigit(command[1][i]))
-		{
-			is_valid_number = 0;
-			break;
-		}
+			return (0);
 		i++;
 	}
+	return (1);
+}
+
+int	ft_exit(t_all *all, char **command)
+{
+	int	is_valid_number;
+
+	if (array_len(command) == 1)
+		exit_program(all, command, 1);
+	is_valid_number = check_valid_arg(command);
 	if (!is_valid_number)
 	{
 		ft_putstr_fd("exit\n", 1);
