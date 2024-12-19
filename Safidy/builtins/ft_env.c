@@ -30,7 +30,7 @@ void	ft_sort_list(t_env_list *env)
 	tmp = env;
 	while (tmp->next)
 	{
-		if (strcmp(tmp->value, tmp->next->value) > 0)
+		if (ft_strcmp(tmp->value, tmp->next->value) > 0)
 		{
 			ft_swap_string(&tmp->first, &tmp->next->first);
 			ft_swap_string(&tmp->second, &tmp->next->second);
@@ -66,19 +66,19 @@ t_env_list	*ft_lstnew(char *content, int flag)
 	new = (t_env_list *)malloc(sizeof(t_env_list));
 	if (!new)
 		return (NULL);
-	new->value = strdup(content);
-	line = strchr(new->value, '=');
+	new->value = ft_strdup(content);
+	line = ft_strchr(new->value, '=');
 	if (line)
 	{
 		if (flag == 1)
 			new->first = ft_substr(new->value, 0, (line - new->value - 1));
 		else
 			new->first = ft_substr(new->value, 0, (line - new->value));
-		new->second = strdup(++line);
+		new->second = ft_strdup(++line);
 	}
 	else
 	{
-		new->first = strdup(content);
+		new->first = ft_strdup(content);
 		new->second = NULL;
 	}
 	join_first_second(flag, new);

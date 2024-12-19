@@ -31,7 +31,7 @@ char	*manage_home_path(char *path, t_all *all)
 	{
 		while (env)
 		{
-			if (!strcmp(env->first, "HOME") && env->second)
+			if (!ft_strcmp(env->first, "HOME") && env->second)
 				return (env->second);
 			env = env->next;
 		}
@@ -62,9 +62,9 @@ void	update_env(t_all *all, char *n_path, char *o_path)
 	env = all->env_list;
 	while (env)
 	{
-		if (!strcmp(env->first, "PWD"))
+		if (!ft_strcmp(env->first, "PWD"))
 			replace_env_value(env, n_path, &found_new);
-		else if (!strcmp(env->first, "OLDPWD"))
+		else if (!ft_strcmp(env->first, "OLDPWD"))
 			replace_env_value(env, o_path, &found_old);
 		env = env->next;
 	}

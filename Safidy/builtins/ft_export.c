@@ -99,7 +99,7 @@ int	ft_print_export(t_env_list *env)
 	i = 0;
 	while (tmp)
 	{
-		if (strcmp(tmp->first, "_") == 0)
+		if (ft_strcmp(tmp->first, "_") == 0)
 			tmp = tmp->next;
 		else
 		{

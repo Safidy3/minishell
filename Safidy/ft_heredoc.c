@@ -101,7 +101,7 @@ char	*read_join_heredoc(char *buffer, char *delimiter,
 			break ;
 		if (g_flag == SIGINT)
 			return (handle_hered_singint(all, pipe_fd, buffer), NULL);
-		if (strcmp(input, delimiter) == 0)
+		if (ft_strcmp(input, delimiter) == 0)
 		{
 			free(input);
 			break ;
@@ -175,7 +175,7 @@ int	get_heredoc(char *delimiter, int *fd, t_all *all)
 	buffer = read_join_heredoc(buffer, delimiter, pipe_fds, all);
 	if (buffer)
 	{
-		write(pipe_fds[1], buffer, strlen(buffer));
+		write(pipe_fds[1], buffer, ft_strlen(buffer));
 		close(pipe_fds[1]);
 		*fd = dup(pipe_fds[0]);
 		close(pipe_fds[0]);
