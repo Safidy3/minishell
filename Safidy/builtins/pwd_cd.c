@@ -12,11 +12,12 @@
 
 #include "../minishell.h"
 
-int ft_pwd()
+int	ft_pwd(void)
 {
-	char *s;
+	char	*s;
+
 	s = getcwd(NULL, 0);
-	printf("%s\n",s);
+	printf("%s\n", s);
 	free(s);
 	return (0);
 }
@@ -40,12 +41,44 @@ char	*manage_home_path(char *path, t_all *all)
 		return (path);
 }
 
-int	ft_cd(char **t_path, t_all *all)
+void	replace_env_value(t_env_list *env, char *path, int *found)
+{
+	char	*tmp;
+
+	*found = 1;
+	tmp = env->second;
+	env->second = path;
+	free(tmp);
+}
+
+void	update_env(t_all *all, char *n_path, char *o_path)
 {
 	t_env_list	*env;
-	char		*o_path;
-	char		*n_path;
-	char		*path;
+	int			found_old;
+	int			found_new;
+
+	found_old = 0;
+	found_new = 0;
+	env = all->env_list;
+	while (env)
+	{
+		if (!strcmp(env->first, "PWD"))
+			replace_env_value(env, n_path, &found_new);
+		else if (!strcmp(env->first, "OLDPWD"))
+			replace_env_value(env, o_path, &found_old);
+		env = env->next;
+	}
+	if (!found_old)
+		free(o_path);
+	if (!found_new)
+		free(n_path);
+}
+
+int	ft_cd(char **t_path, t_all *all)
+{
+	char	*o_path;
+	char	*n_path;
+	char	*path;
 
 	if (array_len(t_path) > 2)
 		return (ft_putstr_fd(" too many arguments\n", 2), 1);
@@ -62,23 +95,6 @@ int	ft_cd(char **t_path, t_all *all)
 	n_path = getcwd(NULL, 0);
 	if (!n_path)
 		return (perror("getcwd"), free(o_path), 2);
-	env = all->env_list;
-	while (env)
-	{
-		char *tmp;
-		if (!strcmp(env->first , "PWD"))
-		{
-			tmp = env->second;
-			env->second = n_path;
-			free(tmp);
-		}
-		else if (strcmp(env->first , "OLDPWD") == 0)
-		{
-			tmp = env->second;
-			env->second = o_path;
-			free(tmp);
-		}
-		env = env->next;
-	}
+	update_env(all, n_path, o_path);
 	return (0);
 }
