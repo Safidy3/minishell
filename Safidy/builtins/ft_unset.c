@@ -20,6 +20,14 @@ void	ft_free_tmp(t_env_list *tmp)
 	free(tmp);
 }
 
+void	link_env(t_env_list **env, t_env_list *tmp, t_env_list *prev)
+{
+	if (prev == NULL)
+		*env = tmp->next;
+	else
+		prev->next = tmp->next;
+}
+
 int	ft_unset(t_env_list **env, char **commande)
 {
 	t_env_list	*tmp;
@@ -35,10 +43,7 @@ int	ft_unset(t_env_list **env, char **commande)
 		{
 			if (ft_strcmp(tmp->first, commande[i]) == 0)
 			{
-				if (prev == NULL)
-					*env = tmp->next;
-				else
-					prev->next = tmp->next;
+				link_env(env, tmp, prev);
 				ft_free_tmp(tmp);
 				break ;
 			}
