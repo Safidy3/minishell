@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/18 17:07:40 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/19 13:00:30 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,11 +74,25 @@ typedef struct s_all
 char			**ft_split_esc_2(char *s, char c);
 int				*ft_split_arg_type(char *s, char c);
 
+/******************** CMD VALIDATOR ****************** */
+
+int				is_symbol(char c);
+int				symbols_condition(const char *command, int i);
+int				ft_check_quote(const char *command, char cote, int *i);
+int				check_space_and_symbols(const char *command, int *i);
+int				check_symbol(const char *command, char c, int *i);
+int				handle_pipe(int *flag_redirection, const char *command, int *i);
+int				handle_redirection(int *flag_redirection, const char *command, int *i);
+int				print_syntax_error(int *flag_redirection);
+int				check_unlosed_quotes(char *command, int i);
+int				error_checker_loop(const char *command, int i, int *flag_redirection);
+int				valid_command(const char *command, t_all *all);
+int				is_valid_command(const char *command);
+
 /******************** UTILS ****************** */
 
 void			free_split(char **array);
 void			print_split(char **array);
-char			*ft_getenv(char *env_var, t_all *all);
 int				array_len(char **array);
 void			ft_free(void *s);
 void			print_s(void *s);
@@ -91,10 +105,11 @@ void			free_all_struct(t_all *all);
 
 /************************************** */
 
-int				valid_command(const char *command, t_all *all);
-int				is_valid_command(const char *command);
+void			list_init_error(t_list *commands_list, char **arr_commands);
+void			init_list(t_list **commands_list, char **arr_commands);
 
-/************************************** */
+
+/******************** env builtins ****************** */
 
 void			ft_swap_string(char **s1, char **s2);
 void			ft_sort_list(t_env_list *env);
@@ -104,7 +119,7 @@ t_env_list		*ft_lstlast(t_env_list *lst);
 void			ft_lstadd_back(t_env_list **lst, t_env_list *new_element);
 void			ft_free_env_list(t_env_list *env);
 
-/***************** ENV ********************* */
+/***************** ENV builtins ********************* */
 
 void			int_lst_env(t_env_list **list, char **envp);
 char			**list_to_array(t_env_list *env);
@@ -130,9 +145,6 @@ int				ft_export(t_env_list **env, char **commade);
 void			ft_free_tmp(t_env_list *tmp);
 int				ft_unset(t_env_list **env, char **commande);
 
-/************************************** */
-char			*ft_getenv(char *env_var, t_all *all);
-
 /****************** BUILTINS ******************** */
 
 int				ft_pwd(void);
@@ -140,27 +152,42 @@ int				ft_cd(char **path, t_all *all);
 int				ft_echo(char **tokens);
 int				ft_exit(t_all *all, char **command);
 
-/****************** EXEC BUILTINS ******************** */
+/******************* EXEC ******************* */
 
 int				is_builtins(char *command);
 int				exec_builtins(t_list *command_list, int in_pipe[2],
 					int out_pipe[2], t_all *all);
 int				builtin_execution(char **command, t_all *all);
 
-/******************* EXEC ******************* */
-
 void			restore_og_std(int std_backup[2], t_all *all);
+int				invalid_file(DIR *dir, char *command, t_all *all);
 char			**get_new_command(t_list *command_list, t_all *all);
 void			close_dir(DIR *dir, char *path);
+int				is_dir(char *command, t_all *all);
+char			*get_first_command(t_list *command_list);
+void			restore_std(t_all *all);
+int				builtins_output_redirection(t_redirect *redirect, t_all *all);
+int				builtin_redirections(t_all *all);
 char			*replace_env_vars(char *s, t_all *all);
 int				exec_commands(t_all *all);
 void			init_list(t_list **commands_list, char **arr_commands);
 char			**ft_split_esc(const char *s, char c);
-int				get_exit_stat(pid_t pids[MAX_COMMANDS], int command_count);
+void			get_all_exit_stat(t_all *all, int command_count);
+void			exec_parent(t_all *all, t_list *command_list);
+void			command_dir_error(t_all *all);
+void			get_command_bin(t_all *all, t_list *command_list);
+void			free_if_failed_exec(t_all *all);
+void			exec_child(t_all *all, t_list *command_list);
+void			exec_non_forked(t_all *all, t_list *command_list);
+void			init_t_all_var(t_all *all);
+int				manage_heredoc_sigdef(t_all *all);
+void			exec_forked(t_all *all, t_list *command_list, int command_count);
 
 /****************** BIN PATH ********************/
 
 char			*join_bin_path(char *commands_list, char *bin_path);
+int				command_isdir(char *command, t_all *all);
+char			*find_bin(char **bin_paths, char *command);
 char			*get_bin_path(char *command, t_all *all);
 
 /****************** REDIR ********************/
