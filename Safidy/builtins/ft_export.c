@@ -20,7 +20,7 @@ int	ft_strcmp(const char *s1, const char *s2)
 
 	i = -1;
 	if (ft_strlen(s1) != ft_strlen(s2))
-		return(1);
+		return (1);
 	while (s1[++i] != '\0' && s2[i] != '\0')
 		if (s1[i] != s2[i])
 			return ((unsigned char) s1[i] - (unsigned char) s2[i]);
@@ -45,7 +45,8 @@ int	ft_check_after_first_caracter(char *variable_name, char *command)
 	i = 0;
 	while (variable_name[i])
 	{
-		if (!ft_isalpha(variable_name[i]) && !ft_isdigit(variable_name[i]) && variable_name[i] != '_')
+		if (!ft_isalpha(variable_name[i])
+			&& !ft_isdigit(variable_name[i]) && variable_name[i] != '_')
 		{
 			ft_print_export_error(command);
 			return (1);
@@ -59,7 +60,8 @@ int	ft_export_error(char *variable_name, char *command)
 {
 	if (variable_name)
 	{
-		if (variable_name[0] == '\0' || (!ft_isalpha(variable_name[0]) && variable_name[0] != '_'))
+		if (variable_name[0] == '\0' || (!ft_isalpha(variable_name[0])
+				&& variable_name[0] != '_'))
 		{
 			ft_print_export_error(command);
 			return (1);
@@ -139,7 +141,7 @@ void	ft_update_flag_0(t_env_list *env_list, char *line, char *command)
 			env_list->second = ft_strdup("");
 	}
 	else if (!env_list->second && line)
-			env_list->second = ft_strdup(++line);
+		env_list->second = ft_strdup(++line);
 	env_list->value = ft_strdup(command);
 }
 
@@ -177,15 +179,8 @@ char	*ft_init_variable_name(char *command, int *flag, char *line)
 	return (variable_name);
 }
 
-int	ft_maj_export(t_env_list *env, char *command, int *flag, int *return_value)
+int	check_env_error(char *command, char *variable_name, int *return_value)
 {
-	char		*line;
-	char		*variable_name;
-	t_env_list	*env_list;
-
-	env_list = env;
-	line = ft_strchr(command, '=');
-	variable_name = ft_init_variable_name(command, flag, line);
 	if (!variable_name)
 	{
 		*return_value = 1;
@@ -196,11 +191,27 @@ int	ft_maj_export(t_env_list *env, char *command, int *flag, int *return_value)
 		*return_value = 1;
 		return (free(variable_name), 2);
 	}
+	return (0);
+}
+
+int	ft_maj_export(t_env_list *env, char *command, int *flag, int *return_value)
+{
+	char		*line;
+	char		*variable_name;
+	t_env_list	*env_list;
+	int			check_env;
+
+	env_list = env;
+	line = ft_strchr(command, '=');
+	variable_name = ft_init_variable_name(command, flag, line);
+	check_env = check_env_error(command, variable_name, return_value);
+	if (check_env != 0)
+		return (check_env);
 	while (env_list)
 	{
 		if (ft_strcmp(env_list->first, variable_name) == 0)
 		{
-			if (line)				
+			if (line)
 				ft_update_ensemble(flag, env_list, line, command);
 			return (free(variable_name), 1);
 		}
@@ -211,9 +222,9 @@ int	ft_maj_export(t_env_list *env, char *command, int *flag, int *return_value)
 
 int	ft_export(t_env_list **env, char **command)
 {
-	int		i;
-	int		flag;
-	int		return_value;
+	int			i;
+	int			flag;
+	int			return_value;
 	t_env_list	*new;
 
 	i = 1;
