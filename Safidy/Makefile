@@ -37,7 +37,7 @@ REDIR_SRCS = ./redirection_srcs/ft_redirect.c\
 
 FREE_UTILS = ./free_utils/ft_free.c
 
-SRCS =	ft_signals.c ft_heredoc.c ft_error.c\
+SRCS =	ft_init.c ft_signals.c ft_heredoc.c ft_error.c\
 		$(REDIR_SRCS) $(BUILTINS_SRCS) $(EXEC_SRCS)\
 		$(VALIDATOR_SRC) $(FREE_UTILS)\
 		$(PARS_SRCS)\
