@@ -22,6 +22,8 @@ VALIDATOR_SRC = ./cmd_validation_src/ft_check_valid_commad.c\
 				./cmd_validation_src/ft_validator_utils.c\
 				./cmd_validation_src/ft_validator_checker.c
 
+HEREDOC_SRCS = ./heredoc_srcs/ft_heredoc.c\
+				./heredoc_srcs/ft_heredoc_utils.c
 
 PARS_SRCS = $(ENV_PARSER) $(SPLIT_2_PARSER)\
 			./parse_srcs/ft_split_esc.c\
@@ -38,7 +40,7 @@ REDIR_SRCS = ./redirection_srcs/ft_redirect.c\
 FREE_UTILS = ./utils/ft_free.c ./utils/ft_list_utils.c\
 			./utils/ft_array_utils.c
 
-SRCS =	ft_init.c ft_signals.c ft_heredoc.c ft_error.c\
+SRCS =	ft_init.c ft_signals.c ft_error.c $(HEREDOC_SRCS)\
 		$(REDIR_SRCS) $(BUILTINS_SRCS) $(EXEC_SRCS)\
 		$(VALIDATOR_SRC) $(FREE_UTILS)\
 		$(PARS_SRCS)\

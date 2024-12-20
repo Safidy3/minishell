@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/20 13:55:07 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/20 14:08:25 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,7 +142,7 @@ void			free_all_struct(t_all *all);
 
 void			list_init_error(t_list *commands_list, char **arr_commands);
 void			init_list(t_list **commands_list, char **arr_commands);
-void	init_all_struct(t_all *all, char **envp);
+void			init_all_struct(t_all *all, char **envp);
 
 /******************** env builtins ****************** */
 
