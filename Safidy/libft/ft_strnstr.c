@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strnstr.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 14:51:29 by safandri          #+#    #+#             */
-/*   Updated: 2024/02/28 14:53:53 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/20 14:52:50 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,4 +35,30 @@ char	*ft_strnstr(const char *src, const char *sub, size_t len)
 		j++;
 	}
 	return (NULL);
+}
+
+char	*ft_strstr(char *str, char *sub_str)
+{
+	char *h = str;
+	char *n = sub_str;
+
+    if (*sub_str == '\0')
+        return (str);
+    while (*str != '\0')
+	{
+        if (*str == *sub_str)
+		{
+            h = str;
+            n = sub_str;
+            while (*n != '\0' && *h == *n)
+			{
+                h++;
+                n++;
+            }
+            if (*n == '\0')
+                return (str);
+        }
+        str++;
+    }
+    return (NULL); 
 }

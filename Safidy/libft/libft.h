@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 15:07:45 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/20 11:39:37 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/20 14:52:36 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ int					ft_strcmp(const char *s1, const char *s2);
 void				*ft_memchr(const void *s, int c, size_t n);
 int					ft_memcmp(const void *s1, const void *s2, size_t n);
 char				*ft_strnstr(const char *str, const char *sub, size_t len);
+char				*ft_strstr(char *str, char *sub_str);
 int					ft_atoi(const char *str);
 long int			ft_atoi_long(const char *str);
 void				*ft_calloc(size_t nmemb, size_t size);

@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/19 14:51:20 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/19 14:53:34 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/20 14:51:03 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 int	initiate_dst(char **dst, char *s)
 {
-	if (!ft_strchr(s, '$'))
+	if (!ft_strchr(s, '$') || !ft_strstr(s, "<<"))
 		return (0);
 	*dst = ft_strdup("");
 	return (1);
