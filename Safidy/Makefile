@@ -3,7 +3,10 @@ EXPORT_SRCS = ./builtins/export_srcs/ft_export.c\
 			./builtins/export_srcs/ft_export_utils.c\
 			./builtins/export_srcs/ft_export_error.c
 
-BUILTINS_SRCS = ./builtins/ft_env.c $(EXPORT_SRCS)\
+ENV_SRCS = ./builtins/env_srcs/ft_env.c\
+			./builtins/env_srcs/ft_env_utils.c
+
+BUILTINS_SRCS = $(EXPORT_SRCS) $(ENV_SRCS)\
 				./builtins/ft_unset.c ./builtins/pwd_cd.c\
 				./builtins/ft_exit.c ./builtins/ft_echo.c
 
