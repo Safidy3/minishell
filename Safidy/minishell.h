@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/20 11:37:14 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/20 13:51:19 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,7 +160,8 @@ int				ft_print_env(t_env_list *env);
 
 int				ft_maj_export(t_env_list *env, char *command,
 					int *flag, int *return_value);
-int				check_env_error(char *command, char *variable_name, int *return_value);
+int				check_env_error(char *command,
+					char *variable_name, int *return_value);
 void			ft_update_ensemble(int *flag, t_env_list *tmp,
 					char *line, char *cmd);
 void			ft_update_flag_1(t_env_list *tmp, char *line);
@@ -237,18 +238,23 @@ void			dup_out(int fd[2], int closeall);
 /****************** HEREDOC ********************/
 
 int				get_heredoc(char *delimiter, int *fd, t_all *all);
+char			*read_join_heredoc(char *buffer, char *delimiter,
+					int pipe_fd[2], t_all *all);
+int				handle_ctrl_d(char *delimiter, char *input);
+void			handle_hered_singint(t_all *all, int pipe_fd[2], char *buffer);
+int				handle_heredoc_redirection(int fd);
 int				handle_input_redirection(t_redirect *redirect,
 					t_all *all, t_redirect **redir_head);
-
-/****************** EXEC ERROR ********************/
+char			*join_result(char *buffer, char *input,
+					int replace_env, t_all *all);
 
 void			exec_error(char *bin_path, t_all *all, char *msg);
 int				command_not_found(t_all *all);
 void			fd_error(char *file_path, t_redirect **redir, t_all *all);
 void			free_all_redir(t_redirect **redir);
-int				handle_heredoc_redirection(int fd);
+char			*new_delimiter(char *old, int *del_quote);
 
-/**************************************/
+/****************** SIGNAL ********************/
 
 void			put_signal_handlig(int i);
 void			handle_ctrl_c_heredoc(int sig, siginfo_t *ok, void *param);

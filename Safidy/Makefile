@@ -18,6 +18,11 @@ SPLIT_2_PARSER = ./parse_srcs/split_2_parser/ft_split_esc_2.c\
 				./parse_srcs/split_2_parser/ft_split_2_utils.c\
 				./parse_srcs/split_2_parser/ft_split_arg_type.c
 
+VALIDATOR_SRC = ./cmd_validation_src/ft_check_valid_commad.c\
+				./cmd_validation_src/ft_validator_utils.c\
+				./cmd_validation_src/ft_validator_checker.c
+
+
 PARS_SRCS = $(ENV_PARSER) $(SPLIT_2_PARSER)\
 			./parse_srcs/ft_split_esc.c\
 			./parse_srcs/ft_split_utils.c
@@ -29,8 +34,6 @@ EXEC_SRCS = ./exec_srcs/ft_exec.c ./exec_srcs/ft_exec_builtins.c\
 
 REDIR_SRCS = ./redirection_srcs/ft_redirect.c\
 			./redirection_srcs/redirect_get_set.c
-
-VALIDATOR_SRC = ./cmd_validation_src/ft_check_valid_commad.c
 
 FREE_UTILS = ./free_utils/ft_free.c
 
