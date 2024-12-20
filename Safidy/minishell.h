@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/19 16:33:14 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/20 11:37:14 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,22 +158,26 @@ int				ft_print_env(t_env_list *env);
 
 /******************** EXPORT ****************** */
 
-int				ft_strcmp(const char *s1, const char *s2);
-void			ft_print_export_error(char *commande);
-int				ft_check_after_first_caracter(char *var_name, char *cmd);
-int				ft_export_error(char *variable_name, char *commande);
-t_env_list		*ft_dup_env(t_env_list **env);
-int				ft_print_export(t_env_list *env);
-void			ft_update_flag_1(t_env_list *tmp, char *line);
-void			ft_update_flag_0(t_env_list *tmp, char *line, char *commande);
-void			ft_update_ensemble(int *flag, t_env_list *tmp,
-					char *line, char *cmd);
-char			*ft_init_variable_name(char *commande, int *flag, char *line);
 int				ft_maj_export(t_env_list *env, char *command,
 					int *flag, int *return_value);
+int				check_env_error(char *command, char *variable_name, int *return_value);
+void			ft_update_ensemble(int *flag, t_env_list *tmp,
+					char *line, char *cmd);
+void			ft_update_flag_1(t_env_list *tmp, char *line);
+void			ft_update_flag_0(t_env_list *tmp, char *line, char *commande);
+int				ft_print_export(t_env_list *env);
+int				ft_export_error(char *variable_name, char *commande);
+t_env_list		*ft_dup_env(t_env_list **env);
+void			ft_print_export_error(char *commande);
+// int				ft_strcmp(const char *s1, const char *s2);
+int				ft_check_after_first_caracter(char *var_name, char *cmd);
+char			*ft_init_variable_name(char *commande, int *flag, char *line);
 int				ft_export(t_env_list **env, char **commade);
-void			ft_free_tmp(t_env_list *tmp);
+
+/******************** UNSET ****************** */
+
 int				ft_unset(t_env_list **env, char **commande);
+void			ft_free_tmp(t_env_list *tmp);
 
 /****************** BUILTINS ******************** */
 
