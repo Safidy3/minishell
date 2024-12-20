@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_env.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42.fr>          +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 12:28:22 by larakoto          #+#    #+#             */
-/*   Updated: 2024/11/23 14:24:53 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/20 10:41:28 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void	ft_sort_list(t_env_list *env)
 	tmp = env;
 	while (tmp->next)
 	{
-		if (ft_strcmp(tmp->value, tmp->next->value) > 0)
+		if (!ft_strcmp(tmp->value, tmp->next->value))
 		{
 			ft_swap_string(&tmp->first, &tmp->next->first);
 			ft_swap_string(&tmp->second, &tmp->next->second);
