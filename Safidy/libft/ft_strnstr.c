@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 14:51:29 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/20 14:52:50 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/20 14:56:10 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,8 +39,8 @@ char	*ft_strnstr(const char *src, const char *sub, size_t len)
 
 char	*ft_strstr(char *str, char *sub_str)
 {
-	char *h = str;
-	char *n = sub_str;
+	char *h;
+	char *n;
 
     if (*sub_str == '\0')
         return (str);

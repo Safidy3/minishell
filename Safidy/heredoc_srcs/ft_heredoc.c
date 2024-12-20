@@ -6,13 +6,13 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:50:53 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/20 14:36:22 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/20 15:22:53 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-char	*new_delimiter(char *old, int *del_quote)
+char	*new_delimiter(char *old, int *replace_env)
 {
 	char	*new;
 	int		i;
@@ -24,7 +24,7 @@ char	*new_delimiter(char *old, int *del_quote)
 	j = 0;
 	if (old[i] != '\'' && old[i] != '"')
 		return (old);
-	*del_quote = 1;
+	*replace_env = 0;
 	quote = old[i];
 	while (old[++i] && old[i] != quote)
 		j++;
@@ -65,7 +65,7 @@ char	*read_join_heredoc(char *buffer, char *delimiter,
 	int		replace_env;
 
 	input = NULL;
-	replace_env = 0;
+	replace_env = 1;
 	delimiter = new_delimiter(delimiter, &replace_env);
 	while (1)
 	{
@@ -82,7 +82,7 @@ char	*read_join_heredoc(char *buffer, char *delimiter,
 		}
 		buffer = join_result(buffer, input, replace_env, all);
 	}
-	if (replace_env == 1)
+	if (replace_env == 0)
 		free(delimiter);
 	return (buffer);
 }
