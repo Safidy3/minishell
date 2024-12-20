@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exit.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
+/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/17 16:13:08 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/20 17:04:11 by larakoto         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,19 +31,24 @@ void	exit_program(t_all *all, char **command, int print_exit)
 
 int	check_valid_arg(char **command)
 {
-	int	i;
+	int		i;
+	char	*cmd_trimed;
 
 	i = 0;
-	while (isspace(command[1][i]))
+	cmd_trimed = ft_strtrim(command[1], " ");
+	printf("{%s}\n", cmd_trimed);
+	if (cmd_trimed[i] == '-' || cmd_trimed[i] == '+')
 		i++;
-	if (command[1][0] == '-' || command[1][0] == '+')
-		i++;
-	while (command[1][i])
+	while (cmd_trimed[i])
 	{
-		if (!ft_isdigit(command[1][i]))
+		if (!ft_isdigit(cmd_trimed[i]))
+		{
+			free(cmd_trimed);
 			return (0);
+		}
 		i++;
 	}
+	free(cmd_trimed);
 	return (1);
 }
 
