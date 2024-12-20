@@ -35,7 +35,8 @@ EXEC_SRCS = ./exec_srcs/ft_exec.c ./exec_srcs/ft_exec_builtins.c\
 REDIR_SRCS = ./redirection_srcs/ft_redirect.c\
 			./redirection_srcs/redirect_get_set.c
 
-FREE_UTILS = ./free_utils/ft_free.c
+FREE_UTILS = ./utils/ft_free.c ./utils/ft_list_utils.c\
+			./utils/ft_array_utils.c
 
 SRCS =	ft_init.c ft_signals.c ft_heredoc.c ft_error.c\
 		$(REDIR_SRCS) $(BUILTINS_SRCS) $(EXEC_SRCS)\
