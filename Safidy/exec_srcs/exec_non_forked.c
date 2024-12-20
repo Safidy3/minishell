@@ -6,11 +6,17 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/19 14:11:26 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/19 14:11:43 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/20 10:58:29 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
+
+void	ft_close_fd(int fd)
+{
+	if (fd != -1)
+		close(fd);
+}
 
 int	builtins_output_redirection(t_redirect *redirect, t_all *all)
 {
@@ -47,9 +53,9 @@ int	builtin_redirections(t_all *all)
 			if (fd == -1)
 				perror(all->redir[i]->filename);
 		}
+		ft_close_fd(fd);
 		if (fd == -1)
 		{
-			close(fd);
 			all->exit_status = 1;
 			break ;
 		}
