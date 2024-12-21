@@ -16,6 +16,7 @@ ENV_PARSER = ./parse_srcs/env_parser/ft_env_parser.c\
 			./parse_srcs/env_parser/ft_env_setter.c
 
 SPLIT_2_PARSER = ./parse_srcs/split_2_parser/ft_split_esc_2.c\
+				./parse_srcs/split_2_parser/ft_split_2_words_ounter.c\
 				./parse_srcs/split_2_parser/ft_split_2_utils.c\
 				./parse_srcs/split_2_parser/ft_split_arg_type.c
 

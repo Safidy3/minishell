@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/19 14:01:48 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/19 14:04:06 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/21 15:45:39 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,6 +88,8 @@ void	get_command_bin(t_all *all, t_list *command_list)
 	{
 		if (!all->command[0][0])
 			command_not_found(all);
+		if (!ft_strcmp(all->command[0], "."))
+			command_not_found_point(all);
 		if (ft_strchr(all->command[0], '/') && is_dir(all->command[0], all))
 			command_dir_error(all);
 		all->bin_path = get_bin_path(all->command[0], all);

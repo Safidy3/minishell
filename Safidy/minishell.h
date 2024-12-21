@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/21 15:15:33 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/21 15:42:38 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -253,6 +253,7 @@ char			*join_result(char *buffer, char *input,
 
 void			exec_error(char *bin_path, t_all *all, char *msg);
 int				command_not_found(t_all *all);
+int				command_not_found_point(t_all *all);
 void			fd_error(char *file_path, t_redirect **redir, t_all *all);
 void			free_all_redir(t_redirect **redir);
 char			*new_delimiter(char *old, int *del_quote);

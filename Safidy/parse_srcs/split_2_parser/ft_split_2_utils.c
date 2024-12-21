@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/19 15:06:54 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/21 12:09:41 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/21 16:41:56 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,34 +27,6 @@ char	*ft_escape_special_char(char *s)
 			s++;
 	}
 	return (s);
-}
-
-size_t	ft_count_words_2(char *s, char c)
-{
-	size_t	count;
-
-	count = 0;
-	while (*s)
-	{
-		while (*s == c)
-			s++;
-		if (*s == '\0')
-			break ;
-		count++;
-		while (*s && *s != c)
-		{
-			if (*s == '\'' || *s == '\"')
-				s = ft_escape_quote(s);
-			else if (is_special_char(*s))
-			{
-				count++;
-				s = ft_escape_special_char(s);
-			}
-			else
-				s++;
-		}
-	}
-	return (count);
 }
 
 void	skip_quote(char *s, int *word_len, int *i)

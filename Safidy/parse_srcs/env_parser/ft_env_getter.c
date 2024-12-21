@@ -44,6 +44,8 @@ char	*get_env_name(char *s)
 	len = -1;
 	while (s[++len] && ft_isdigit(s[len]))
 		;
+	if (!s[len])
+		return (ft_strdup(s));
 	while (s[++len] && (s[len] == '_' || ft_isalnum(s[len])))
 		i++;
 	var_name = (char *)malloc(sizeof(char) * (len + 1));
