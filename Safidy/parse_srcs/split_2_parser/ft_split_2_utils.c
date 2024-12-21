@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/19 15:06:54 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/19 16:30:38 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/21 12:09:41 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,10 @@ size_t	ft_count_words_2(char *s, char c)
 			if (*s == '\'' || *s == '\"')
 				s = ft_escape_quote(s);
 			else if (is_special_char(*s))
+			{
+				count++;
 				s = ft_escape_special_char(s);
+			}
 			else
 				s++;
 		}
