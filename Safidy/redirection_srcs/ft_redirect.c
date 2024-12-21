@@ -44,7 +44,6 @@ int	handle_input_redirection(t_redirect *redirect,
 
 int	handle_heredoc_redirection(int fd)
 {
-	printf("*%d  ", fd);
 	if (dup2(fd, STDIN_FILENO) == -1)
 	{
 		perror("dup2");
@@ -68,10 +67,7 @@ int	manage_redirections(t_redirect	**redir, t_all *all)
 		else if (redir[i]->type == INPUT)
 			fd = handle_input_redirection(redir[i], all, redir);
 		else if (redir[i]->type == HEREDOC)
-		{
 			fd = handle_heredoc_redirection(redir[i]->fd);
-			printf(".%d\n", fd);
-		}
 		if (fd != -1 && fd != -2)
 			close(fd);
 	}
