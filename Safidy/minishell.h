@@ -37,6 +37,11 @@ extern volatile int	g_flag;
 # define APPEND 2
 # define INPUT 3
 # define HEREDOC 4
+# define HISTORY_FILE ".shell_history"
+
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE 42
+# endif
 
 typedef struct s_env_list
 {
@@ -68,6 +73,10 @@ typedef struct s_all
 	t_redirect	**redir;
 	t_env_list	*env_list;
 }				t_all;
+
+char			*get_next_line(int fd);
+void			load_history(void);
+void			append_to_history(const char *line);
 
 /******************** CMD VALIDATOR ****************** */
 

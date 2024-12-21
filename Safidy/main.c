@@ -33,7 +33,10 @@ int	process_line(t_all *all, char *line)
 	if (!line)
 		exit(all->exit_status);
 	if (*line)
+	{
 		add_history(line);
+		append_to_history(line);
+	}
 	line = replace_env_vars(line, all);
 	if (!valid_command(line, all))
 		return (free(line), 0);
@@ -81,6 +84,7 @@ int	main(int argc, char **argv, char **envp)
 	all = (t_all *)malloc(sizeof(t_all));
 	if (!all)
 		return (0);
+	load_history();
 	init_all_struct(all, envp);
 	begin_loop(all);
 	return (0);

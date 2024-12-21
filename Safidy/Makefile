@@ -42,9 +42,9 @@ REDIR_SRCS = ./redirection_srcs/ft_redirect.c\
 FREE_UTILS = ./utils/ft_free.c ./utils/ft_list_utils.c\
 			./utils/ft_array_utils.c
 
-SRCS =	ft_init.c ft_signals.c ft_error.c $(HEREDOC_SRCS)\
-		$(REDIR_SRCS) $(BUILTINS_SRCS) $(EXEC_SRCS)\
-		$(VALIDATOR_SRC) $(FREE_UTILS)\
+SRCS =	ft_init.c ft_signals.c ft_error.c ft_history.c get_next_line.c\
+		$(HEREDOC_SRCS) $(REDIR_SRCS) $(BUILTINS_SRCS)\
+		$(EXEC_SRCS) $(VALIDATOR_SRC) $(FREE_UTILS)\
 		$(PARS_SRCS)\
 		main.c
 
@@ -74,7 +74,7 @@ clean:
 	@make clean -C $(LIBFT_PATH)
 
 fclean: clean
-	@rm -f $(NAME)
+	@rm -f $(NAME) .shell_history
 	@make fclean -C $(LIBFT_PATH)
 
 re: fclean all
