@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_exit.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/20 17:04:11 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/21 11:53:24 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,16 @@ int	check_valid_arg(char **command)
 	return (1);
 }
 
+void	numeric_arg_error(t_all *all, char **command)
+{
+	ft_putstr_fd("exit\n", 1);
+	ft_putstr_fd("exit: ", 2);
+	ft_putstr_fd(command[1], 2);
+	ft_putstr_fd(": numeric argument required\n", 2);
+	all->exit_status = 2;
+	exit_program(all, command, 0);
+}
+
 long long	ft_exit(t_all *all, char **command)
 {
 	int	is_valid_number;
@@ -61,20 +71,16 @@ long long	ft_exit(t_all *all, char **command)
 		exit_program(all, command, 1);
 	is_valid_number = check_valid_arg(command);
 	if (!is_valid_number)
-	{
-		ft_putstr_fd("exit\n", 1);
-		ft_putstr_fd("exit: ", 2);
-		ft_putstr_fd(command[1], 2);
-		ft_putstr_fd(": numeric argument required\n", 2);
-		all->exit_status = 2;
-		exit_program(all, command, 0);
-	}
+		numeric_arg_error(all, command);
 	if (array_len(command) > 2)
 	{
 		ft_putstr_fd("exit\n", 1);
 		ft_putstr_fd("exit: too many arguments\n", 2);
 		return (1);
 	}
+	if (ft_strncmp(command[1], "9223372036854775807", 19) > 0
+		|| ft_strlen(command[1]) > 19)
+		numeric_arg_error(all, command);
 	all->exit_status = ft_atoi_long_long(command[1]) % 256;
 	exit_program(all, command, 1);
 	return (0);
