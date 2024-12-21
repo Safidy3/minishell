@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_echo.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/18 11:31:54 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/21 15:25:07 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ int	ft_echo(char **commands)
 	while (commands[++i] && is_echo_flag(commands[i]))
 		skip_newline = 1;
 	if (!commands[i])
-		return (ft_putstr_fd("\n", 1), 0);
+		return (0);
 	while (commands[i] && i < token_count)
 	{
 		ft_putstr_fd(commands[i], 1);

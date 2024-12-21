@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:25:18 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/19 14:12:08 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/21 15:13:49 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,8 @@ void	exec_child(t_all *all, t_list *command_list)
 
 void	exec_forked(t_all *all, t_list *command_list, int command_count)
 {
+	free_split(all->env_arr);
+	all->env_arr = list_to_array(all->env_list);
 	if (all->pids[command_count] == 0)
 		exec_child(all, command_list);
 	else if (all->pids[command_count] > 0)

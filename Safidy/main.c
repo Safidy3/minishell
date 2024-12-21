@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 10:29:42 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/20 17:32:12 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/21 15:21:16 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ void	sig_def_main_handler(t_all *all)
 	int	status;
 
 	status = all->exit_status;
-	printf("\n");
+	printf("exit\n");
 	close(all->fd_og[0]);
 	close(all->fd_og[1]);
 	ft_free_env_list(all->env_list);

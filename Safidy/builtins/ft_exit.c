@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/06 11:29:02 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/21 14:27:16 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/21 15:13:44 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ int	check_valid_arg(char **command)
 	free(cmd_trimed);
 	return (1);
 }
+
 void	pint_error_exit(char **command, t_all *all)
 {
 	ft_putstr_fd("exit\n", 1);
@@ -75,8 +76,8 @@ int	ft_exit(t_all *all, char **command)
 		ft_putstr_fd("exit: too many arguments\n", 2);
 		return (1);
 	}
-	if (command[1][0] == '+'
-		&& ft_strncmp(command[1], "+9223372036854775807", ft_strlen(command[1])) > 0)
+	if (command[1][0] == '+' && ft_strncmp(command[1],
+		"+9223372036854775807", ft_strlen(command[1])) > 0)
 		pint_error_exit(command, all);
 	if (ft_strncmp(command[1], "9223372036854775807", ft_strlen(command[1])) > 0
 		|| (ft_strlen(command[1]) > 19 && command[1][0] != '+'))

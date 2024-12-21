@@ -12,7 +12,8 @@ BONUS	=	ft_lstnew.c ft_lstadd_front.c ft_lstsize.c ft_lstlast.c\
 OBJS 	=	$(SRCS:.c=.o)
 B_OBJS	=	$(BONUS:.c=.o)
 
-NAME	=	libft.a
+NAME	=	libft2.a
+B_NAME	=	libft.a
 FLAGS	=	-Wall -Wextra -Werror
 CC		=	gcc
 
@@ -32,6 +33,8 @@ fclean: clean
 
 re: fclean all
 
-bonus: $(OBJS) $(B_OBJS)
+bonus: $(B_NAME) 
+
+$(B_NAME): $(OBJS) $(B_OBJS)
 	@ar rcs $(NAME) $(OBJS) $(B_OBJS)
 

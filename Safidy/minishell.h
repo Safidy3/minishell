@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/21 15:01:08 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/21 15:15:33 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,7 +173,6 @@ int				ft_print_export(t_env_list *env);
 int				ft_export_error(char *variable_name, char *commande);
 t_env_list		*ft_dup_env(t_env_list **env);
 void			ft_print_export_error(char *commande);
-// int				ft_strcmp(const char *s1, const char *s2);
 int				ft_check_after_first_caracter(char *var_name, char *cmd);
 char			*ft_init_variable_name(char *commande, int *flag, char *line);
 int				ft_export(t_env_list **env, char **commade);
