@@ -86,6 +86,12 @@ void	free_if_failed_exec(t_all *all)
 	int	exit_stat;
 
 	exit_stat = all->exit_status;
+	if (all->command)
+	{
+		free(all->command);
+		if (all->bin_path)
+			free(all->bin_path);
+	}
 	free_list(all->command_list);
 	free_split(all->env_arr);
 	ft_free_env_list(all->env_list);
