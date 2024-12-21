@@ -46,8 +46,9 @@ SRCS =	ft_init.c ft_signals.c ft_error.c $(HEREDOC_SRCS)\
 		$(PARS_SRCS)\
 		main.c
 
-FLAGS = -g -Wall -Werror -Wextra
+FLAGS = -Wall -Werror -Wextra
 RELINE_FLAG = -lreadline
+CC = gcc
 
 OBJS = $(SRCS:.c=.o)
 NAME = minishell
