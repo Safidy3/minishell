@@ -12,7 +12,6 @@ void	load_history(void)
 		return ;
 	}
 	line = get_next_line(fd);
-	printf("line: %s\n", line);
 	while (line)
 	{
 		line[strlen(line) - 1] = '\0';
