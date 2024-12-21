@@ -12,33 +12,6 @@
 
 #include "../minishell.h"
 
-/*
-to do :
-fonction CALLOC ESORINA
-
-unset HOME && cd ~
-
-cat << "$US"E"R"
-
-export var9="echo 'Hello world'"
-$var9
-
-export var10='echo "Hello world"'
-$var10
-
-HEREDOC ENV
-
-*---> leaks
-unset PWD OLDPWD
-cd /
-/bin/ls
-pwd
-echo $OLDPWD $PWD
-
-*/
-
-/********************************************************************* */
-
 void	exec_parent(t_all *all, t_list *command_list)
 {
 	if (all->in_pipe[0] != -1)
