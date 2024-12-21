@@ -12,8 +12,8 @@ BONUS	=	ft_lstnew.c ft_lstadd_front.c ft_lstsize.c ft_lstlast.c\
 OBJS 	=	$(SRCS:.c=.o)
 B_OBJS	=	$(BONUS:.c=.o)
 
-NAME	=	libft2.a
-B_NAME	=	libft.a
+NAME	=	libft.a
+B_NAME	=	libft2.a
 FLAGS	=	-Wall -Wextra -Werror
 CC		=	gcc
 
