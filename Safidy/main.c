@@ -71,10 +71,6 @@ void	begin_loop(t_all *all)
 			continue ;
 	}
 }
-/*
-to do :
-cat << "$US"E"R"
-*/
 
 int	main(int argc, char **argv, char **envp)
 {
