@@ -62,4 +62,3 @@ long long int	ft_atoi_long_long(const char *str)
 		result = result * 10 + (*str++ - 48);
 	return (result * signe);
 }
-

@@ -39,26 +39,26 @@ char	*ft_strnstr(const char *src, const char *sub, size_t len)
 
 char	*ft_strstr(char *str, char *sub_str)
 {
-	char *h;
-	char *n;
+	char	*h;
+	char	*n;
 
-    if (*sub_str == '\0')
-        return (str);
-    while (*str != '\0')
+	if (*sub_str == '\0')
+		return (str);
+	while (*str != '\0')
 	{
-        if (*str == *sub_str)
+		if (*str == *sub_str)
 		{
-            h = str;
-            n = sub_str;
-            while (*n != '\0' && *h == *n)
+			h = str;
+			n = sub_str;
+			while (*n != '\0' && *h == *n)
 			{
-                h++;
-                n++;
-            }
-            if (*n == '\0')
-                return (str);
-        }
-        str++;
-    }
-    return (NULL); 
+				h++;
+				n++;
+			}
+			if (*n == '\0')
+				return (str);
+		}
+		str++;
+	}
+	return (NULL);
 }

@@ -23,7 +23,7 @@ int	has_redir(t_redirect **redirect)
 		if (redirect[i]->type == TRUNCATE || redirect[i]->type == APPEND
 			|| redirect[i]->type == INPUT)
 			return (1);
-	return (0);
+	return (free_all_redir(redirect), 0);
 }
 
 int	builtins_output_redirection(t_redirect *redirect, t_all *all)
@@ -98,9 +98,22 @@ void	exec_non_forked(t_all *all, t_list *command_list)
 			if (all->redir[i]->type == HEREDOC
 				&& get_builtin_heredoc(all->redir[i]->filename, all))
 				return (free_all_redir(all->redir));
-
 	if (builtin_redirections(all) != -1)
 		all->exit_status = builtin_execution(all->command, all);
 	restore_std(all);
 	return (free(all->command));
 }
+
+/*
+	>: cat hello world << g
+	heredoc> dsfsdf
+	heredoc> g
+	cat: hello: No such file or directory
+	cat: world: No such file or directory
+	>: echo hello world << g
+	heredoc> dsfs
+	heredoc> g
+	hello world
+	>: exit
+	exit
+*/
