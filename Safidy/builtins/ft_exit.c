@@ -57,8 +57,8 @@ void	pint_error_exit(char **command, t_all *all)
 	ft_putstr_fd("exit: ", 2);
 	ft_putstr_fd(command[1], 2);
 	ft_putstr_fd(": numeric argument required\n", 2);
-	exit_program(all, command, 0);
 	all->exit_status = 2;
+	exit_program(all, command, 0);
 }
 
 int	ft_exit(t_all *all, char **command)
