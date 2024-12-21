@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/21 14:27:38 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/21 15:01:08 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,6 +153,8 @@ t_env_list		*ft_lstnew(char *content, int flag);
 t_env_list		*ft_lstlast(t_env_list *lst);
 void			ft_lstadd_back(t_env_list **lst, t_env_list *new_element);
 void			ft_free_env_list(t_env_list *env);
+void			free_shlvl(char *content);
+t_env_list		*ft_lstnew_init(char *content, int flag);
 void			int_lst_env(t_env_list **list, char **envp);
 char			**list_to_array(t_env_list *env);
 int				ft_print_env(t_env_list *env);

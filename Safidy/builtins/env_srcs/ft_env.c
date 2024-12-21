@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/20 12:28:22 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/20 11:57:19 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/21 15:03:02 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,12 +49,25 @@ void	join_first_second(int flag, t_env_list *new)
 
 void	int_lst_env(t_env_list **list, char **envp)
 {
-	int	i;
+	int		i;
+	int		j;
+	char	*shlvl_char;
 
 	i = 0;
+	j = 0;
 	while (envp[i])
 	{
-		ft_lstadd_back(list, ft_lstnew(envp[i], 0));
+		if (!ft_strncmp(envp[i], "SHLVL", 5))
+		{
+			while (!ft_isdigit(envp[i][j]))
+				j++;
+			shlvl_char = ft_itoa(ft_atoi(&envp[i][j]) + 1);
+			ft_lstadd_back(list, ft_lstnew_init(
+					ft_strjoin("SHLVL=", shlvl_char), 0));
+			free(shlvl_char);
+		}
+		else
+			ft_lstadd_back(list, ft_lstnew_init(envp[i], 0));
 		i++;
 	}
 }

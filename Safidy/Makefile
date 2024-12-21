@@ -4,7 +4,8 @@ EXPORT_SRCS = ./builtins/export_srcs/ft_export.c\
 			./builtins/export_srcs/ft_export_error.c
 
 ENV_SRCS = ./builtins/env_srcs/ft_env.c\
-			./builtins/env_srcs/ft_env_utils.c
+			./builtins/env_srcs/ft_env_utils.c\
+			./builtins/env_srcs/ft_env_utils_2.c
 
 BUILTINS_SRCS = $(EXPORT_SRCS) $(ENV_SRCS)\
 				./builtins/ft_unset.c ./builtins/pwd_cd.c\
@@ -46,7 +47,7 @@ SRCS =	ft_init.c ft_signals.c ft_error.c $(HEREDOC_SRCS)\
 		$(PARS_SRCS)\
 		main.c
 
-FLAGS = -Wall -Werror -Wextra
+FLAGS = -g -Wall -Werror -Wextra
 RELINE_FLAG = -lreadline
 CC = gcc
 
