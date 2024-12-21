@@ -56,7 +56,7 @@ typedef struct s_redirect
 
 typedef struct s_all
 {
-	int			exit_status;
+	long long	exit_status;
 	t_list		*command_list;
 	char		**env_arr;
 	int			fd_og[2];
@@ -186,7 +186,7 @@ void			ft_free_tmp(t_env_list *tmp);
 int				ft_pwd(void);
 int				ft_cd(char **path, t_all *all);
 int				ft_echo(char **tokens);
-int				ft_exit(t_all *all, char **command);
+long long		ft_exit(t_all *all, char **command);
 
 /******************* EXEC ******************* */
 
@@ -239,6 +239,7 @@ void			dup_out(int fd[2], int closeall);
 /****************** HEREDOC ********************/
 
 int				get_heredoc(char *delimiter, int *fd, t_all *all);
+int				get_builtin_heredoc(char *delimiter, t_all *all);
 char			*read_join_heredoc(char *buffer, char *delimiter,
 					int pipe_fd[2], t_all *all);
 int				handle_ctrl_d(char *delimiter, char *input);

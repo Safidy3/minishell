@@ -12,10 +12,18 @@
 
 #include "../minishell.h"
 
-void	ft_close_fd(int fd)
+int	has_redir(t_redirect **redirect)
 {
-	if (fd != -1)
-		close(fd);
+	int	i;
+
+	if (!redirect)
+		return (0);
+	i = -1;
+	while (redirect[++i])
+		if (redirect[i]->type == TRUNCATE || redirect[i]->type == APPEND
+			|| redirect[i]->type == INPUT)
+			return (1);
+	return (0);
 }
 
 int	builtins_output_redirection(t_redirect *redirect, t_all *all)
@@ -31,6 +39,24 @@ int	builtins_output_redirection(t_redirect *redirect, t_all *all)
 		perror(redirect->filename);
 	if (fd != -1 && dup2(fd, STDOUT_FILENO) == -1)
 		exec_error(NULL, all, "dup2 failed\n");
+	if (fd != -1)
+		close(fd);
+	return (fd);
+}
+
+int	builtins_input_redirection(t_redirect *redirect)
+{
+	int	fd;
+
+	fd = -1;
+	if (redirect->type == INPUT)
+	{
+		fd = open(redirect->filename, O_RDONLY);
+		if (fd == -1)
+			perror(redirect->filename);
+		if (fd != -1)
+			close(fd);
+	}
 	return (fd);
 }
 
@@ -39,7 +65,7 @@ int	builtin_redirections(t_all *all)
 	int	fd;
 	int	i;
 
-	if (!all->redir)
+	if (!has_redir(all->redir))
 		return (0);
 	i = -1;
 	while (all->redir[++i])
@@ -48,12 +74,7 @@ int	builtin_redirections(t_all *all)
 		if (all->redir[i]->type == TRUNCATE || all->redir[i]->type == APPEND)
 			fd = builtins_output_redirection(all->redir[i], all);
 		else if (all->redir[i]->type == INPUT)
-		{
-			fd = open(all->redir[i]->filename, O_RDONLY);
-			if (fd == -1)
-				perror(all->redir[i]->filename);
-		}
-		ft_close_fd(fd);
+			fd = builtins_input_redirection(all->redir[i]);
 		if (fd == -1)
 		{
 			all->exit_status = 1;
@@ -65,10 +86,19 @@ int	builtin_redirections(t_all *all)
 
 void	exec_non_forked(t_all *all, t_list *command_list)
 {
+	int	i;
+
 	all->command = get_new_command(command_list, all);
 	if (ft_strchr(all->command[0], '/') && is_dir(all->command[0], all))
 		return ;
 	all->redir = get_all_redirections(command_list, all);
+	i = -1;
+	if (all->redir)
+		while (all->redir[++i])
+			if (all->redir[i]->type == HEREDOC
+				&& get_builtin_heredoc(all->redir[i]->filename, all))
+				return (free_all_redir(all->redir));
+
 	if (builtin_redirections(all) != -1)
 		all->exit_status = builtin_execution(all->command, all);
 	restore_std(all);

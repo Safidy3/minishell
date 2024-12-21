@@ -32,7 +32,7 @@ PARS_SRCS = $(ENV_PARSER) $(SPLIT_2_PARSER)\
 EXEC_SRCS = ./exec_srcs/ft_exec.c ./exec_srcs/ft_exec_builtins.c\
 			./exec_srcs/ft_bin_path.c ./exec_srcs/ft_exec_fd_utils.c\
 			./exec_srcs/exec_error.c ./exec_srcs/exec_geter.c\
-			./exec_srcs/exec_non_forked.c
+			./exec_srcs/exec_non_forked.c ./exec_srcs/exec_non_forked_heredoc.c
 
 REDIR_SRCS = ./redirection_srcs/ft_redirect.c\
 			./redirection_srcs/redirect_get_set.c
@@ -82,7 +82,8 @@ run: all
 norm:
 	norminette $(SRCS)
 
-debug: fclean all
+debug: all
 	@valgrind --track-fds=yes --suppressions=readline.supp --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(NAME)
+	@make clean
 
 .PHONY: all clean fclean re
