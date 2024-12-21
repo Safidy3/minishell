@@ -35,8 +35,9 @@ int	check_valid_arg(char **command)
 	char	*cmd_trimed;
 
 	i = 0;
+	if (command[1][0] == '\0')
+		return (0);
 	cmd_trimed = ft_strtrim(command[1], " ");
-	printf("{%s}\n", cmd_trimed);
 	if (cmd_trimed[i] == '-' || cmd_trimed[i] == '+')
 		i++;
 	while (cmd_trimed[i])
@@ -52,7 +53,7 @@ int	check_valid_arg(char **command)
 	return (1);
 }
 
-int	ft_exit(t_all *all, char **command)
+long long	ft_exit(t_all *all, char **command)
 {
 	int	is_valid_number;
 
@@ -74,7 +75,7 @@ int	ft_exit(t_all *all, char **command)
 		ft_putstr_fd("exit: too many arguments\n", 2);
 		return (1);
 	}
-	all->exit_status = ft_atoi(command[1]) % 256;
+	all->exit_status = ft_atoi_long_long(command[1]) % 256;
 	exit_program(all, command, 1);
 	return (0);
 }

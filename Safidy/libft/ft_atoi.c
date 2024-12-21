@@ -45,7 +45,8 @@ long int	ft_atoi_long(const char *str)
 		result = result * 10 + (*str++ - 48);
 	return (result * signe);
 }
-long long int	ft_atoi_long(const char *str)
+
+long long int	ft_atoi_long_long(const char *str)
 {
 	long long int	signe;
 	long long int	result;
