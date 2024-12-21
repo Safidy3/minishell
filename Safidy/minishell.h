@@ -6,7 +6,7 @@
 /*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:23:39 by safandri          #+#    #+#             */
-/*   Updated: 2024/12/20 14:08:25 by safandri         ###   ########.fr       */
+/*   Updated: 2024/12/21 14:27:38 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,7 +186,7 @@ void			ft_free_tmp(t_env_list *tmp);
 int				ft_pwd(void);
 int				ft_cd(char **path, t_all *all);
 int				ft_echo(char **tokens);
-long long		ft_exit(t_all *all, char **command);
+int				ft_exit(t_all *all, char **command);
 
 /******************* EXEC ******************* */
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pwd_cd.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: larakoto < larakoto@student.42antananar    +#+  +:+       +#+        */
+/*   By: safandri <safandri@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/12 15:57:34 by larakoto          #+#    #+#             */
-/*   Updated: 2024/12/05 11:37:36 by larakoto         ###   ########.fr       */
+/*   Updated: 2024/12/21 14:26:32 by safandri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,9 @@ int	ft_cd(char **t_path, t_all *all)
 	char	*o_path;
 	char	*n_path;
 	char	*path;
-
+	
+	if (t_path[1] && t_path[1][0] == '\0')
+		return (0);
 	if (array_len(t_path) > 2)
 		return (ft_putstr_fd(" too many arguments\n", 2), 1);
 	path = manage_home_path(t_path[1], all);
