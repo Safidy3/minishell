@@ -1,3 +1,0 @@
-stdin   file descriptor 0
-stdout  file descriptor 1
-stderr  file descriptor 2
